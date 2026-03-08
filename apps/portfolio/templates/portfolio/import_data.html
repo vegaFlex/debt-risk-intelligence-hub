@@ -6,18 +6,31 @@
     <title>Portfolio Import</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 24px; }
-        .container { max-width: 900px; margin: 0 auto; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .messages { margin-bottom: 16px; }
+        .message { padding: 10px; margin-bottom: 8px; border-radius: 6px; }
+        .message.error { background: #ffe8e8; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .grid .full { grid-column: 1 / -1; }
         label { display: block; margin-bottom: 6px; font-weight: 600; }
         input { width: 100%; padding: 8px; box-sizing: border-box; }
         button { margin-top: 16px; padding: 10px 16px; cursor: pointer; }
-        .notice { background: #eef6ff; padding: 10px; border-radius: 6px; margin-top: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f7f7f7; }
     </style>
 </head>
 <body>
 <div class="container">
     <h1>Portfolio Data Import</h1>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -53,11 +66,53 @@
             </div>
         </div>
 
-        <button type="submit">Upload File</button>
+        <button type="submit">Validate & Preview</button>
     </form>
 
     {% if uploaded_file_name %}
-        <div class="notice">File uploaded successfully: <strong>{{ uploaded_file_name }}</strong></div>
+        <p>Uploaded file: <strong>{{ uploaded_file_name }}</strong></p>
+    {% endif %}
+
+    {% if summary %}
+        <h2>Validation Summary</h2>
+        <p>Total rows: {{ summary.total_rows }}</p>
+        <p>Valid rows: {{ summary.valid_rows }}</p>
+        <p>Errors: {{ summary.error_count }}</p>
+    {% endif %}
+
+    {% if row_errors %}
+        <h2>Validation Errors (first 20)</h2>
+        <ul>
+            {% for error in row_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if preview_rows %}
+        <h2>Preview (first 20 valid rows)</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>external_id</th>
+                <th>full_name</th>
+                <th>days_past_due</th>
+                <th>outstanding_total</th>
+                <th>risk_band</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in preview_rows %}
+                <tr>
+                    <td>{{ row.external_id }}</td>
+                    <td>{{ row.full_name }}</td>
+                    <td>{{ row.days_past_due }}</td>
+                    <td>{{ row.outstanding_total }}</td>
+                    <td>{{ row.risk_band }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     {% endif %}
 </div>
 </body>
