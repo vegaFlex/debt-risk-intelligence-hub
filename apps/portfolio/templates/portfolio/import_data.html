@@ -10,6 +10,7 @@
         .messages { margin-bottom: 16px; }
         .message { padding: 10px; margin-bottom: 8px; border-radius: 6px; }
         .message.error { background: #ffe8e8; }
+        .message.success { background: #e8ffef; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .grid .full { grid-column: 1 / -1; }
         label { display: block; margin-bottom: 6px; font-weight: 600; }
@@ -34,6 +35,7 @@
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        <input type="hidden" name="action" value="preview">
 
         <div class="grid">
             <div>
@@ -78,6 +80,12 @@
         <p>Total rows: {{ summary.total_rows }}</p>
         <p>Valid rows: {{ summary.valid_rows }}</p>
         <p>Errors: {{ summary.error_count }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="confirm">
+            <button type="submit">Confirm Import</button>
+        </form>
     {% endif %}
 
     {% if row_errors %}

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.portfolio.models import CallLog, Debtor, Payment, Portfolio, PromiseToPay
+from apps.portfolio.models import CallLog, DataImportLog, Debtor, Payment, Portfolio, PromiseToPay
 
 
 @admin.register(Portfolio)
@@ -36,3 +36,10 @@ class PromiseToPayAdmin(admin.ModelAdmin):
     list_display = ('debtor', 'promised_amount', 'due_date', 'status', 'fulfilled_payment')
     search_fields = ('debtor__full_name',)
     list_filter = ('status', 'due_date')
+
+
+@admin.register(DataImportLog)
+class DataImportLogAdmin(admin.ModelAdmin):
+    list_display = ('source_file_name', 'source_file_type', 'status', 'total_rows', 'valid_rows', 'imported_rows', 'created_at')
+    search_fields = ('source_file_name',)
+    list_filter = ('status', 'source_file_type', 'created_at')

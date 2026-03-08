@@ -135,3 +135,40 @@ class PromiseToPay(models.Model):
 
     def __str__(self):
         return f'{self.debtor.full_name} - {self.promised_amount}'
+
+
+class DataImportLog(models.Model):
+    class ImportStatus(models.TextChoices):
+        PREVIEW = 'preview', 'Preview'
+        SUCCESS = 'success', 'Success'
+        FAILED = 'failed', 'Failed'
+
+    source_file_name = models.CharField(max_length=255)
+    source_file_type = models.CharField(max_length=10)
+    status = models.CharField(max_length=10, choices=ImportStatus.choices, default=ImportStatus.PREVIEW)
+    total_rows = models.PositiveIntegerField(default=0)
+    valid_rows = models.PositiveIntegerField(default=0)
+    imported_rows = models.PositiveIntegerField(default=0)
+    error_count = models.PositiveIntegerField(default=0)
+    details = models.TextField(blank=True)
+    portfolio = models.ForeignKey(
+        Portfolio,
+        on_delete=models.SET_NULL,
+        related_name='import_logs',
+        null=True,
+        blank=True,
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='import_logs',
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-created_at', '-id')
+
+    def __str__(self):
+        return f'{self.source_file_name} - {self.status}'
