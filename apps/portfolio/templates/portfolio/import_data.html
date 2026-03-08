@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Portfolio Import</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid .full { grid-column: 1 / -1; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { margin-top: 16px; padding: 10px 16px; cursor: pointer; }
+        .notice { background: #eef6ff; padding: 10px; border-radius: 6px; margin-top: 12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Portfolio Data Import</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="grid">
+            <div>
+                <label for="id_portfolio_name">Portfolio Name</label>
+                {{ form.portfolio_name }}
+            </div>
+            <div>
+                <label for="id_source_company">Source Company</label>
+                {{ form.source_company }}
+            </div>
+            <div>
+                <label for="id_purchase_date">Purchase Date</label>
+                {{ form.purchase_date }}
+            </div>
+            <div>
+                <label for="id_currency">Currency</label>
+                {{ form.currency }}
+            </div>
+            <div>
+                <label for="id_purchase_price">Purchase Price</label>
+                {{ form.purchase_price }}
+            </div>
+            <div>
+                <label for="id_face_value">Face Value</label>
+                {{ form.face_value }}
+            </div>
+            <div class="full">
+                <label for="id_data_file">Import File (CSV)</label>
+                {{ form.data_file }}
+            </div>
+        </div>
+
+        <button type="submit">Upload File</button>
+    </form>
+
+    {% if uploaded_file_name %}
+        <div class="notice">File uploaded successfully: <strong>{{ uploaded_file_name }}</strong></div>
+    {% endif %}
+</div>
+</body>
+</html>
