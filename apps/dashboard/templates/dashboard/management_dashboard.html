@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Management Dashboard</title>
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --ink: #1f2937;
+            --muted: #6b7280;
+            --accent: #0f766e;
+            --danger: #b91c1c;
+            --border: #e5e7eb;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            color: var(--ink);
+            background: radial-gradient(circle at top right, #d1fae5 0%, var(--bg) 38%);
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        h1 { margin-bottom: 8px; }
+        .sub { color: var(--muted); margin-bottom: 24px; }
+        .filters {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+        }
+        label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+        input, select {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+        }
+        .actions { margin-top: 14px; display: flex; gap: 10px; }
+        .btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-secondary { background: #e5e7eb; color: #111827; }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .kpi {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .kpi .label { font-size: 12px; color: var(--muted); text-transform: uppercase; }
+        .kpi .value { margin-top: 8px; font-size: 30px; font-weight: 700; }
+        .table-wrap {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; }
+        th { background: #f9fafb; text-transform: uppercase; font-size: 12px; color: var(--muted); }
+        .band-high { color: var(--danger); font-weight: 700; }
+        .band-medium { color: #b45309; font-weight: 700; }
+        .band-low { color: #047857; font-weight: 700; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Debt & Risk Dashboard</h1>
+    <div class="sub">KPI overview and high-risk debtor monitoring</div>
+
+    <form class="filters" method="get">
+        <div class="filters-grid">
+            <div>
+                <label for="portfolio">Portfolio</label>
+                <select name="portfolio" id="portfolio">
+                    <option value="">All portfolios</option>
+                    {% for p in portfolios %}
+                        <option value="{{ p.id }}" {% if filters.portfolio == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="risk_band">Risk Band</label>
+                <select name="risk_band" id="risk_band">
+                    <option value="">All</option>
+                    <option value="high" {% if filters.risk_band == 'high' %}selected{% endif %}>High</option>
+                    <option value="medium" {% if filters.risk_band == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="low" {% if filters.risk_band == 'low' %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+            <div>
+                <label for="status">Status</label>
+                <input type="text" id="status" name="status" value="{{ filters.status }}" placeholder="new / contacted / paying">
+            </div>
+            <div>
+                <label for="date_from">Created From</label>
+                <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}">
+            </div>
+            <div>
+                <label for="date_to">Created To</label>
+                <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}">
+            </div>
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="?" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+
+    <section class="kpi-grid">
+        <article class="kpi">
+            <div class="label">Total Debtors</div>
+            <div class="value">{{ kpis.total_debtors }}</div>
+        </article>
+        <article class="kpi">
+            <div class="label">Contact Rate</div>
+            <div class="value">{{ kpis.contact_rate }}%</div>
+        </article>
+        <article class="kpi">
+            <div class="label">PTP Rate</div>
+            <div class="value">{{ kpis.ptp_rate }}%</div>
+        </article>
+        <article class="kpi">
+            <div class="label">Recovery Rate</div>
+            <div class="value">{{ kpis.recovery_rate }}%</div>
+        </article>
+        <article class="kpi">
+            <div class="label">Expected Collections</div>
+            <div class="value">{{ kpis.expected_collections }}</div>
+        </article>
+    </section>
+
+    <section class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Debtor</th>
+                <th>Portfolio</th>
+                <th>Status</th>
+                <th>Days Past Due</th>
+                <th>Outstanding Total</th>
+                <th>Risk Score</th>
+                <th>Risk Band</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for debtor in top_risk_debtors %}
+                <tr>
+                    <td>{{ debtor.full_name }}</td>
+                    <td>{{ debtor.portfolio.name }}</td>
+                    <td>{{ debtor.status }}</td>
+                    <td>{{ debtor.days_past_due }}</td>
+                    <td>{{ debtor.outstanding_total }}</td>
+                    <td>{{ debtor.risk_score }}</td>
+                    <td class="band-{{ debtor.risk_band }}">{{ debtor.risk_band|upper }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7">No debtors found for the selected filters.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>
