@@ -43,7 +43,9 @@ class Debtor(models.Model):
     days_past_due = models.PositiveIntegerField(default=0)
     outstanding_principal = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     outstanding_total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    risk_score = models.PositiveSmallIntegerField(default=0)
     risk_band = models.CharField(max_length=10, choices=RiskBand.choices, default=RiskBand.MEDIUM)
+    risk_factors = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -172,3 +174,4 @@ class DataImportLog(models.Model):
 
     def __str__(self):
         return f'{self.source_file_name} - {self.status}'
+

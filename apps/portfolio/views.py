@@ -5,6 +5,7 @@ from django.shortcuts import redirect, render
 from apps.portfolio.forms import PortfolioImportForm
 from apps.portfolio.importers import ImportValidationError, parse_uploaded_file, validate_rows
 from apps.portfolio.models import DataImportLog, Debtor, Portfolio
+from apps.scoring.services import calculate_risk_profile
 
 
 IMPORT_SESSION_KEY = 'portfolio_import_payload'
@@ -20,6 +21,25 @@ def _build_portfolio(form, user):
         currency=form.cleaned_data['currency'],
         created_by=user if user.is_authenticated else None,
     )
+
+
+def _attach_risk_profile(rows):
+    scored_rows = []
+    for row in rows:
+        risk = calculate_risk_profile(
+            days_past_due=row['days_past_due'],
+            outstanding_total=row['outstanding_total'],
+            status=row['status'],
+        )
+        scored_rows.append(
+            {
+                **row,
+                'risk_score': risk['risk_score'],
+                'risk_band': risk['risk_band'],
+                'risk_factors': ' | '.join(risk['reason_factors']),
+            }
+        )
+    return scored_rows
 
 
 def portfolio_import_view(request):
@@ -78,6 +98,7 @@ def portfolio_import_view(request):
         try:
             raw_rows, source_file_type = parse_uploaded_file(form.cleaned_data['data_file'])
             cleaned_rows, row_errors = validate_rows(raw_rows)
+            scored_rows = _attach_risk_profile(cleaned_rows)
         except ImportValidationError as exc:
             messages.error(request, str(exc))
             DataImportLog.objects.create(
@@ -95,7 +116,7 @@ def portfolio_import_view(request):
             source_file_type=source_file_type,
             status=DataImportLog.ImportStatus.PREVIEW,
             total_rows=len(raw_rows),
-            valid_rows=len(cleaned_rows),
+            valid_rows=len(scored_rows),
             error_count=len(row_errors),
             details='\n'.join(row_errors[:20]),
             created_by=request.user if request.user.is_authenticated else None,
@@ -118,19 +139,19 @@ def portfolio_import_view(request):
                     'outstanding_principal': str(row['outstanding_principal']),
                     'outstanding_total': str(row['outstanding_total']),
                 }
-                for row in cleaned_rows
+                for row in scored_rows
             ],
             'row_errors': row_errors,
             'total_rows': len(raw_rows),
-            'valid_rows': len(cleaned_rows),
+            'valid_rows': len(scored_rows),
             'error_count': len(row_errors),
         }
 
-        context['preview_rows'] = cleaned_rows[:20]
+        context['preview_rows'] = scored_rows[:20]
         context['row_errors'] = row_errors[:20]
         context['summary'] = {
             'total_rows': len(raw_rows),
-            'valid_rows': len(cleaned_rows),
+            'valid_rows': len(scored_rows),
             'error_count': len(row_errors),
         }
 

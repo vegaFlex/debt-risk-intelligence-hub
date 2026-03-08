@@ -106,7 +106,7 @@
                 <th>full_name</th>
                 <th>days_past_due</th>
                 <th>outstanding_total</th>
-                <th>risk_band</th>
+                <th>risk_score</th>`r`n                <th>risk_band</th>`r`n                <th>risk_factors</th>
             </tr>
             </thead>
             <tbody>
@@ -116,7 +116,7 @@
                     <td>{{ row.full_name }}</td>
                     <td>{{ row.days_past_due }}</td>
                     <td>{{ row.outstanding_total }}</td>
-                    <td>{{ row.risk_band }}</td>
+                    <td>{{ row.risk_score }}</td>`r`n                    <td>{{ row.risk_band }}</td>`r`n                    <td>{{ row.risk_factors }}</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -125,3 +125,4 @@
 </div>
 </body>
 </html>
+

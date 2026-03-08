@@ -12,7 +12,7 @@ class PortfolioAdmin(admin.ModelAdmin):
 
 @admin.register(Debtor)
 class DebtorAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'portfolio', 'status', 'days_past_due', 'outstanding_total', 'risk_band')
+    list_display = ('full_name', 'portfolio', 'status', 'days_past_due', 'outstanding_total', 'risk_score', 'risk_band')
     search_fields = ('full_name', 'external_id', 'national_id', 'phone_number', 'email')
     list_filter = ('status', 'risk_band', 'region')
 
@@ -43,3 +43,4 @@ class DataImportLogAdmin(admin.ModelAdmin):
     list_display = ('source_file_name', 'source_file_type', 'status', 'total_rows', 'valid_rows', 'imported_rows', 'created_at')
     search_fields = ('source_file_name',)
     list_filter = ('status', 'source_file_type', 'created_at')
+
