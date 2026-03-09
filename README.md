@@ -124,3 +124,22 @@ Implemented:
 Planned next:
 - deployment configuration (Render)
 - screenshots and short product demo capture
+
+## UI Preview
+
+### Dashboard
+![Dashboard Main](docs/images/dashboard-main.png)
+
+### Import Page
+![Import Page](docs/images/import-page.png)
+
+### Dashboard + Developer API Section
+![Dashboard Developer API](docs/images/dashboard-developer-api.png)
+
+## Developer API Preview
+
+### Debtors Endpoint (Browsable API)
+![API Debtors](docs/images/api-debtors.png)
+
+### KPI Overview Endpoint (Browsable API)
+![API KPIs](docs/images/kpi-api.png)
