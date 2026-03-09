@@ -57,4 +57,5 @@ class DashboardViewTests(TestCase):
         self.client.login(username='manager_dash', password='pass123')
         response = self.client.get(reverse('dashboard-home'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Debt & Risk Dashboard')
+        self.assertContains(response, 'Debt & Risk Intelligence Hub')
+

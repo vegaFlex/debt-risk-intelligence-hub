@@ -1,128 +1,104 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Portfolio Import</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 24px; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .messages { margin-bottom: 16px; }
-        .message { padding: 10px; margin-bottom: 8px; border-radius: 6px; }
-        .message.error { background: #ffe8e8; }
-        .message.success { background: #e8ffef; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .grid .full { grid-column: 1 / -1; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; }
-        input { width: 100%; padding: 8px; box-sizing: border-box; }
-        button { margin-top: 16px; padding: 10px 16px; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background: #f7f7f7; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1>Portfolio Data Import</h1>
+{% extends "base_app.html" %}
 
-    {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="message {{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
+{% block title %}Import - Debt & Risk Hub{% endblock %}
 
-    <form method="post" enctype="multipart/form-data">
+{% block content %}
+<section class="card">
+  <h2>Portfolio Data Import</h2>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="preview">
+
+    <div class="filters-grid">
+      <div>
+        <label for="id_portfolio_name">Portfolio Name</label>
+        {{ form.portfolio_name }}
+      </div>
+      <div>
+        <label for="id_source_company">Source Company</label>
+        {{ form.source_company }}
+      </div>
+      <div>
+        <label for="id_purchase_date">Purchase Date</label>
+        {{ form.purchase_date }}
+      </div>
+      <div>
+        <label for="id_currency">Currency</label>
+        {{ form.currency }}
+      </div>
+      <div>
+        <label for="id_purchase_price">Purchase Price</label>
+        {{ form.purchase_price }}
+      </div>
+      <div>
+        <label for="id_face_value">Face Value</label>
+        {{ form.face_value }}
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <label for="id_data_file">Import File (CSV)</label>
+        {{ form.data_file }}
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Validate & Preview</button>
+    </div>
+  </form>
+
+  {% if uploaded_file_name %}
+    <p class="small">Uploaded file: <strong>{{ uploaded_file_name }}</strong></p>
+  {% endif %}
+
+  {% if summary %}
+    <section class="card" style="margin-top:12px;">
+      <h2>Validation Summary</h2>
+      <p>Total rows: {{ summary.total_rows }}</p>
+      <p>Valid rows: {{ summary.valid_rows }}</p>
+      <p>Errors: {{ summary.error_count }}</p>
+
+      <form method="post">
         {% csrf_token %}
-        <input type="hidden" name="action" value="preview">
+        <input type="hidden" name="action" value="confirm">
+        <button type="submit" class="btn btn-primary">Confirm Import</button>
+      </form>
+    </section>
+  {% endif %}
+</section>
 
-        <div class="grid">
-            <div>
-                <label for="id_portfolio_name">Portfolio Name</label>
-                {{ form.portfolio_name }}
-            </div>
-            <div>
-                <label for="id_source_company">Source Company</label>
-                {{ form.source_company }}
-            </div>
-            <div>
-                <label for="id_purchase_date">Purchase Date</label>
-                {{ form.purchase_date }}
-            </div>
-            <div>
-                <label for="id_currency">Currency</label>
-                {{ form.currency }}
-            </div>
-            <div>
-                <label for="id_purchase_price">Purchase Price</label>
-                {{ form.purchase_price }}
-            </div>
-            <div>
-                <label for="id_face_value">Face Value</label>
-                {{ form.face_value }}
-            </div>
-            <div class="full">
-                <label for="id_data_file">Import File (CSV)</label>
-                {{ form.data_file }}
-            </div>
-        </div>
+{% if row_errors %}
+<section class="card">
+  <h2>Validation Errors (first 20)</h2>
+  <ul>
+    {% for error in row_errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
 
-        <button type="submit">Validate & Preview</button>
-    </form>
-
-    {% if uploaded_file_name %}
-        <p>Uploaded file: <strong>{{ uploaded_file_name }}</strong></p>
-    {% endif %}
-
-    {% if summary %}
-        <h2>Validation Summary</h2>
-        <p>Total rows: {{ summary.total_rows }}</p>
-        <p>Valid rows: {{ summary.valid_rows }}</p>
-        <p>Errors: {{ summary.error_count }}</p>
-
-        <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="confirm">
-            <button type="submit">Confirm Import</button>
-        </form>
-    {% endif %}
-
-    {% if row_errors %}
-        <h2>Validation Errors (first 20)</h2>
-        <ul>
-            {% for error in row_errors %}
-                <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-
-    {% if preview_rows %}
-        <h2>Preview (first 20 valid rows)</h2>
-        <table>
-            <thead>
-            <tr>
-                <th>external_id</th>
-                <th>full_name</th>
-                <th>days_past_due</th>
-                <th>outstanding_total</th>
-                <th>risk_score</th>`r`n                <th>risk_band</th>`r`n                <th>risk_factors</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for row in preview_rows %}
-                <tr>
-                    <td>{{ row.external_id }}</td>
-                    <td>{{ row.full_name }}</td>
-                    <td>{{ row.days_past_due }}</td>
-                    <td>{{ row.outstanding_total }}</td>
-                    <td>{{ row.risk_score }}</td>`r`n                    <td>{{ row.risk_band }}</td>`r`n                    <td>{{ row.risk_factors }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-</div>
-</body>
-</html>
-
+{% if preview_rows %}
+<section class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>external_id</th><th>full_name</th><th>days_past_due</th><th>outstanding_total</th><th>risk_score</th><th>risk_band</th><th>risk_factors</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in preview_rows %}
+        <tr>
+          <td>{{ row.external_id }}</td>
+          <td>{{ row.full_name }}</td>
+          <td>{{ row.days_past_due }}</td>
+          <td>{{ row.outstanding_total }}</td>
+          <td>{{ row.risk_score }}</td>
+          <td>{{ row.risk_band }}</td>
+          <td>{{ row.risk_factors }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}

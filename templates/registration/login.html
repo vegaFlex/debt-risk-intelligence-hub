@@ -1,0 +1,24 @@
+{% extends "base_app.html" %}
+
+{% block title %}Login - Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card auth-card">
+  <h2>Sign in</h2>
+  {% if form.errors %}
+    <div class="alert error">Invalid credentials. Try again.</div>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <label for="id_username">Username</label>
+    {{ form.username }}
+    <label for="id_password">Password</label>
+    {{ form.password }}
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Login</button>
+    </div>
+    <input type="hidden" name="next" value="{{ next }}">
+  </form>
+  <p class="small">Demo: manager_demo / DemoPass123!</p>
+</section>
+{% endblock %}

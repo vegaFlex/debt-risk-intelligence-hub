@@ -1,0 +1,28 @@
+/* REST framework theme alignment */
+body { background: radial-gradient(circle at top right, #dbeee8 0, #edf3f1 35%) !important; }
+
+.navbar.navbar-static-top {
+  background: #0f766e !important;
+  border-color: #0d655f !important;
+}
+
+.navbar-brand {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.breadcrumb {
+  background: #ffffff !important;
+  border: 1px solid #d0d5dd !important;
+  border-radius: 10px !important;
+}
+
+.well {
+  border-radius: 12px !important;
+  border-color: #d0d5dd !important;
+}
+
+.btn-primary {
+  background: #0f766e !important;
+  border-color: #0f766e !important;
+}

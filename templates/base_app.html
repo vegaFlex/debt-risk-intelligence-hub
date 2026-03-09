@@ -1,0 +1,40 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Debt & Risk Hub{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1 class="brand">Debt & Risk Intelligence Hub</h1>
+        <p class="subtitle">Unified analytics workspace</p>
+      </div>
+    </header>
+
+    <nav class="nav">
+      <a href="/dashboard/">Dashboard</a>
+      <a href="/portfolio/import/">Import</a>
+      <a href="/api/portfolios/">API Portfolios</a>
+      <a href="/api/debtors/">API Debtors</a>
+      <a href="/api/kpis/overview/">API KPIs</a>
+      <a href="/reports/management/excel/">Excel Report</a>
+      <a href="/reports/management/pdf/">PDF Report</a>
+    </nav>
+
+    {% if messages %}
+      <section class="card">
+        {% for message in messages %}
+          <div class="alert {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

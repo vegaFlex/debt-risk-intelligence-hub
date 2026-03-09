@@ -1,0 +1,13 @@
+{% extends "rest_framework/base.html" %}
+{% load static %}
+
+{% block title %}{% if name %}{{ name }} - {% endif %}Debt & Risk API{% endblock %}
+
+{% block style %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/drf_theme.css' %}">
+{% endblock %}
+
+{% block branding %}
+  <a class='navbar-brand' rel="nofollow" href='/dashboard/'>Debt & Risk API</a>
+{% endblock %}
