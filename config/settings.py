@@ -140,3 +140,7 @@ AUTH_USER_MODEL = 'users.AppUser'
 
 
 
+
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+

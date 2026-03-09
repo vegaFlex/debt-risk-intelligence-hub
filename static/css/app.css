@@ -173,3 +173,30 @@ input[type="file"] {
   padding: 7px;
   background: #fff;
 }
+
+.user-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.user-chip {
+  border: 1px solid var(--border);
+  background: #f8fafc;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.btn-compact {
+  padding: 7px 10px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.inline-form {
+  margin: 0;
+}
