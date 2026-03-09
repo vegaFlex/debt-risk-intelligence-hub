@@ -32,9 +32,9 @@
     </header>
 
     <nav class="nav">
-      <a href="/dashboard/">Dashboard</a>
-      <a href="/portfolio/import/">Import</a>
-      <a href="/reports/management/">Reports</a>
+      <a class="{% if request.path|slice:":11" == "/dashboard/" %}active{% endif %}" href="/dashboard/">Dashboard</a>
+      <a class="{% if request.path == "/portfolio/import/" %}active{% endif %}" href="/portfolio/import/">Import</a>
+      <a class="{% if request.path|slice:":9" == "/reports/" %}active{% endif %}" href="/reports/management/">Reports</a>
     </nav>
 
     {% if messages %}
