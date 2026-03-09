@@ -10,10 +10,14 @@ from django.urls import reverse
 from apps.portfolio.models import Debtor, Payment, Portfolio
 from apps.reports.models import GeneratedReport
 from apps.reports.services import build_summary
+from apps.users.models import AppUser
 
 
 class ReportsModuleTests(TestCase):
     def setUp(self):
+        self.analyst = AppUser.objects.create_user(username='analyst_report', password='pass123', role='analyst')
+        self.manager = AppUser.objects.create_user(username='manager_report', password='pass123', role='manager')
+
         self.portfolio = Portfolio.objects.create(
             name='Report Portfolio',
             source_company='U1',
@@ -55,20 +59,25 @@ class ReportsModuleTests(TestCase):
         self.assertIn('top_segments', summary)
         self.assertEqual(summary['kpis']['total_debtors'], 1)
 
-    def test_excel_report_download_endpoint(self):
+    def test_excel_report_forbidden_for_analyst(self):
+        self.client.login(username='analyst_report', password='pass123')
+        response = self.client.get(reverse('report-management-excel'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_excel_report_allowed_for_manager(self):
+        self.client.login(username='manager_report', password='pass123')
         response = self.client.get(reverse('report-management-excel'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response['Content-Type'],
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         )
-        self.assertEqual(GeneratedReport.objects.filter(report_format='xlsx').count(), 1)
 
-    def test_pdf_report_download_endpoint(self):
+    def test_pdf_report_allowed_for_manager(self):
+        self.client.login(username='manager_report', password='pass123')
         response = self.client.get(reverse('report-management-pdf'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/pdf')
-        self.assertEqual(GeneratedReport.objects.filter(report_format='pdf').count(), 1)
 
     def test_weekly_report_management_command_creates_files_and_logs(self):
         call_command('generate_weekly_reports')

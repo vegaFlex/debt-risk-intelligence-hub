@@ -6,10 +6,14 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
+from apps.users.models import AppUser
 
 
 class PortfolioApiTests(APITestCase):
     def setUp(self):
+        self.analyst = AppUser.objects.create_user(username='analyst', password='pass123', role='analyst')
+        self.manager = AppUser.objects.create_user(username='manager', password='pass123', role='manager')
+
         self.portfolio = Portfolio.objects.create(
             name='March Debt Batch',
             source_company='UBB',
@@ -52,19 +56,31 @@ class PortfolioApiTests(APITestCase):
             is_confirmed=True,
         )
 
-    def test_portfolios_list_endpoint(self):
+    def test_portfolios_list_endpoint_requires_auth(self):
+        response = self.client.get(reverse('api-portfolios-list'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_portfolios_list_endpoint_for_analyst(self):
+        self.client.force_authenticate(user=self.analyst)
         response = self.client.get(reverse('api-portfolios-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(response.data['results'][0]['debtors_count'], 2)
 
     def test_debtors_filter_by_risk_band(self):
+        self.client.force_authenticate(user=self.analyst)
         response = self.client.get(reverse('api-debtors-list'), {'risk_band': 'high'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(response.data['results'][0]['external_id'], 'D-001')
 
-    def test_kpi_overview_endpoint(self):
+    def test_kpi_overview_forbidden_for_analyst(self):
+        self.client.force_authenticate(user=self.analyst)
+        response = self.client.get(reverse('api-kpis-overview'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_kpi_overview_allowed_for_manager(self):
+        self.client.force_authenticate(user=self.manager)
         response = self.client.get(reverse('api-kpis-overview'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['total_debtors'], 2)
