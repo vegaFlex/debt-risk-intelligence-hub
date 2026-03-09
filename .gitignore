@@ -22,3 +22,7 @@ db.sqlite3
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated reports
+generated_reports/
+
