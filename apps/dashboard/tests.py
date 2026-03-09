@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.portfolio.models import Debtor, Portfolio
+from apps.portfolio.models import Debtor, Payment, Portfolio
 
 
 class DashboardViewTests(TestCase):
@@ -26,11 +26,11 @@ class DashboardViewTests(TestCase):
             currency='BGN',
         )
 
-        Debtor.objects.create(
+        self.debtor_a = Debtor.objects.create(
             portfolio=self.portfolio_one,
             external_id='P1-001',
             full_name='Debtor A',
-            status='new',
+            status='paying',
             days_past_due=150,
             outstanding_principal=Decimal('1400'),
             outstanding_total=Decimal('1600'),
@@ -50,12 +50,34 @@ class DashboardViewTests(TestCase):
             risk_band='medium',
             risk_factors='sample',
         )
+        Debtor.objects.create(
+            portfolio=self.portfolio_two,
+            external_id='P2-002',
+            full_name='Debtor C',
+            status='new',
+            days_past_due=12,
+            outstanding_principal=Decimal('180'),
+            outstanding_total=Decimal('220'),
+            risk_score=22,
+            risk_band='low',
+            risk_factors='sample',
+        )
+
+        Payment.objects.create(
+            debtor=self.debtor_a,
+            paid_amount=Decimal('300'),
+            payment_date=date(2026, 3, 8),
+            channel='bank_transfer',
+            reference='PMT-001',
+            is_confirmed=True,
+        )
 
     def test_dashboard_page_loads(self):
         response = self.client.get(reverse('dashboard-home'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Debt & Risk Dashboard')
-        self.assertContains(response, 'Total Debtors')
+        self.assertContains(response, 'Call Center Performance')
+        self.assertContains(response, 'Conversion Rate')
 
     def test_dashboard_filter_by_portfolio(self):
         response = self.client.get(reverse('dashboard-home'), {'portfolio': self.portfolio_one.id})
@@ -70,3 +92,22 @@ class DashboardViewTests(TestCase):
         debtors = response.context['top_risk_debtors']
         self.assertEqual(len(debtors), 1)
         self.assertEqual(debtors[0].risk_band, 'high')
+
+    def test_dashboard_performance_metrics_in_context(self):
+        response = self.client.get(reverse('dashboard-home'))
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.context['performance']['contacted_count'], 2)
+        self.assertEqual(response.context['performance']['ptp_count'], 0)
+        self.assertEqual(response.context['performance']['paying_count'], 1)
+        self.assertEqual(response.context['performance']['open_cases'], 3)
+        self.assertEqual(response.context['kpis']['conversion_rate'], 50.0)
+
+    def test_dashboard_has_top_risk_segments(self):
+        response = self.client.get(reverse('dashboard-home'))
+        self.assertEqual(response.status_code, 200)
+        segments = list(response.context['top_risk_segments'])
+        self.assertGreaterEqual(len(segments), 1)
+        self.assertIn('portfolio__name', segments[0])
+        self.assertIn('risk_band', segments[0])
+        self.assertIn('debtor_count', segments[0])
