@@ -145,3 +145,26 @@ th { background: #f9fafb; font-size: 11px; text-transform: uppercase; color: var
   .app-shell { padding: 14px; }
   .brand { font-size: 22px; }
 }
+
+.dev-api { margin-top: 10px; }
+.api-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+}
+.api-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: #fcfcfd;
+}
+.api-item a {
+  font-weight: 700;
+  color: var(--brand);
+  text-decoration: none;
+}
+.api-item p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}

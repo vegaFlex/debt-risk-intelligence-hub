@@ -19,11 +19,7 @@
     <nav class="nav">
       <a href="/dashboard/">Dashboard</a>
       <a href="/portfolio/import/">Import</a>
-      <a href="/api/portfolios/">API Portfolios</a>
-      <a href="/api/debtors/">API Debtors</a>
-      <a href="/api/kpis/overview/">API KPIs</a>
-      <a href="/reports/management/excel/">Excel Report</a>
-      <a href="/reports/management/pdf/">PDF Report</a>
+      <a href="/reports/management/">Reports</a>
     </nav>
 
     {% if messages %}
@@ -35,6 +31,25 @@
     {% endif %}
 
     {% block content %}{% endblock %}
+
+    <section class="card dev-api">
+      <h2>Developer API</h2>
+      <p class="small">Technical endpoints for integrations, BI tools, and frontend data consumption.</p>
+      <div class="api-grid">
+        <div class="api-item">
+          <a href="/api/portfolios/">/api/portfolios/</a>
+          <p>Portfolio list for frontend or BI integration.</p>
+        </div>
+        <div class="api-item">
+          <a href="/api/debtors/">/api/debtors/</a>
+          <p>Debtor risk data with filtering/sorting for operational workflows.</p>
+        </div>
+        <div class="api-item">
+          <a href="/api/kpis/overview/">/api/kpis/overview/</a>
+          <p>Aggregated KPI metrics for dashboard widgets and reporting automation.</p>
+        </div>
+      </div>
+    </section>
   </main>
 </body>
 </html>

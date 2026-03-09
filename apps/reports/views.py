@@ -3,6 +3,7 @@ from datetime import date
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.utils import timezone
 from django.views import View
 
@@ -21,6 +22,22 @@ class ManagerOrAdminRequiredMixin(LoginRequiredMixin):
         if getattr(request.user, 'role', None) not in {'manager', 'admin'}:
             raise PermissionDenied('Manager or Admin role required.')
         return super().dispatch(request, *args, **kwargs)
+
+
+class ManagementReportPreviewView(ManagerOrAdminRequiredMixin, View):
+    def get(self, request):
+        period_start, period_end = _period_dates(request)
+        summary = build_summary(period_start=period_start, period_end=period_end)
+
+        context = {
+            'period_start': period_start or 'All Time',
+            'period_end': period_end or timezone.localdate(),
+            'kpis': summary['kpis'],
+            'top_segments': summary['top_segments'][:8],
+            'download_excel_url': f"/reports/management/excel/?date_from={period_start or ''}&date_to={period_end or ''}",
+            'download_pdf_url': f"/reports/management/pdf/?date_from={period_start or ''}&date_to={period_end or ''}",
+        }
+        return render(request, 'reports/management_preview.html', context)
 
 
 class ManagementExcelReportView(ManagerOrAdminRequiredMixin, View):

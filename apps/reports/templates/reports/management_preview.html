@@ -1,0 +1,45 @@
+{% extends "base_app.html" %}
+
+{% block title %}Reports - Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card">
+  <h2>Management Report Preview</h2>
+  <p class="small">Period: <strong>{{ period_start }}</strong> to <strong>{{ period_end }}</strong></p>
+
+  <div class="actions">
+    <a class="btn btn-primary" href="{{ download_excel_url }}">Download Excel</a>
+    <a class="btn btn-secondary" href="{{ download_pdf_url }}">Download PDF</a>
+  </div>
+</section>
+
+<section class="kpi-grid">
+  <article class="kpi-card"><div class="kpi-label">Total Debtors</div><div class="kpi-value">{{ kpis.total_debtors }}</div></article>
+  <article class="kpi-card"><div class="kpi-label">Contact Rate</div><div class="kpi-value">{{ kpis.contact_rate }}%</div></article>
+  <article class="kpi-card"><div class="kpi-label">PTP Rate</div><div class="kpi-value">{{ kpis.ptp_rate }}%</div></article>
+  <article class="kpi-card"><div class="kpi-label">Conversion Rate</div><div class="kpi-value">{{ kpis.conversion_rate }}%</div></article>
+  <article class="kpi-card"><div class="kpi-label">Recovery Rate</div><div class="kpi-value">{{ kpis.recovery_rate }}%</div></article>
+  <article class="kpi-card"><div class="kpi-label">Outstanding</div><div class="kpi-value">{{ kpis.outstanding_total }}</div></article>
+</section>
+
+<section class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Portfolio</th><th>Risk Band</th><th>Status</th><th>Debtor Count</th><th>Total Outstanding</th></tr>
+    </thead>
+    <tbody>
+      {% for seg in top_segments %}
+        <tr>
+          <td>{{ seg.portfolio }}</td>
+          <td class="band-{{ seg.risk_band }}">{{ seg.risk_band|upper }}</td>
+          <td>{{ seg.status }}</td>
+          <td>{{ seg.debtor_count }}</td>
+          <td>{{ seg.total_outstanding }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">No segment data for this period.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
