@@ -60,7 +60,33 @@ This project centralizes those workflows into one system that supports:
 - `analyst_demo / DemoPass123!`
 - `admin_demo / DemoPass123!`
 
-## Main URLs
+## Demo Role Access
+
+### analyst_demo / DemoPass123!
+Allowed:
+- `/api/portfolios/`
+- `/api/debtors/`
+
+Forbidden (returns `403 Forbidden`):
+- `/dashboard/`
+- `/api/kpis/overview/`
+- `/reports/management/` (including Excel/PDF downloads)
+
+### manager_demo / DemoPass123!
+Allowed:
+- `/dashboard/`
+- `/api/kpis/overview/`
+- `/reports/management/` + Excel/PDF download
+- `/api/portfolios/`
+- `/api/debtors/`
+
+Typical use: operations/management workflow.
+
+### admin_demo / DemoPass123!
+Allowed:
+- Everything available to `manager_demo`
+- Django admin panel: `/admin/`
+- Full admin privileges (`is_staff` + `is_superuser`)`r`n`r`n## Main URLs
 - Dashboard: `http://127.0.0.1:8000/dashboard/`
 - Data import: `http://127.0.0.1:8000/portfolio/import/`
 - API portfolios: `http://127.0.0.1:8000/api/portfolios/`
@@ -140,3 +166,5 @@ Planned next:
 
 ### KPI Overview Endpoint
 ![API KPIs](docs/images/api-kpis.jpg)
+
+
