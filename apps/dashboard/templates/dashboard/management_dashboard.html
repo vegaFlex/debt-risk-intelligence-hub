@@ -23,6 +23,7 @@
         }
         .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
         h1 { margin-bottom: 8px; }
+        h2 { margin: 0 0 12px; font-size: 18px; }
         .sub { color: var(--muted); margin-bottom: 24px; }
         .filters {
             background: var(--card);
@@ -69,11 +70,31 @@
         }
         .kpi .label { font-size: 12px; color: var(--muted); text-transform: uppercase; }
         .kpi .value { margin-top: 8px; font-size: 30px; font-weight: 700; }
+        .block {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 18px;
+        }
+        .perf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .mini {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .mini .label { font-size: 12px; text-transform: uppercase; color: var(--muted); }
+        .mini .value { margin-top: 6px; font-size: 24px; font-weight: 700; }
         .table-wrap {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 12px;
             overflow: hidden;
+            margin-bottom: 18px;
         }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; }
@@ -141,6 +162,10 @@
             <div class="value">{{ kpis.ptp_rate }}%</div>
         </article>
         <article class="kpi">
+            <div class="label">Conversion Rate</div>
+            <div class="value">{{ kpis.conversion_rate }}%</div>
+        </article>
+        <article class="kpi">
             <div class="label">Recovery Rate</div>
             <div class="value">{{ kpis.recovery_rate }}%</div>
         </article>
@@ -148,6 +173,28 @@
             <div class="label">Expected Collections</div>
             <div class="value">{{ kpis.expected_collections }}</div>
         </article>
+    </section>
+
+    <section class="block">
+        <h2>Call Center Performance</h2>
+        <div class="perf-grid">
+            <div class="mini">
+                <div class="label">Contacted Cases</div>
+                <div class="value">{{ performance.contacted_count }}</div>
+            </div>
+            <div class="mini">
+                <div class="label">PTP Cases</div>
+                <div class="value">{{ performance.ptp_count }}</div>
+            </div>
+            <div class="mini">
+                <div class="label">Paying Cases</div>
+                <div class="value">{{ performance.paying_count }}</div>
+            </div>
+            <div class="mini">
+                <div class="label">Open Cases</div>
+                <div class="value">{{ performance.open_cases }}</div>
+            </div>
+        </div>
     </section>
 
     <section class="table-wrap">
@@ -177,6 +224,35 @@
             {% empty %}
                 <tr>
                     <td colspan="7">No debtors found for the selected filters.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Portfolio</th>
+                <th>Risk Band</th>
+                <th>Status</th>
+                <th>Debtor Count</th>
+                <th>Total Outstanding</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for seg in top_risk_segments %}
+                <tr>
+                    <td>{{ seg.portfolio__name }}</td>
+                    <td class="band-{{ seg.risk_band }}">{{ seg.risk_band|upper }}</td>
+                    <td>{{ seg.status }}</td>
+                    <td>{{ seg.debtor_count }}</td>
+                    <td>{{ seg.total_outstanding }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">No segments found for the selected filters.</td>
                 </tr>
             {% endfor %}
             </tbody>
