@@ -17,15 +17,14 @@ This project centralizes those workflows into one system that supports:
 - portfolio-level visibility
 - debtor prioritization
 - KPI monitoring
-- repeatable reporting for management
+- repeatable management reporting
 
 ## Core Features
-- CSV import with required-column validation, row-level errors, preview before save
+- CSV/Excel import with required-column validation, row-level errors, preview before save
 - Baseline rule-based risk scoring (`risk_score`, `risk_band`, reason factors)
-- REST API for portfolios, debtors, risk details, KPI overview
-- Management dashboard with filters and KPI cards
+- REST API for portfolios, debtors, risk details, and KPI overview
+- Management dashboard with filters, KPI cards, and segment breakdowns
 - Performance module (`contact_rate`, `ptp_rate`, `conversion_rate`, `recovery_rate`)
-- Top risk segments table (portfolio + risk band + status)
 - Excel and PDF management report exports
 - Weekly report generation command
 - Role-based access control (Analyst / Manager / Admin)
@@ -89,11 +88,14 @@ Allowed:
 - Full admin privileges (`is_staff` + `is_superuser`)
 
 ## Main URLs
+- Root (redirects to dashboard): `http://127.0.0.1:8000/`
 - Dashboard: `http://127.0.0.1:8000/dashboard/`
 - Data import: `http://127.0.0.1:8000/portfolio/import/`
+- Report preview: `http://127.0.0.1:8000/reports/management/`
 - API portfolios: `http://127.0.0.1:8000/api/portfolios/`
 - API debtors: `http://127.0.0.1:8000/api/debtors/`
 - API KPI overview: `http://127.0.0.1:8000/api/kpis/overview/`
+- Django admin: `http://127.0.0.1:8000/admin/`
 
 ## Reports
 - Excel export: `/reports/management/excel/`
@@ -102,10 +104,10 @@ Allowed:
 
 ## RBAC Matrix
 - Analyst:
-  - allowed: debtor/portfolio API endpoints
-  - restricted: dashboard, KPI overview endpoint, report downloads (friendly access message)
+  - allowed: portfolio/debtor APIs
+  - restricted: dashboard, KPI overview API, report downloads (friendly access message)
 - Manager:
-  - allowed: dashboard, KPI overview endpoint, report downloads, debtor/portfolio APIs
+  - allowed: dashboard, KPI overview API, report downloads, portfolio/debtor APIs
 - Admin:
   - manager access + admin capabilities
 
@@ -151,7 +153,7 @@ Implemented:
 
 Planned next:
 - deployment configuration (Render)
-- screenshots and short product demo capture
+- short product demo capture
 
 ## UI Preview
 
@@ -168,5 +170,4 @@ Planned next:
 
 ### KPI Overview Endpoint
 ![API KPIs](docs/images/api-kpis.jpg)
-
 
