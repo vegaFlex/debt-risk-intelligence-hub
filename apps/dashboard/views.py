@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+
 from django.db.models import Count, DecimalField, Sum, Value
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
@@ -10,6 +11,33 @@ from apps.users.decorators import manager_or_admin_required
 from apps.portfolio.models import Debtor, Payment, Portfolio
 
 
+
+DEFAULT_STATUS_OPTIONS = [
+    ('new', 'New'),
+    ('contacted', 'Contacted'),
+    ('promise_to_pay', 'Promise To Pay'),
+    ('paying', 'Paying'),
+    ('closed', 'Closed'),
+]
+
+
+def _build_status_options():
+    known_values = {value for value, _ in DEFAULT_STATUS_OPTIONS}
+    options = list(DEFAULT_STATUS_OPTIONS)
+
+    dynamic_values = (
+        Debtor.objects.exclude(status='')
+        .values_list('status', flat=True)
+        .distinct()
+    )
+    for value in dynamic_values:
+        if value not in known_values:
+            options.append((value, value.replace('_', ' ').title()))
+            known_values.add(value)
+
+    return options
+
+
 @login_required
 @manager_or_admin_required
 def management_dashboard_view(request):
@@ -18,6 +46,10 @@ def management_dashboard_view(request):
     status = request.GET.get('status')
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
+
+    status_options = _build_status_options()
+    allowed_statuses = {value for value, _ in status_options}
+    status = status if status in allowed_statuses else ''
 
     debtors = Debtor.objects.select_related('portfolio').all()
 
@@ -96,6 +128,7 @@ def management_dashboard_view(request):
             'date_to': date_to or '',
         },
         'portfolios': Portfolio.objects.order_by('name'),
+        'status_options': status_options,
         'top_risk_debtors': debtors[:15],
         'top_risk_segments': top_risk_segments,
     }

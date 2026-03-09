@@ -26,7 +26,12 @@
       </div>
       <div>
         <label for="status">Status</label>
-        <input type="text" id="status" name="status" value="{{ filters.status }}" placeholder="new / contacted / paying">
+        <select id="status" name="status">
+          <option value="">All statuses</option>
+          {% for status_value, status_label in status_options %}
+            <option value="{{ status_value }}" {% if filters.status == status_value %}selected{% endif %}>{{ status_label }}</option>
+          {% endfor %}
+        </select>
       </div>
       <div>
         <label for="date_from">Created From</label>
