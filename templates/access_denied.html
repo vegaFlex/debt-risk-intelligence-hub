@@ -1,0 +1,17 @@
+{% extends "base_app.html" %}
+
+{% block title %}Access Restricted - Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card auth-card">
+  <h2>Access Restricted</h2>
+  <p>{{ message|default:"You do not have access to this resource." }}</p>
+  <p class="small">Required role: <strong>{{ required_role|default:"Authorized user" }}</strong></p>
+  <div class="actions">
+    <a class="btn btn-secondary" href="/dashboard/">Back to Dashboard</a>
+    <a class="btn btn-primary" href="/accounts/login/">Switch Account</a>
+  </div>
+</section>
+{% endblock %}
+
+{% block developer_api %}{% endblock %}

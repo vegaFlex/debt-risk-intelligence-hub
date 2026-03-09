@@ -1,7 +1,6 @@
 from datetime import date
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -19,8 +18,20 @@ def _period_dates(request):
 
 class ManagerOrAdminRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
         if getattr(request.user, 'role', None) not in {'manager', 'admin'}:
-            raise PermissionDenied('Manager or Admin role required.')
+            return render(
+                request,
+                'access_denied.html',
+                {
+                    'message': 'You do not have permission to access report pages.',
+                    'required_role': 'Manager or Admin',
+                },
+                status=200,
+            )
+
         return super().dispatch(request, *args, **kwargs)
 
 

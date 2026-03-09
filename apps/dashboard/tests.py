@@ -48,14 +48,14 @@ class DashboardViewTests(TestCase):
         response = self.client.get(reverse('dashboard-home'))
         self.assertEqual(response.status_code, 302)
 
-    def test_dashboard_forbidden_for_analyst(self):
+    def test_dashboard_shows_access_restricted_for_analyst(self):
         self.client.login(username='analyst_dash', password='pass123')
         response = self.client.get(reverse('dashboard-home'))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Access Restricted')
 
     def test_dashboard_allowed_for_manager(self):
         self.client.login(username='manager_dash', password='pass123')
         response = self.client.get(reverse('dashboard-home'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Debt & Risk Intelligence Hub')
-

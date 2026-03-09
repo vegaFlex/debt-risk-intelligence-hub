@@ -58,7 +58,8 @@ class PortfolioApiTests(APITestCase):
 
     def test_portfolios_list_endpoint_requires_auth(self):
         response = self.client.get(reverse('api-portfolios-list'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['access'])
 
     def test_portfolios_list_endpoint_for_analyst(self):
         self.client.force_authenticate(user=self.analyst)
@@ -74,10 +75,12 @@ class PortfolioApiTests(APITestCase):
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(response.data['results'][0]['external_id'], 'D-001')
 
-    def test_kpi_overview_forbidden_for_analyst(self):
+    def test_kpi_overview_shows_access_message_for_analyst(self):
         self.client.force_authenticate(user=self.analyst)
         response = self.client.get(reverse('api-kpis-overview'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['access'])
+        self.assertIn('message', response.data)
 
     def test_kpi_overview_allowed_for_manager(self):
         self.client.force_authenticate(user=self.manager)

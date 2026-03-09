@@ -59,10 +59,11 @@ class ReportsModuleTests(TestCase):
         self.assertIn('top_segments', summary)
         self.assertEqual(summary['kpis']['total_debtors'], 1)
 
-    def test_excel_report_forbidden_for_analyst(self):
+    def test_excel_report_shows_access_restricted_for_analyst(self):
         self.client.login(username='analyst_report', password='pass123')
         response = self.client.get(reverse('report-management-excel'))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Access Restricted')
 
     def test_excel_report_allowed_for_manager(self):
         self.client.login(username='manager_report', password='pass123')
