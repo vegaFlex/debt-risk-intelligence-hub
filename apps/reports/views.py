@@ -1,5 +1,7 @@
 from datetime import date
 
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.utils import timezone
 from django.views import View
@@ -14,7 +16,14 @@ def _period_dates(request):
     return date_from or None, date_to or None
 
 
-class ManagementExcelReportView(View):
+class ManagerOrAdminRequiredMixin(LoginRequiredMixin):
+    def dispatch(self, request, *args, **kwargs):
+        if getattr(request.user, 'role', None) not in {'manager', 'admin'}:
+            raise PermissionDenied('Manager or Admin role required.')
+        return super().dispatch(request, *args, **kwargs)
+
+
+class ManagementExcelReportView(ManagerOrAdminRequiredMixin, View):
     def get(self, request):
         period_start, period_end = _period_dates(request)
         summary = build_summary(period_start=period_start, period_end=period_end)
@@ -43,7 +52,7 @@ class ManagementExcelReportView(View):
         return response
 
 
-class ManagementPdfReportView(View):
+class ManagementPdfReportView(ManagerOrAdminRequiredMixin, View):
     def get(self, request):
         period_start, period_end = _period_dates(request)
         summary = build_summary(period_start=period_start, period_end=period_end)

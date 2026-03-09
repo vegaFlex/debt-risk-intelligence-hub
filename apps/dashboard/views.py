@@ -3,10 +3,15 @@ from decimal import Decimal
 from django.db.models import Count, DecimalField, Sum, Value
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+from apps.users.decorators import manager_or_admin_required
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
 
 
+@login_required
+@manager_or_admin_required
 def management_dashboard_view(request):
     portfolio_id = request.GET.get('portfolio')
     risk_band = request.GET.get('risk_band')
@@ -96,4 +101,5 @@ def management_dashboard_view(request):
     }
 
     return render(request, 'dashboard/management_dashboard.html', context)
+
 

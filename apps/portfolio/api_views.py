@@ -3,17 +3,17 @@ from decimal import Decimal
 from django.db.models import Count, DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
 from apps.portfolio.serializers import DebtorRiskSerializer, DebtorSerializer, PortfolioSerializer
+from apps.users.permissions import IsAnalystManagerOrAdmin, IsManagerOrAdmin
 
 
 class PortfolioListAPIView(generics.ListAPIView):
     serializer_class = PortfolioSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAnalystManagerOrAdmin]
     ordering_fields = ['purchase_date', 'purchase_price', 'face_value', 'created_at']
     ordering = ['-purchase_date']
 
@@ -33,7 +33,7 @@ class PortfolioListAPIView(generics.ListAPIView):
 
 class DebtorListAPIView(generics.ListAPIView):
     serializer_class = DebtorSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAnalystManagerOrAdmin]
 
     def get_queryset(self):
         queryset = Debtor.objects.select_related('portfolio').all()
@@ -82,11 +82,11 @@ class DebtorListAPIView(generics.ListAPIView):
 class DebtorRiskDetailAPIView(generics.RetrieveAPIView):
     queryset = Debtor.objects.all()
     serializer_class = DebtorRiskSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAnalystManagerOrAdmin]
 
 
 class KpiOverviewAPIView(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsManagerOrAdmin]
 
     def get(self, request):
         debtors = Debtor.objects.all()
