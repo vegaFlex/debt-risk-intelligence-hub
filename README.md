@@ -67,7 +67,7 @@ Allowed:
 - `/api/portfolios/`
 - `/api/debtors/`
 
-Forbidden (returns `403 Forbidden`):
+Restricted (friendly access message shown):
 - `/dashboard/`
 - `/api/kpis/overview/`
 - `/reports/management/` (including Excel/PDF downloads)
@@ -86,7 +86,9 @@ Typical use: operations/management workflow.
 Allowed:
 - Everything available to `manager_demo`
 - Django admin panel: `/admin/`
-- Full admin privileges (`is_staff` + `is_superuser`)`r`n`r`n## Main URLs
+- Full admin privileges (`is_staff` + `is_superuser`)
+
+## Main URLs
 - Dashboard: `http://127.0.0.1:8000/dashboard/`
 - Data import: `http://127.0.0.1:8000/portfolio/import/`
 - API portfolios: `http://127.0.0.1:8000/api/portfolios/`
@@ -101,7 +103,7 @@ Allowed:
 ## RBAC Matrix
 - Analyst:
   - allowed: debtor/portfolio API endpoints
-  - forbidden: dashboard, KPI overview endpoint, report downloads
+  - restricted: dashboard, KPI overview endpoint, report downloads (friendly access message)
 - Manager:
   - allowed: dashboard, KPI overview endpoint, report downloads, debtor/portfolio APIs
 - Admin:
