@@ -128,18 +128,15 @@ Planned next:
 ## UI Preview
 
 ### Dashboard
-![Dashboard Main](docs/images/dashboard-main.png)
-
-### Import Page
-![Import Page](docs/images/import-page.png)
-
-### Dashboard + Developer API Section
-![Dashboard Developer API](docs/images/dashboard-developer-api.png)
+![Dashboard](docs/images/dashboard.jpg)
 
 ## Developer API Preview
 
-### Debtors Endpoint (Browsable API)
-![API Debtors](docs/images/api-debtors.png)
+### Portfolios Endpoint
+![API Portfolios](docs/images/api-portfolios.jpg)
 
-### KPI Overview Endpoint (Browsable API)
-![API KPIs](docs/images/kpi-api.png)
+### Debtors Endpoint
+![API Debtors](docs/images/api-debtors.jpg)
+
+### KPI Overview Endpoint
+![API KPIs](docs/images/api-kpis.jpg)
