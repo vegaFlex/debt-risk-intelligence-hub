@@ -16,11 +16,14 @@
       </div>
       <div class="user-controls">
         {% if request.user.is_authenticated %}
-          <span class="user-chip">{{ request.user.username }} ({{ request.user.role|default:"user" }})</span>
-          <a class="btn btn-secondary btn-compact" href="/accounts/login/">Switch Account</a>
+          <span class="user-chip">
+            <span class="user-dot" aria-hidden="true"></span>
+            {{ request.user.username }} ({{ request.user.role|default:"user" }})
+          </span>
+          <a class="btn btn-compact btn-account-switch" href="/accounts/login/">Switch Account</a>
           <form method="post" action="/accounts/logout/" class="inline-form">
             {% csrf_token %}
-            <button type="submit" class="btn btn-secondary btn-compact">Logout</button>
+            <button type="submit" class="btn btn-compact btn-account-logout">Logout</button>
           </form>
         {% else %}
           <a class="btn btn-primary btn-compact" href="/accounts/login/">Login</a>
