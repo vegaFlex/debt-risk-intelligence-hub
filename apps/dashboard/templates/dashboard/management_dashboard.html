@@ -30,11 +30,11 @@
       </div>
       <div>
         <label for="date_from">Created From</label>
-        <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}">
+        <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}" class="date-icon-field{% if filters.date_from %} has-value{% endif %}">
       </div>
       <div>
         <label for="date_to">Created To</label>
-        <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}">
+        <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}" class="date-icon-field{% if filters.date_to %} has-value{% endif %}">
       </div>
     </div>
     <div class="actions">
@@ -109,5 +109,18 @@
     </tbody>
   </table>
 </section>
+
+
+<script>
+  (function () {
+    const dateInputs = document.querySelectorAll('.date-icon-field');
+    dateInputs.forEach((input) => {
+      const sync = () => input.classList.toggle('has-value', Boolean(input.value));
+      input.addEventListener('change', sync);
+      input.addEventListener('input', sync);
+      sync();
+    });
+  })();
+</script>
 {% endblock %}
 
