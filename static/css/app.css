@@ -122,11 +122,11 @@ input, select {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
   margin-bottom: 16px;
 }
 
-table { width: 100%; border-collapse: collapse; }
+table { width: 100%; border-collapse: collapse; min-width: 760px; }
 th, td { padding: 10px 12px; border-bottom: 1px solid #eaecf0; text-align: left; font-size: 14px; }
 th { background: #f9fafb; font-size: 11px; text-transform: uppercase; color: var(--muted); }
 
@@ -167,4 +167,9 @@ th { background: #f9fafb; font-size: 11px; text-transform: uppercase; color: var
   margin: 6px 0 0;
   color: var(--muted);
   font-size: 13px;
+}
+
+input[type="file"] {
+  padding: 7px;
+  background: #fff;
 }
