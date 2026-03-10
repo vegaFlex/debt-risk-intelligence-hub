@@ -2,13 +2,27 @@
 
 Debt & Risk Intelligence Hub is a Django platform for debt portfolio analysis, risk scoring, call-center performance tracking, and management reporting.
 
-It is designed as a portfolio-grade product that demonstrates end-to-end delivery:
+It is designed as a portfolio-grade analytics product that demonstrates end-to-end delivery:
 - ingestion and validation
 - scoring engine
-- APIs
 - dashboard analytics
-- report generation
+- reporting exports
+- REST APIs
 - RBAC and CI
+
+## Recruiter Snapshot
+- Business use case: debt portfolio operations and collections analytics
+- End-to-end flow: `import -> validation -> scoring -> dashboard -> reports -> admin`
+- Built with: Django, DRF, SQLite (demo/dev), openpyxl, reportlab
+- Includes: dynamic charts, API layer, role-based access, tests, CI
+- Reporting currency for demo data: `EUR`
+
+## Product Tour
+Open the app locally and review it in this order:
+1. Dashboard: KPI cards, portfolio filters, charts, debtor preview
+2. Full Debtor List: sortable and paginated operational view
+3. Report Preview: Excel/PDF-ready management reporting
+4. Admin Panel: portfolio, debtor, report, and access management
 
 ## Business Problem
 Debt operations teams often work with fragmented CSV/Excel exports, ad-hoc scoring logic, and delayed performance visibility.
@@ -30,6 +44,12 @@ This project centralizes those workflows into one system that supports:
 - Role-based access control (Analyst / Manager / Admin)
 - GitHub Actions CI pipeline
 - Demo portfolios standardized to `EUR` as the reporting currency
+
+## Why This Project Stands Out
+- Solves a real operations problem instead of acting like a generic CRUD demo
+- Combines backend workflows, analytics UI, reporting, and admin operations in one product
+- Shows product thinking: role-based access, validation, reporting flow, and recruiter-friendly demo data
+- Exposes a clean API layer, which makes the app BI-ready for tools like Power BI or Tableau
 
 ## Tech Stack
 - Python 3.13
@@ -56,6 +76,16 @@ This project centralizes those workflows into one system that supports:
 6. `python manage.py runserver`
 
 Demo note: sample portfolios are normalized to `EUR` for consistent KPI and reporting output.
+
+## Quick Demo Flow
+If someone opens the repo and wants to understand the product quickly:
+1. Run the app locally
+2. Log in with `manager_demo / DemoPass123!`
+3. Open `/dashboard/`
+4. Change the portfolio filter and review how KPI cards and charts update
+5. Open `Full Debtor List`
+6. Open `Report Preview`
+7. Log in as `admin_demo` and open `/admin/`
 
 ## Demo Accounts
 - `manager_demo / DemoPass123!`
@@ -94,6 +124,7 @@ Allowed:
 - Root (redirects to dashboard): `http://127.0.0.1:8000/`
 - Dashboard: `http://127.0.0.1:8000/dashboard/`
 - Data import: `http://127.0.0.1:8000/portfolio/import/`
+- Full debtor list: `http://127.0.0.1:8000/dashboard/debtors/`
 - Report preview: `http://127.0.0.1:8000/reports/management/`
 - API portfolios: `http://127.0.0.1:8000/api/portfolios/`
 - API debtors: `http://127.0.0.1:8000/api/debtors/`
@@ -104,15 +135,6 @@ Allowed:
 - Excel export: `/reports/management/excel/`
 - PDF export: `/reports/management/pdf/`
 - Weekly summary command: `python manage.py generate_weekly_reports`
-
-## RBAC Matrix
-- Analyst:
-  - allowed: portfolio/debtor APIs
-  - restricted: dashboard, KPI overview API, report downloads (friendly access message)
-- Manager:
-  - allowed: dashboard, KPI overview API, report downloads, portfolio/debtor APIs
-- Admin:
-  - manager access + admin capabilities
 
 ## API Overview
 - `GET /api/portfolios/`
@@ -184,6 +206,13 @@ Detailed operational view showing performance KPIs, dynamic visual analytics, pr
 Lightly branded Django admin console for portfolios, debtors, reports, and role-based access management.
 ![Admin Workspace](docs/images/admin-dashboard.jpg)
 
+## How The Charts Work
+- `Risk Band Distribution` updates from the currently filtered debtor set and shows how cases split across `high`, `medium`, and `low` risk.
+- `Status Distribution` reflects the live operational mix for the filtered population.
+- `Outstanding Exposure by Segment` ranks the highest monetary exposure slices.
+- When all portfolios are selected, the exposure chart uses `Top 5 + Others` to stay readable.
+- When a single portfolio is selected, the exposure chart focuses only on that portfolio's segments.
+
 ## Developer API Preview
 
 ### Portfolios Endpoint
@@ -194,4 +223,3 @@ Lightly branded Django admin console for portfolios, debtors, reports, and role-
 
 ### KPI Overview Endpoint
 ![API KPIs](docs/images/api-kpis.jpg)
-
