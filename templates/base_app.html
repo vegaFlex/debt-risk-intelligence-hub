@@ -31,10 +31,27 @@
       </div>
     </header>
 
-    <nav class="nav">
-      <a class="{% if request.path|slice:":11" == "/dashboard/" %}active{% endif %}" href="/dashboard/">Dashboard</a>
-      <a class="{% if request.path == "/portfolio/import/" %}active{% endif %}" href="/portfolio/import/">Import</a>
-      <a class="{% if request.path|slice:":9" == "/reports/" %}active{% endif %}" href="/reports/management/">Reports</a>
+    <nav class="nav nav-shell">
+      <div class="nav-main">
+        <a class="{% if request.path|slice:":11" == "/dashboard/" %}active{% endif %}" href="/dashboard/">Dashboard</a>
+        <a class="{% if request.path == "/portfolio/import/" %}active{% endif %}" href="/portfolio/import/">Import</a>
+        <a class="{% if request.path|slice:":9" == "/reports/" %}active{% endif %}" href="/reports/management/">Reports</a>
+        {% if nav_actions %}
+          {% for action in nav_actions.primary %}
+            <a href="{{ action.href }}">{{ action.label }}</a>
+          {% endfor %}
+        {% endif %}
+      </div>
+      {% if nav_actions and nav_actions.secondary %}
+        <details class="nav-more">
+          <summary>More Actions</summary>
+          <div class="nav-more-menu">
+            {% for action in nav_actions.secondary %}
+              <a href="{{ action.href }}">{{ action.label }}</a>
+            {% endfor %}
+          </div>
+        </details>
+      {% endif %}
     </nav>
 
     {% if messages %}

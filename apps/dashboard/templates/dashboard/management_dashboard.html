@@ -3,74 +3,6 @@
 {% block title %}Dashboard - Debt & Risk Hub{% endblock %}
 
 {% block content %}
-<section class="card quick-actions-card">
-  <div class="section-head compact quick-actions-head">
-    <div>
-      <p class="quick-actions-kicker">Control Center</p>
-      <h2>Quick Actions</h2>
-      <p class="section-copy">The most important actions stay visible. Expand the rest only when you need them.</p>
-    </div>
-    <div class="quick-actions-badge">1-click workflows</div>
-  </div>
-
-  <div class="quick-actions-inline">
-    <a class="quick-action quick-action-primary" href="{{ quick_actions.import_data }}">
-      <span class="quick-action-title">Import Data</span>
-      <span class="quick-action-meta">Upload and validate new debtor files</span>
-    </a>
-    <a class="quick-action quick-action-primary" href="{{ quick_actions.full_list }}">
-      <span class="quick-action-title">Open Full Debtor List</span>
-      <span class="quick-action-meta">Browse every matching debtor record</span>
-    </a>
-    <a class="quick-action quick-action-primary" href="{{ quick_actions.report_preview }}">
-      <span class="quick-action-title">Open Report Preview</span>
-      <span class="quick-action-meta">Check export-ready management output</span>
-    </a>
-  </div>
-
-  <details class="quick-actions-panel">
-    <summary>
-      <span class="quick-actions-summary-main">
-        <span class="quick-actions-summary-title">More Actions</span>
-        <span class="quick-actions-summary-copy">Collections shortcuts, report downloads, APIs, and admin tools</span>
-      </span>
-      <span class="quick-actions-summary-side">
-        <span class="quick-actions-summary-count">8+</span>
-        <span class="quick-actions-summary-arrow">▾</span>
-      </span>
-    </summary>
-    <div class="quick-actions-grid">
-      <div class="quick-group">
-        <h3>Collections Focus</h3>
-        <div class="quick-links">
-          <a class="quick-action" href="{{ quick_actions.high_risk }}">View High Risk Cases</a>
-          <a class="quick-action" href="{{ quick_actions.ptp_cases }}">View PTP Cases</a>
-          <a class="quick-action" href="{{ quick_actions.paying_cases }}">View Paying Cases</a>
-          <a class="quick-action" href="{{ quick_actions.open_cases }}">View Open Cases</a>
-        </div>
-      </div>
-      <div class="quick-group">
-        <h3>Reports & Output</h3>
-        <div class="quick-links">
-          <a class="quick-action" href="{{ quick_actions.excel_report }}">Download Excel Report</a>
-          <a class="quick-action" href="{{ quick_actions.pdf_report }}">Download PDF Report</a>
-        </div>
-      </div>
-      <div class="quick-group">
-        <h3>Developer & Admin</h3>
-        <div class="quick-links">
-          <a class="quick-action" href="{{ quick_actions.api_portfolios }}">API Portfolios</a>
-          <a class="quick-action" href="{{ quick_actions.api_debtors }}">API Debtors</a>
-          <a class="quick-action" href="{{ quick_actions.api_kpis }}">API KPIs</a>
-          {% if request.user.is_superuser or request.user.role == 'admin' %}
-            <a class="quick-action admin" href="{{ quick_actions.admin_panel }}">Open Admin Panel</a>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </details>
-</section>
-
 <section class="card">
   <form method="get" id="dashboard-filters-form">
     <div class="filters-grid">
@@ -113,8 +45,6 @@
     <div class="actions">
       <button type="submit" class="btn btn-primary">Apply Filters</button>
       <a href="?" class="btn btn-secondary">Reset</a>
-      <a class="btn btn-secondary" href="/reports/management/?date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">Open Report Preview</a>
-      <a class="btn btn-secondary" href="/dashboard/debtors/?{{ full_list_query }}#debtor-results">Open Full Debtor List</a>
     </div>
     <p class="filter-summary">{{ kpis.total_debtors }} debtors match the current filters.</p>
   </form>
@@ -145,7 +75,6 @@
     <h2>Priority Debtor Preview</h2>
     <p class="section-copy">Top 15 debtors ranked by risk score and outstanding balance for rapid review.</p>
   </div>
-  <a class="btn btn-secondary" href="/dashboard/debtors/?{{ full_list_query }}#debtor-results">View All Matching Debtors</a>
 </section>
 <section class="table-wrap">
   <table>

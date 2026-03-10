@@ -250,8 +250,8 @@ def _base_context(filters, status_options):
     }
 
 
-def _dashboard_action_links(filters):
-    base_query = _build_query_string({
+def _navigation_actions(filters, user):
+    base = {
         'portfolio': filters['portfolio'],
         'risk_band': filters['risk_band'],
         'status': filters['status'],
@@ -259,36 +259,33 @@ def _dashboard_action_links(filters):
         'date_to': filters['date_to'],
         'sort': filters['sort'],
         'direction': filters['direction'],
-    })
-
-    def debtors_link(**updates):
-        query = _build_query_string({
-            'portfolio': filters['portfolio'],
-            'risk_band': filters['risk_band'],
-            'status': filters['status'],
-            'date_from': filters['date_from'],
-            'date_to': filters['date_to'],
-            'sort': filters['sort'],
-            'direction': filters['direction'],
-        }, **updates)
-        return f'/dashboard/debtors/?{query}#debtor-results'
-
-    return {
-        'import_data': '/portfolio/import/',
-        'full_list': debtors_link(),
-        'high_risk': debtors_link(risk_band='high'),
-        'ptp_cases': debtors_link(status='promise_to_pay'),
-        'paying_cases': debtors_link(status='paying'),
-        'open_cases': debtors_link(status='new'),
-        'report_preview': f"/reports/management/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}",
-        'excel_report': f"/reports/management/excel/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}",
-        'pdf_report': f"/reports/management/pdf/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}",
-        'api_portfolios': '/api/portfolios/',
-        'api_debtors': '/api/debtors/',
-        'api_kpis': '/api/kpis/overview/',
-        'admin_panel': '/admin/',
-        'base_query': base_query,
     }
+
+    def debtors_link(label, **updates):
+        query = _build_query_string(base, **updates)
+        return {'label': label, 'href': f'/dashboard/debtors/?{query}#debtor-results'}
+
+    primary = [
+        debtors_link('Full Debtor List'),
+        {'label': 'Report Preview', 'href': f"/reports/management/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}"},
+    ]
+
+    secondary = [
+        debtors_link('High Risk Cases', risk_band='high'),
+        debtors_link('PTP Cases', status='promise_to_pay'),
+        debtors_link('Paying Cases', status='paying'),
+        debtors_link('Open Cases', status='new'),
+        {'label': 'Excel Report', 'href': f"/reports/management/excel/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}"},
+        {'label': 'PDF Report', 'href': f"/reports/management/pdf/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}"},
+        {'label': 'API Portfolios', 'href': '/api/portfolios/'},
+        {'label': 'API Debtors', 'href': '/api/debtors/'},
+        {'label': 'API KPIs', 'href': '/api/kpis/overview/'},
+    ]
+
+    if user.is_superuser or getattr(user, 'role', '') == 'admin':
+        secondary.append({'label': 'Admin Panel', 'href': '/admin/'})
+
+    return {'primary': primary, 'secondary': secondary}
 
 
 @login_required
@@ -311,7 +308,7 @@ def management_dashboard_view(request):
             'sort': filters['sort'],
             'direction': filters['direction'],
         }),
-        'quick_actions': _dashboard_action_links(filters),
+        'nav_actions': _navigation_actions(filters, request.user),
     })
     return render(request, 'dashboard/management_dashboard.html', context)
 
@@ -326,4 +323,5 @@ def debtor_results_view(request):
     context = _base_context(filters, status_options)
     context.update(_kpis_and_segments(filtered_debtors))
     context.update(_list_context(filters, filtered_debtors, anchor='debtor-results'))
+    context.update({'nav_actions': _navigation_actions(filters, request.user)})
     return render(request, 'dashboard/debtor_results.html', context)
