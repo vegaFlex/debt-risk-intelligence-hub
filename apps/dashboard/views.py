@@ -245,6 +245,7 @@ def _kpis_and_segments(filtered_debtors):
             'conversion_rate': round(conversion_rate, 2),
             'recovery_rate': round(float(recovery_rate), 2),
             'expected_collections': round(float(expected_collections), 2),
+            'expected_collections_display': f"{float(expected_collections):,.2f}",
         },
         'performance': {
             'contacted_count': contacted_count,
