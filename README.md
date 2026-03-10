@@ -157,8 +157,17 @@ Planned next:
 
 ## UI Preview
 
-### Dashboard
-![Dashboard](docs/images/dashboard.jpg)
+### Dashboard Overview
+![Dashboard Overview](docs/images/dashboard-overview.jpg)
+
+### Dashboard Actions
+![Dashboard Actions](docs/images/dashboard-actions.jpg)
+
+### Dashboard Focus
+![Dashboard Focus](docs/images/dashboard-focus.jpg)
+
+### Admin Workspace
+![Admin Workspace](docs/images/admin-dashboard.jpg)
 
 ## Developer API Preview
 
