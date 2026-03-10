@@ -165,7 +165,10 @@ Main management workspace with KPI cards, compact filters, quick navigation, dyn
 ![Dashboard Overview](docs/images/dashboard-overview.jpg)
 
 ### Dashboard Charts
-Dedicated analytics section with dynamic risk, status, and exposure visualizations that react to the selected debtor package.
+Dedicated analytics section with three dynamic visualizations that react to the selected debtor package and active filters.
+- `Risk Band Distribution`: shows how the filtered debtors are split across `high`, `medium`, and `low` risk.
+- `Status Distribution`: shows the operational mix across `new`, `contacted`, `promise_to_pay`, `paying`, and `closed` cases.
+- `Outstanding Exposure by Segment`: highlights the highest-exposure portfolio/risk slices, limited to `Top 5 + Others` when all portfolios are selected.
 ![Dashboard Charts](docs/images/dashboard-charts.jpg)
 
 ### Dashboard Actions
