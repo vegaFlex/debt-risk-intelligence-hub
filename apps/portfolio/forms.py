@@ -7,5 +7,5 @@ class PortfolioImportForm(forms.Form):
     purchase_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
     purchase_price = forms.DecimalField(max_digits=14, decimal_places=2)
     face_value = forms.DecimalField(max_digits=14, decimal_places=2)
-    currency = forms.CharField(max_length=3, initial='BGN')
+    currency = forms.CharField(max_length=3, initial='EUR')
     data_file = forms.FileField(help_text='Upload CSV or XLSX file with debtor records.')

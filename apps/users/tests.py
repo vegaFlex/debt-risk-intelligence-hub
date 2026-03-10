@@ -15,3 +15,4 @@ class SeedDemoDataCommandTests(TestCase):
         self.assertEqual(Portfolio.objects.filter(name__startswith='SME Collections Pack').count(), 1)
         self.assertEqual(Portfolio.objects.filter(name__startswith='Telecom Arrears Pack').count(), 1)
         self.assertEqual(Portfolio.objects.filter(name__startswith='Utilities Debt Pack').count(), 1)
+        self.assertEqual(Portfolio.objects.exclude(currency='EUR').count(), 0)

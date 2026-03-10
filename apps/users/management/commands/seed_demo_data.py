@@ -99,14 +99,14 @@ class Command(BaseCommand):
         return {'manager': manager, 'analyst': analyst, 'admin': admin}
 
     def _seed_portfolio(self, manager):
-        portfolio, _ = Portfolio.objects.get_or_create(
+        portfolio, _ = Portfolio.objects.update_or_create(
             name='Demo Portfolio March 2026',
             defaults={
                 'source_company': 'Ubb Demo Source',
                 'purchase_date': date(2026, 3, 1),
                 'purchase_price': Decimal('15000.00'),
                 'face_value': Decimal('65000.00'),
-                'currency': 'BGN',
+                'currency': 'EUR',
                 'created_by': manager,
             },
         )
@@ -216,7 +216,7 @@ class Command(BaseCommand):
                     'purchase_date': purchase_date,
                     'purchase_price': purchase_price,
                     'face_value': face_value,
-                    'currency': 'BGN',
+                    'currency': 'EUR',
                     'created_by': manager,
                 },
             )

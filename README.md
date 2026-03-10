@@ -29,6 +29,7 @@ This project centralizes those workflows into one system that supports:
 - Weekly report generation command
 - Role-based access control (Analyst / Manager / Admin)
 - GitHub Actions CI pipeline
+- Demo portfolios standardized to `EUR` as the reporting currency
 
 ## Tech Stack
 - Python 3.13
@@ -53,6 +54,8 @@ This project centralizes those workflows into one system that supports:
 4. `python manage.py migrate`
 5. `python manage.py seed_demo_data`
 6. `python manage.py runserver`
+
+Demo note: sample portfolios are normalized to `EUR` for consistent KPI and reporting output.
 
 ## Demo Accounts
 - `manager_demo / DemoPass123!`
