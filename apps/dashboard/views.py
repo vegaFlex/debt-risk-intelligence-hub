@@ -126,6 +126,55 @@ def _filtered_debtors(filters):
     return debtors
 
 
+def _chart_context(filtered_debtors, status_options):
+    zero_decimal = Value(Decimal('0.00'), output_field=DecimalField(max_digits=14, decimal_places=2))
+    risk_order = [('high', 'High'), ('medium', 'Medium'), ('low', 'Low')]
+
+    risk_counts = {
+        row['risk_band']: row['count']
+        for row in filtered_debtors.values('risk_band').annotate(count=Count('id'))
+    }
+    risk_chart = {
+        'labels': [label for key, label in risk_order if risk_counts.get(key)],
+        'values': [risk_counts.get(key, 0) for key, _label in risk_order if risk_counts.get(key)],
+        'colors': ['#b42318', '#b45309', '#067647'][: len([key for key, _label in risk_order if risk_counts.get(key)])],
+    }
+
+    status_counts = {
+        row['status']: row['count']
+        for row in filtered_debtors.values('status').annotate(count=Count('id'))
+    }
+    status_chart = {
+        'labels': [],
+        'values': [],
+        'colors': [],
+    }
+    status_palette = ['#0f766e', '#0b4d47', '#7c3aed', '#b45309', '#64748b', '#b42318']
+    for index, (value, label) in enumerate(status_options):
+        count = status_counts.get(value, 0)
+        if count:
+            status_chart['labels'].append(label)
+            status_chart['values'].append(count)
+            status_chart['colors'].append(status_palette[index % len(status_palette)])
+
+    segment_rows = (
+        filtered_debtors.values('portfolio__name', 'risk_band')
+        .annotate(total_outstanding=Coalesce(Sum('outstanding_total'), zero_decimal))
+        .order_by('-total_outstanding', 'portfolio__name')[:6]
+    )
+    exposure_chart = {
+        'labels': [f"{row['portfolio__name']} - {row['risk_band'].title()}" for row in segment_rows],
+        'values': [round(float(row['total_outstanding']), 2) for row in segment_rows],
+        'colors': ['#0f766e', '#0b4d47', '#2f855a', '#b45309', '#b42318', '#475467'][: len(segment_rows)],
+    }
+
+    return {
+        'risk_band_distribution': risk_chart,
+        'status_distribution': status_chart,
+        'outstanding_exposure': exposure_chart,
+    }
+
+
 def _kpis_and_segments(filtered_debtors):
     zero_decimal = Value(Decimal('0.00'), output_field=DecimalField(max_digits=14, decimal_places=2))
 
@@ -298,6 +347,7 @@ def management_dashboard_view(request):
 
     context = _base_context(filters, status_options)
     context.update(_kpis_and_segments(filtered_debtors))
+    context['chart_data'] = _chart_context(filtered_debtors, status_options)
     context.update({
         'top_risk_debtors': filtered_debtors.order_by('-risk_score', '-outstanding_total', 'id')[:15],
         'full_list_query': _build_query_string({

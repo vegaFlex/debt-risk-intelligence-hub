@@ -61,6 +61,39 @@
   <article class="kpi-card"><div class="kpi-label">Expected Collections</div><div class="kpi-value">{{ kpis.expected_collections }}</div></article>
 </section>
 
+<section class="card chart-card-shell">
+  <div class="section-head compact">
+    <div>
+      <h2>Portfolio Visual Analytics</h2>
+      <p class="section-copy">Dynamic charts update automatically for the currently selected portfolio and filters.</p>
+    </div>
+  </div>
+  {{ chart_data|json_script:"dashboard-chart-data" }}
+  <div class="chart-grid">
+    <article class="chart-card">
+      <div class="chart-card-head">
+        <h3>Risk Band Distribution</h3>
+        <p>Debtor count split by low, medium, and high risk.</p>
+      </div>
+      <canvas id="risk-band-chart" class="chart-canvas" aria-label="Risk band distribution chart"></canvas>
+    </article>
+    <article class="chart-card">
+      <div class="chart-card-head">
+        <h3>Status Distribution</h3>
+        <p>Current operational status mix for the filtered debtor set.</p>
+      </div>
+      <canvas id="status-distribution-chart" class="chart-canvas" aria-label="Status distribution chart"></canvas>
+    </article>
+    <article class="chart-card chart-card-wide">
+      <div class="chart-card-head">
+        <h3>Outstanding Exposure by Segment</h3>
+        <p>Highest exposure slices by portfolio and risk band.</p>
+      </div>
+      <canvas id="exposure-chart" class="chart-canvas chart-canvas-wide" aria-label="Outstanding exposure chart"></canvas>
+    </article>
+  </div>
+</section>
+
 <section class="card card-compact">
   <h2>Call Center Performance</h2>
   <p class="section-copy">Operational KPIs for the currently selected debtor set.</p>
@@ -150,6 +183,128 @@
         }
       });
     });
+
+    const chartDataNode = document.getElementById('dashboard-chart-data');
+    if (!chartDataNode) {
+      return;
+    }
+
+    const chartData = JSON.parse(chartDataNode.textContent);
+
+    function drawBarChart(canvas, config) {
+      if (!canvas || !config.labels.length) {
+        if (canvas) {
+          canvas.replaceWith(Object.assign(document.createElement('p'), {
+            className: 'chart-empty',
+            textContent: 'No chart data available for the current filters.',
+          }));
+        }
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      const ratio = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth || 320;
+      const height = canvas.clientHeight || 220;
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      ctx.scale(ratio, ratio);
+      ctx.clearRect(0, 0, width, height);
+
+      const padding = { top: 20, right: 18, bottom: 42, left: 44 };
+      const chartWidth = width - padding.left - padding.right;
+      const chartHeight = height - padding.top - padding.bottom;
+      const maxValue = Math.max(...config.values, 1);
+      const barGap = 14;
+      const barWidth = Math.max(24, (chartWidth - barGap * (config.values.length - 1)) / config.values.length);
+
+      ctx.strokeStyle = '#d7e2df';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, padding.top);
+      ctx.lineTo(padding.left, padding.top + chartHeight);
+      ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+      ctx.stroke();
+
+      ctx.font = '12px Segoe UI';
+      ctx.fillStyle = '#475467';
+      ctx.textAlign = 'center';
+
+      config.values.forEach((value, index) => {
+        const x = padding.left + index * (barWidth + barGap);
+        const barHeight = Math.max(8, (value / maxValue) * (chartHeight - 12));
+        const y = padding.top + chartHeight - barHeight;
+
+        ctx.fillStyle = config.colors[index] || '#0f766e';
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, barHeight, 10);
+        ctx.fill();
+
+        ctx.fillStyle = '#1d2939';
+        ctx.font = '700 12px Segoe UI';
+        ctx.fillText(String(value), x + barWidth / 2, y - 8);
+
+        ctx.fillStyle = '#475467';
+        ctx.font = '12px Segoe UI';
+        const label = config.labels[index].length > 16 ? `${config.labels[index].slice(0, 16)}…` : config.labels[index];
+        ctx.fillText(label, x + barWidth / 2, padding.top + chartHeight + 18);
+      });
+    }
+
+    function drawHorizontalChart(canvas, config) {
+      if (!canvas || !config.labels.length) {
+        if (canvas) {
+          canvas.replaceWith(Object.assign(document.createElement('p'), {
+            className: 'chart-empty',
+            textContent: 'No chart data available for the current filters.',
+          }));
+        }
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      const ratio = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth || 520;
+      const height = canvas.clientHeight || 280;
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      ctx.scale(ratio, ratio);
+      ctx.clearRect(0, 0, width, height);
+
+      const padding = { top: 14, right: 48, bottom: 14, left: 168 };
+      const chartWidth = width - padding.left - padding.right;
+      const rowHeight = Math.max(28, Math.min(42, (height - padding.top - padding.bottom) / config.values.length));
+      const maxValue = Math.max(...config.values, 1);
+
+      config.values.forEach((value, index) => {
+        const y = padding.top + index * rowHeight;
+        const barWidth = (value / maxValue) * chartWidth;
+
+        ctx.fillStyle = '#475467';
+        ctx.font = '12px Segoe UI';
+        ctx.textAlign = 'left';
+        const label = config.labels[index].length > 24 ? `${config.labels[index].slice(0, 24)}…` : config.labels[index];
+        ctx.fillText(label, 0, y + 16);
+
+        ctx.fillStyle = '#ecf3f1';
+        ctx.beginPath();
+        ctx.roundRect(padding.left, y, chartWidth, 18, 9);
+        ctx.fill();
+
+        ctx.fillStyle = config.colors[index] || '#0f766e';
+        ctx.beginPath();
+        ctx.roundRect(padding.left, y, Math.max(barWidth, 10), 18, 9);
+        ctx.fill();
+
+        ctx.fillStyle = '#1d2939';
+        ctx.font = '700 12px Segoe UI';
+        ctx.fillText(String(value), padding.left + chartWidth + 10, y + 14);
+      });
+    }
+
+    drawBarChart(document.getElementById('risk-band-chart'), chartData.risk_band_distribution);
+    drawBarChart(document.getElementById('status-distribution-chart'), chartData.status_distribution);
+    drawHorizontalChart(document.getElementById('exposure-chart'), chartData.outstanding_exposure);
   })();
 </script>
 {% endblock %}

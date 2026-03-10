@@ -100,6 +100,17 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, 'Debtor B')
         self.assertNotContains(response, 'Debtor A')
 
+    def test_dashboard_builds_chart_data_for_current_filters(self):
+        self.client.login(username='manager_dash', password='pass123')
+        response = self.client.get(reverse('dashboard-home'), {'portfolio': self.portfolio_one.id})
+        self.assertEqual(response.status_code, 200)
+        chart_data = response.context['chart_data']
+        self.assertEqual(chart_data['risk_band_distribution']['labels'], ['High', 'Low'])
+        self.assertEqual(chart_data['risk_band_distribution']['values'], [1, 1])
+        self.assertEqual(chart_data['status_distribution']['labels'], ['New', 'Paying'])
+        self.assertEqual(chart_data['status_distribution']['values'], [1, 1])
+        self.assertEqual(chart_data['outstanding_exposure']['labels'], ['Portfolio One - High', 'Portfolio One - Low'])
+
     def test_full_list_sorts_results_by_requested_column(self):
         self.client.login(username='manager_dash', password='pass123')
         response = self.client.get(reverse('dashboard-debtor-results'), {'sort': 'outstanding_total', 'direction': 'asc'})
