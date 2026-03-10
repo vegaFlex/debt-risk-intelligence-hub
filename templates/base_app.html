@@ -42,16 +42,21 @@
           {% endfor %}
         {% endif %}
       </div>
-      {% if nav_actions and nav_actions.secondary %}
-        <details class="nav-more" id="nav-more-actions">
-          <summary>More Actions</summary>
-          <div class="nav-more-menu">
-            {% for action in nav_actions.secondary %}
-              <a href="{{ action.href }}">{{ action.label }}</a>
-            {% endfor %}
-          </div>
-        </details>
-      {% endif %}
+      <div class="nav-side">
+        {% if nav_actions and nav_actions.admin_href %}
+          <a class="nav-admin" href="{{ nav_actions.admin_href }}">Admin Panel</a>
+        {% endif %}
+        {% if nav_actions and nav_actions.secondary %}
+          <details class="nav-more" id="nav-more-actions">
+            <summary>More Actions</summary>
+            <div class="nav-more-menu">
+              {% for action in nav_actions.secondary %}
+                <a href="{{ action.href }}">{{ action.label }}</a>
+              {% endfor %}
+            </div>
+          </details>
+        {% endif %}
+      </div>
     </nav>
 
     {% if messages %}

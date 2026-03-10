@@ -282,10 +282,11 @@ def _navigation_actions(filters, user):
         {'label': 'API KPIs', 'href': '/api/kpis/overview/'},
     ]
 
+    admin_href = ''
     if user.is_superuser or getattr(user, 'role', '') == 'admin':
-        secondary.append({'label': 'Admin Panel', 'href': '/admin/'})
+        admin_href = '/admin/'
 
-    return {'primary': primary, 'secondary': secondary}
+    return {'primary': primary, 'secondary': secondary, 'admin_href': admin_href}
 
 
 @login_required

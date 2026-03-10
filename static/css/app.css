@@ -46,14 +46,21 @@ body {
   justify-content: space-between;
 }
 
-.nav-main {
+.nav-main,
+.nav-side {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.nav-side {
+  justify-content: flex-end;
 }
 
 .nav a,
-.nav-more summary {
+.nav-more summary,
+.nav-admin {
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--ink);
@@ -67,7 +74,8 @@ body {
 }
 
 .nav a:hover,
-.nav-more summary:hover {
+.nav-more summary:hover,
+.nav-admin:hover {
   border-color: var(--brand);
   color: var(--brand);
   background: #f2faf8;
@@ -86,6 +94,20 @@ body {
   background: #d8eee8;
   border-color: #7fbdb2;
   box-shadow: 0 7px 16px rgba(15, 118, 110, 0.18);
+}
+
+.nav-admin {
+  border-color: #efc9c9;
+  background: linear-gradient(180deg, #fff6f6 0%, #ffecec 100%);
+  color: #8b1c1b;
+  box-shadow: 0 6px 14px rgba(180, 35, 24, 0.08);
+}
+
+.nav-admin:hover {
+  border-color: #e7a9a9;
+  background: linear-gradient(180deg, #fff0f0 0%, #ffdede 100%);
+  color: #8b1c1b;
+  box-shadow: 0 8px 18px rgba(180, 35, 24, 0.16);
 }
 
 .nav-more {
@@ -189,7 +211,8 @@ input, select {
 
 .btn:focus-visible,
 .nav a:focus-visible,
-.nav-more summary:focus-visible {
+.nav-more summary:focus-visible,
+.nav-admin:focus-visible {
   outline: 2px solid rgba(15, 118, 110, 0.45);
   outline-offset: 2px;
 }
@@ -259,6 +282,11 @@ tbody tr:hover {
   .nav-shell {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .nav-side {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 
