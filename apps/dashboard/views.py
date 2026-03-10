@@ -44,6 +44,16 @@ DEFAULT_DIRECTION = 'desc'
 PAGE_SIZE = 15
 
 
+def _format_compact_number(value):
+    number = float(value)
+    abs_number = abs(number)
+    if abs_number >= 1_000_000:
+        return f"{number / 1_000_000:.2f}M"
+    if abs_number >= 1_000:
+        return f"{number / 1_000:.1f}K"
+    return f"{number:,.2f}"
+
+
 def _build_status_options():
     known_values = {value for value, _ in DEFAULT_STATUS_OPTIONS}
     options = list(DEFAULT_STATUS_OPTIONS)
@@ -245,7 +255,7 @@ def _kpis_and_segments(filtered_debtors):
             'conversion_rate': round(conversion_rate, 2),
             'recovery_rate': round(float(recovery_rate), 2),
             'expected_collections': round(float(expected_collections), 2),
-            'expected_collections_display': f"{float(expected_collections):,.2f}",
+            'expected_collections_display': _format_compact_number(expected_collections),
         },
         'performance': {
             'contacted_count': contacted_count,
