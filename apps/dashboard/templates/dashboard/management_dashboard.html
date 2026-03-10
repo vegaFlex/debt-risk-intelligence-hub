@@ -4,23 +4,40 @@
 
 {% block content %}
 <section class="card quick-actions-card">
-  <div class="section-head compact">
+  <div class="section-head compact quick-actions-head">
     <div>
+      <p class="quick-actions-kicker">Control Center</p>
       <h2>Quick Actions</h2>
       <p class="section-copy">The most important actions stay visible. Expand the rest only when you need them.</p>
     </div>
+    <div class="quick-actions-badge">1-click workflows</div>
   </div>
 
   <div class="quick-actions-inline">
-    <a class="quick-action quick-action-primary" href="{{ quick_actions.import_data }}">Import Data</a>
-    <a class="quick-action quick-action-primary" href="{{ quick_actions.full_list }}">Open Full Debtor List</a>
-    <a class="quick-action quick-action-primary" href="{{ quick_actions.report_preview }}">Open Report Preview</a>
+    <a class="quick-action quick-action-primary" href="{{ quick_actions.import_data }}">
+      <span class="quick-action-title">Import Data</span>
+      <span class="quick-action-meta">Upload and validate new debtor files</span>
+    </a>
+    <a class="quick-action quick-action-primary" href="{{ quick_actions.full_list }}">
+      <span class="quick-action-title">Open Full Debtor List</span>
+      <span class="quick-action-meta">Browse every matching debtor record</span>
+    </a>
+    <a class="quick-action quick-action-primary" href="{{ quick_actions.report_preview }}">
+      <span class="quick-action-title">Open Report Preview</span>
+      <span class="quick-action-meta">Check export-ready management output</span>
+    </a>
   </div>
 
   <details class="quick-actions-panel">
     <summary>
-      <span>More Actions</span>
-      <span class="quick-actions-hint">Reports, filtered cases, APIs, admin</span>
+      <span class="quick-actions-summary-main">
+        <span class="quick-actions-summary-title">More Actions</span>
+        <span class="quick-actions-summary-copy">Collections shortcuts, report downloads, APIs, and admin tools</span>
+      </span>
+      <span class="quick-actions-summary-side">
+        <span class="quick-actions-summary-count">8+</span>
+        <span class="quick-actions-summary-arrow">▾</span>
+      </span>
     </summary>
     <div class="quick-actions-grid">
       <div class="quick-group">
