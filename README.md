@@ -23,7 +23,7 @@ This project centralizes those workflows into one system that supports:
 - CSV/Excel import with required-column validation, row-level errors, preview before save
 - Baseline rule-based risk scoring (`risk_score`, `risk_band`, reason factors)
 - REST API for portfolios, debtors, risk details, and KPI overview
-- Management dashboard with filters, KPI cards, and segment breakdowns
+- Management dashboard with filters, KPI cards, dynamic visual analytics, and segment breakdowns
 - Performance module (`contact_rate`, `ptp_rate`, `conversion_rate`, `recovery_rate`)
 - Excel and PDF management report exports
 - Weekly report generation command
@@ -146,7 +146,7 @@ Implemented:
 - data import + validation + preview + persistence
 - risk scoring engine v1
 - API layer
-- dashboard + performance module
+- dashboard + performance module + dynamic portfolio charts
 - reporting exports + weekly command
 - RBAC
 - CI and tests
@@ -158,15 +158,15 @@ Planned next:
 ## UI Preview
 
 ### Dashboard Overview
-Main management workspace with KPI cards, compact filters, quick navigation, and portfolio-wide debt monitoring.
+Main management workspace with KPI cards, compact filters, quick navigation, dynamic charts, and portfolio-wide debt monitoring.
 ![Dashboard Overview](docs/images/dashboard-overview.jpg)
 
 ### Dashboard Actions
-Top navigation and filter toolbar designed for one-click access to reporting, debtor lists, and admin workflows.
+Top navigation and filter toolbar designed for one-click access to reporting, debtor lists, admin workflows, and live chart updates.
 ![Dashboard Actions](docs/images/dashboard-actions.jpg)
 
 ### Dashboard Focus
-Detailed operational view showing performance KPIs, priority debtor preview, and risk segment breakdowns in one screen.
+Detailed operational view showing performance KPIs, dynamic visual analytics, priority debtor preview, and risk segment breakdowns in one screen.
 ![Dashboard Focus](docs/images/dashboard-focus.jpg)
 
 ### Admin Workspace
