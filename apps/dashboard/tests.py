@@ -71,6 +71,9 @@ class DashboardViewTests(TestCase):
         self.client.login(username='manager_dash', password='pass123')
         response = self.client.get(reverse('dashboard-home'))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Quick Actions')
+        self.assertContains(response, 'Open Full Debtor List')
+        self.assertContains(response, 'View High Risk Cases')
         self.assertContains(response, 'Priority Debtor Preview')
         self.assertContains(response, 'Risk Segment Breakdown')
 

@@ -250,6 +250,47 @@ def _base_context(filters, status_options):
     }
 
 
+def _dashboard_action_links(filters):
+    base_query = _build_query_string({
+        'portfolio': filters['portfolio'],
+        'risk_band': filters['risk_band'],
+        'status': filters['status'],
+        'date_from': filters['date_from'],
+        'date_to': filters['date_to'],
+        'sort': filters['sort'],
+        'direction': filters['direction'],
+    })
+
+    def debtors_link(**updates):
+        query = _build_query_string({
+            'portfolio': filters['portfolio'],
+            'risk_band': filters['risk_band'],
+            'status': filters['status'],
+            'date_from': filters['date_from'],
+            'date_to': filters['date_to'],
+            'sort': filters['sort'],
+            'direction': filters['direction'],
+        }, **updates)
+        return f'/dashboard/debtors/?{query}#debtor-results'
+
+    return {
+        'import_data': '/portfolio/import/',
+        'full_list': debtors_link(),
+        'high_risk': debtors_link(risk_band='high'),
+        'ptp_cases': debtors_link(status='promise_to_pay'),
+        'paying_cases': debtors_link(status='paying'),
+        'open_cases': debtors_link(status='new'),
+        'report_preview': f"/reports/management/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}",
+        'excel_report': f"/reports/management/excel/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}",
+        'pdf_report': f"/reports/management/pdf/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}",
+        'api_portfolios': '/api/portfolios/',
+        'api_debtors': '/api/debtors/',
+        'api_kpis': '/api/kpis/overview/',
+        'admin_panel': '/admin/',
+        'base_query': base_query,
+    }
+
+
 @login_required
 @manager_or_admin_required
 def management_dashboard_view(request):
@@ -270,6 +311,7 @@ def management_dashboard_view(request):
             'sort': filters['sort'],
             'direction': filters['direction'],
         }),
+        'quick_actions': _dashboard_action_links(filters),
     })
     return render(request, 'dashboard/management_dashboard.html', context)
 
