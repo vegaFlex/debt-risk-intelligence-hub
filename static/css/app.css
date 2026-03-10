@@ -517,3 +517,71 @@ select.auto-submit-filter {
   background: #fff5f5;
   color: #8b1c1b;
 }
+
+.quick-actions-inline {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.quick-action-primary {
+  min-width: 180px;
+  text-align: center;
+}
+
+.quick-actions-panel {
+  border-top: 1px solid #d7e5e1;
+  padding-top: 12px;
+}
+
+.quick-actions-panel summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  font-weight: 800;
+  color: #28443f;
+}
+
+.quick-actions-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.quick-actions-panel summary::after {
+  content: '▾';
+  font-size: 16px;
+  color: var(--brand);
+  transition: transform 0.2s ease;
+}
+
+.quick-actions-panel[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.quick-actions-hint {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.quick-actions-panel .quick-actions-grid {
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .quick-actions-inline {
+    flex-direction: column;
+  }
+
+  .quick-action-primary {
+    min-width: 0;
+  }
+
+  .quick-actions-panel summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

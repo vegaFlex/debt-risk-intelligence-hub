@@ -7,46 +7,51 @@
   <div class="section-head compact">
     <div>
       <h2>Quick Actions</h2>
-      <p class="section-copy">One-click access to the most useful flows, reports, filtered debtor lists, and technical endpoints.</p>
+      <p class="section-copy">The most important actions stay visible. Expand the rest only when you need them.</p>
     </div>
   </div>
-  <div class="quick-actions-grid">
-    <div class="quick-group">
-      <h3>Data & Portfolio</h3>
-      <div class="quick-links">
-        <a class="quick-action" href="{{ quick_actions.import_data }}">Import Data</a>
-        <a class="quick-action" href="{{ quick_actions.full_list }}">Open Full Debtor List</a>
-        <a class="quick-action" href="{{ quick_actions.open_cases }}">View Open Cases</a>
-      </div>
-    </div>
-    <div class="quick-group">
-      <h3>Collections Focus</h3>
-      <div class="quick-links">
-        <a class="quick-action" href="{{ quick_actions.high_risk }}">View High Risk Cases</a>
-        <a class="quick-action" href="{{ quick_actions.ptp_cases }}">View PTP Cases</a>
-        <a class="quick-action" href="{{ quick_actions.paying_cases }}">View Paying Cases</a>
-      </div>
-    </div>
-    <div class="quick-group">
-      <h3>Reports & Output</h3>
-      <div class="quick-links">
-        <a class="quick-action" href="{{ quick_actions.report_preview }}">Open Report Preview</a>
-        <a class="quick-action" href="{{ quick_actions.excel_report }}">Download Excel Report</a>
-        <a class="quick-action" href="{{ quick_actions.pdf_report }}">Download PDF Report</a>
-      </div>
-    </div>
-    <div class="quick-group">
-      <h3>Developer & Admin</h3>
-      <div class="quick-links">
-        <a class="quick-action" href="{{ quick_actions.api_portfolios }}">API Portfolios</a>
-        <a class="quick-action" href="{{ quick_actions.api_debtors }}">API Debtors</a>
-        <a class="quick-action" href="{{ quick_actions.api_kpis }}">API KPIs</a>
-        {% if request.user.is_superuser or request.user.role == 'admin' %}
-          <a class="quick-action admin" href="{{ quick_actions.admin_panel }}">Open Admin Panel</a>
-        {% endif %}
-      </div>
-    </div>
+
+  <div class="quick-actions-inline">
+    <a class="quick-action quick-action-primary" href="{{ quick_actions.import_data }}">Import Data</a>
+    <a class="quick-action quick-action-primary" href="{{ quick_actions.full_list }}">Open Full Debtor List</a>
+    <a class="quick-action quick-action-primary" href="{{ quick_actions.report_preview }}">Open Report Preview</a>
   </div>
+
+  <details class="quick-actions-panel">
+    <summary>
+      <span>More Actions</span>
+      <span class="quick-actions-hint">Reports, filtered cases, APIs, admin</span>
+    </summary>
+    <div class="quick-actions-grid">
+      <div class="quick-group">
+        <h3>Collections Focus</h3>
+        <div class="quick-links">
+          <a class="quick-action" href="{{ quick_actions.high_risk }}">View High Risk Cases</a>
+          <a class="quick-action" href="{{ quick_actions.ptp_cases }}">View PTP Cases</a>
+          <a class="quick-action" href="{{ quick_actions.paying_cases }}">View Paying Cases</a>
+          <a class="quick-action" href="{{ quick_actions.open_cases }}">View Open Cases</a>
+        </div>
+      </div>
+      <div class="quick-group">
+        <h3>Reports & Output</h3>
+        <div class="quick-links">
+          <a class="quick-action" href="{{ quick_actions.excel_report }}">Download Excel Report</a>
+          <a class="quick-action" href="{{ quick_actions.pdf_report }}">Download PDF Report</a>
+        </div>
+      </div>
+      <div class="quick-group">
+        <h3>Developer & Admin</h3>
+        <div class="quick-links">
+          <a class="quick-action" href="{{ quick_actions.api_portfolios }}">API Portfolios</a>
+          <a class="quick-action" href="{{ quick_actions.api_debtors }}">API Debtors</a>
+          <a class="quick-action" href="{{ quick_actions.api_kpis }}">API KPIs</a>
+          {% if request.user.is_superuser or request.user.role == 'admin' %}
+            <a class="quick-action admin" href="{{ quick_actions.admin_panel }}">Open Admin Panel</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </details>
 </section>
 
 <section class="card">
