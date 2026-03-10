@@ -157,6 +157,7 @@ Implemented:
 Planned next:
 - deployment configuration (Render)
 - short product demo capture
+- import column mapping and normalization layer for heterogeneous source files
 
 ## UI Preview
 
