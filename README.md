@@ -158,15 +158,19 @@ Planned next:
 ## UI Preview
 
 ### Dashboard Overview
+Main management workspace with KPI cards, compact filters, quick navigation, and portfolio-wide debt monitoring.
 ![Dashboard Overview](docs/images/dashboard-overview.jpg)
 
 ### Dashboard Actions
+Top navigation and filter toolbar designed for one-click access to reporting, debtor lists, and admin workflows.
 ![Dashboard Actions](docs/images/dashboard-actions.jpg)
 
 ### Dashboard Focus
+Detailed operational view showing performance KPIs, priority debtor preview, and risk segment breakdowns in one screen.
 ![Dashboard Focus](docs/images/dashboard-focus.jpg)
 
 ### Admin Workspace
+Lightly branded Django admin console for portfolios, debtors, reports, and role-based access management.
 ![Admin Workspace](docs/images/admin-dashboard.jpg)
 
 ## Developer API Preview
