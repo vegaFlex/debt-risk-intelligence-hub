@@ -43,7 +43,7 @@
         {% endif %}
       </div>
       {% if nav_actions and nav_actions.secondary %}
-        <details class="nav-more">
+        <details class="nav-more" id="nav-more-actions">
           <summary>More Actions</summary>
           <div class="nav-more-menu">
             {% for action in nav_actions.secondary %}
@@ -85,5 +85,29 @@
     </section>
     {% endblock %}
   </main>
+
+  <script>
+    (function () {
+      const moreActions = document.getElementById('nav-more-actions');
+      if (!moreActions) {
+        return;
+      }
+
+      document.addEventListener('click', (event) => {
+        if (!moreActions.open) {
+          return;
+        }
+        if (!moreActions.contains(event.target)) {
+          moreActions.open = false;
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          moreActions.open = false;
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
