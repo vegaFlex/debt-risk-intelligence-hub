@@ -1,7 +1,7 @@
 :root {
   --primary: #0f766e;
   --secondary: #0b4d47;
-  --accent: #dbeee8;
+  --accent: #c8e8df;
   --primary-fg: #ffffff;
   --body-fg: #1d2939;
   --body-bg: #edf3f1;
@@ -49,7 +49,7 @@ body.login {
 
 .admin-branding-copy {
   margin: 2px 0 0;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 12px;
   font-weight: 500;
 }
@@ -82,9 +82,12 @@ form .help,
 .module h2,
 .module caption,
 .inline-group h2 {
-  background: #dcefe9;
-  color: #0b4d47;
+  background: linear-gradient(180deg, #cae9e0 0%, #b9dfd4 100%);
+  color: #0a4b45;
   border-radius: 12px 12px 0 0;
+  font-weight: 800;
+  letter-spacing: 0.25px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .dashboard .module table td,
@@ -127,8 +130,9 @@ a.button:hover {
 }
 
 #changelist-filter h2 {
-  background: #eff7f4;
-  color: #0b4d47;
+  background: #dfeee8;
+  color: #0a4b45;
+  font-weight: 800;
 }
 
 #changelist-filter li.selected a {
@@ -138,4 +142,19 @@ a.button:hover {
 
 .login #header {
   border-bottom: none;
+}
+
+.dashboard .module table th a,
+.dashboard .module table td a {
+  font-weight: 700;
+}
+
+.dashboard #content .module caption a,
+.dashboard #content .module h2 {
+  opacity: 1;
+}
+
+#content h1 {
+  color: #23333a;
+  font-weight: 700;
 }
