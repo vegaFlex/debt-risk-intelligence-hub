@@ -1,0 +1,18 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div class="admin-branding-wrap">
+  <div>
+    <h1 id="site-name"><a href="{% url 'admin:index' %}">Debt &amp; Risk Admin</a></h1>
+    <p class="admin-branding-copy">Operations console for portfolios, debtors, reports, and access control.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

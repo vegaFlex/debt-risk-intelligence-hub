@@ -2,6 +2,10 @@ from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import include, path
 
+admin.site.site_header = 'Debt & Risk Admin'
+admin.site.site_title = 'Debt & Risk Admin'
+admin.site.index_title = 'Administration workspace'
+
 
 def root_redirect(_request):
     return redirect('dashboard-home')

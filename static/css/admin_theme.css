@@ -1,0 +1,141 @@
+:root {
+  --primary: #0f766e;
+  --secondary: #0b4d47;
+  --accent: #dbeee8;
+  --primary-fg: #ffffff;
+  --body-fg: #1d2939;
+  --body-bg: #edf3f1;
+  --body-quiet-color: #475467;
+  --body-loud-color: #101828;
+  --header-color: #ffffff;
+  --header-branding-color: #ffffff;
+  --header-bg: linear-gradient(135deg, #0f766e 0%, #0b4d47 100%);
+  --header-link-color: #ffffff;
+  --breadcrumbs-fg: #355a54;
+  --breadcrumbs-link-fg: #0f766e;
+  --breadcrumbs-bg: #f4fbf8;
+  --link-fg: #0f766e;
+  --link-hover-color: #0b4d47;
+  --hairline-color: #cdd8d5;
+  --border-color: #cdd8d5;
+  --error-fg: #b42318;
+  --message-success-bg: #dcfae6;
+  --message-warning-bg: #fff4dd;
+  --message-error-bg: #fee4e2;
+  --darkened-bg: #e4efec;
+  --selected-bg: #e7f4f1;
+  --selected-row: #f3fbf8;
+  --close-button-bg: #6b7280;
+  --close-button-hover-bg: #4b5563;
+}
+
+body.login {
+  background: radial-gradient(circle at top right, #dbeee8 0, #edf3f1 42%);
+}
+
+#header {
+  box-shadow: 0 10px 24px rgba(15, 118, 110, 0.14);
+}
+
+#site-name a {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.admin-branding-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.admin-branding-copy {
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+div.breadcrumbs {
+  border-bottom: 1px solid #cfe0db;
+}
+
+.module,
+.inline-group,
+.login #content,
+.login .form-row,
+.submit-row,
+div.help,
+p.help,
+form .help,
+.dashboard .module table,
+#changelist-form .results {
+  border-radius: 14px;
+}
+
+.module,
+.inline-group,
+#changelist-filter,
+.login #content,
+.dashboard #content {
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.module h2,
+.module caption,
+.inline-group h2 {
+  background: #dcefe9;
+  color: #0b4d47;
+  border-radius: 12px 12px 0 0;
+}
+
+.dashboard .module table td,
+.dashboard .module table th,
+#changelist table thead th,
+#changelist table tbody td,
+#changelist table tbody th {
+  border-color: #e4ecea;
+}
+
+.dashboard .module table tr:hover td,
+.dashboard .module table tr:hover th,
+#changelist table tbody tr:hover td,
+#changelist table tbody tr:hover th {
+  background: #f5fbf8;
+}
+
+.button,
+input[type=submit],
+input[type=button],
+.submit-row input,
+a.button {
+  border-radius: 10px;
+  font-weight: 700;
+  transition: transform 0.14s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.button:hover,
+input[type=submit]:hover,
+input[type=button]:hover,
+.submit-row input:hover,
+a.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(15, 118, 110, 0.14);
+}
+
+.submit-row .deletelink,
+.submit-row a.deletelink {
+  border-radius: 10px;
+}
+
+#changelist-filter h2 {
+  background: #eff7f4;
+  color: #0b4d47;
+}
+
+#changelist-filter li.selected a {
+  color: #0b4d47;
+  font-weight: 700;
+}
+
+.login #header {
+  border-bottom: none;
+}
