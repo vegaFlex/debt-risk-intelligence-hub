@@ -264,6 +264,17 @@ input, select {
 .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
 .kpi-value { margin-top: 6px; font-size: 30px; font-weight: 800; }
 
+.kpi-card-wide-value {
+  min-width: 0;
+}
+
+.kpi-value-wide {
+  font-size: clamp(1.8rem, 2vw, 2.45rem);
+  letter-spacing: -0.4px;
+  line-height: 1.05;
+  word-break: break-word;
+}
+
 .performance-grid {
   gap: 10px;
   margin-bottom: 0;
