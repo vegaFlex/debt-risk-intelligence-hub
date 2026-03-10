@@ -1,0 +1,145 @@
+{% extends "base_app.html" %}
+
+{% block title %}Full Debtor List - Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="section-head compact">
+    <div>
+      <h2>Full Debtor List</h2>
+      <p class="section-copy">Complete filtered debtor result set with sorting and pagination.</p>
+    </div>
+    <a class="btn btn-secondary" href="/dashboard/?portfolio={{ filters.portfolio }}&risk_band={{ filters.risk_band }}&status={{ filters.status }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">Back To Dashboard</a>
+  </div>
+
+  <form method="get" id="debtor-results-form">
+    <div class="filters-grid">
+      <div>
+        <label for="portfolio">Portfolio</label>
+        <select name="portfolio" id="portfolio" class="auto-submit-filter">
+          <option value="">All portfolios</option>
+          {% for p in portfolios %}
+            <option value="{{ p.id }}" {% if filters.portfolio == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="risk_band">Risk Band</label>
+        <select name="risk_band" id="risk_band" class="auto-submit-filter">
+          <option value="">All</option>
+          <option value="high" {% if filters.risk_band == 'high' %}selected{% endif %}>High</option>
+          <option value="medium" {% if filters.risk_band == 'medium' %}selected{% endif %}>Medium</option>
+          <option value="low" {% if filters.risk_band == 'low' %}selected{% endif %}>Low</option>
+        </select>
+      </div>
+      <div>
+        <label for="status">Status</label>
+        <select id="status" name="status" class="auto-submit-filter">
+          <option value="">All statuses</option>
+          {% for status_value, status_label in status_options %}
+            <option value="{{ status_value }}" {% if filters.status == status_value %}selected{% endif %}>{{ status_label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="date_from">Created From</label>
+        <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}" class="date-icon-field{% if filters.date_from %} has-value{% endif %}">
+      </div>
+      <div>
+        <label for="date_to">Created To</label>
+        <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}" class="date-icon-field{% if filters.date_to %} has-value{% endif %}">
+      </div>
+    </div>
+    <input type="hidden" name="sort" value="{{ ordering.sort }}">
+    <input type="hidden" name="direction" value="{{ ordering.direction }}">
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Apply Filters</button>
+      <a href="/dashboard/debtors/#debtor-results" class="btn btn-secondary">Reset</a>
+    </div>
+    <p class="filter-summary">{{ kpis.total_debtors }} debtors match the current filters. Sorted by {{ ordering.label }} ({{ ordering.direction }}).</p>
+  </form>
+</section>
+
+<section class="section-head compact" id="debtor-results">
+  <div>
+    <h2>Sortable Debtor Results</h2>
+    <p class="section-copy">Click any column header to sort ascending or descending. The table stays anchored here after each sort or page change.</p>
+  </div>
+</section>
+<section class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th><a class="sort-link{% if sort_state.full_name.is_active %} active{% endif %}" href="?{{ sort_links.full_name }}">Debtor <span class="sort-indicator">{% if sort_state.full_name.direction == 'asc' %}&uarr;{% elif sort_state.full_name.direction == 'desc' %}&darr;{% else %}&harr;{% endif %}</span></a></th>
+        <th><a class="sort-link{% if sort_state.portfolio.is_active %} active{% endif %}" href="?{{ sort_links.portfolio }}">Portfolio <span class="sort-indicator">{% if sort_state.portfolio.direction == 'asc' %}&uarr;{% elif sort_state.portfolio.direction == 'desc' %}&darr;{% else %}&harr;{% endif %}</span></a></th>
+        <th><a class="sort-link{% if sort_state.status.is_active %} active{% endif %}" href="?{{ sort_links.status }}">Status <span class="sort-indicator">{% if sort_state.status.direction == 'asc' %}&uarr;{% elif sort_state.status.direction == 'desc' %}&darr;{% else %}&harr;{% endif %}</span></a></th>
+        <th><a class="sort-link{% if sort_state.days_past_due.is_active %} active{% endif %}" href="?{{ sort_links.days_past_due }}">Days Past Due <span class="sort-indicator">{% if sort_state.days_past_due.direction == 'asc' %}&uarr;{% elif sort_state.days_past_due.direction == 'desc' %}&darr;{% else %}&harr;{% endif %}</span></a></th>
+        <th><a class="sort-link{% if sort_state.outstanding_total.is_active %} active{% endif %}" href="?{{ sort_links.outstanding_total }}">Outstanding Total <span class="sort-indicator">{% if sort_state.outstanding_total.direction == 'asc' %}&uarr;{% elif sort_state.outstanding_total.direction == 'desc' %}&darr;{% else %}&harr;{% endif %}</span></a></th>
+        <th><a class="sort-link{% if sort_state.risk_score.is_active %} active{% endif %}" href="?{{ sort_links.risk_score }}">Risk Score <span class="sort-indicator">{% if sort_state.risk_score.direction == 'asc' %}&uarr;{% elif sort_state.risk_score.direction == 'desc' %}&darr;{% else %}&harr;{% endif %}</span></a></th>
+        <th><a class="sort-link{% if sort_state.risk_band.is_active %} active{% endif %}" href="?{{ sort_links.risk_band }}">Risk Band <span class="sort-indicator">{% if sort_state.risk_band.direction == 'asc' %}&uarr;{% elif sort_state.risk_band.direction == 'desc' %}&darr;{% else %}&harr;{% endif %}</span></a></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for debtor in results_page %}
+        <tr>
+          <td>{{ debtor.full_name }}</td>
+          <td>{{ debtor.portfolio.name }}</td>
+          <td>{{ debtor.status }}</td>
+          <td>{{ debtor.days_past_due }}</td>
+          <td>{{ debtor.outstanding_total }}</td>
+          <td>{{ debtor.risk_score }}</td>
+          <td class="band-{{ debtor.risk_band }}">{{ debtor.risk_band|upper }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7">No debtors found for the selected filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="pagination-bar">
+  <p class="small">Showing page {{ results_page.number }} of {{ results_page.paginator.num_pages }} with 15 debtors per page.</p>
+  <div class="pagination-links">
+    {% if page_links.prev %}
+      <a class="btn btn-secondary btn-page" href="?{{ page_links.prev }}">Previous</a>
+    {% endif %}
+    {% for page_item in page_links.numbers %}
+      {% if page_item.is_ellipsis %}
+        <span class="page-pill muted">{{ page_item.label }}</span>
+      {% elif page_item.is_current %}
+        <span class="page-pill active">{{ page_item.label }}</span>
+      {% else %}
+        <a class="page-pill" href="?{{ page_item.query }}">{{ page_item.label }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page_links.next %}
+      <a class="btn btn-secondary btn-page" href="?{{ page_links.next }}">Next</a>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+  (function () {
+    const form = document.getElementById('debtor-results-form');
+    const dateInputs = document.querySelectorAll('.date-icon-field');
+    const autoSubmitFilters = document.querySelectorAll('.auto-submit-filter');
+
+    dateInputs.forEach((input) => {
+      const sync = () => input.classList.toggle('has-value', Boolean(input.value));
+      input.addEventListener('change', sync);
+      input.addEventListener('input', sync);
+      sync();
+    });
+
+    autoSubmitFilters.forEach((input) => {
+      input.addEventListener('change', () => {
+        if (form) {
+          form.requestSubmit();
+        }
+      });
+    });
+  })();
+</script>
+{% endblock %}
+
+{% block developer_api %}{% endblock %}

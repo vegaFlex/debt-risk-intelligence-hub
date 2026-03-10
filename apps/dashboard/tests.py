@@ -71,7 +71,8 @@ class DashboardViewTests(TestCase):
         self.client.login(username='manager_dash', password='pass123')
         response = self.client.get(reverse('dashboard-home'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Debt & Risk Intelligence Hub')
+        self.assertContains(response, 'Priority Debtor Preview')
+        self.assertContains(response, 'Risk Segment Breakdown')
 
     def test_dashboard_filters_by_selected_status(self):
         self.client.login(username='manager_dash', password='pass123')
@@ -96,15 +97,16 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, 'Debtor B')
         self.assertNotContains(response, 'Debtor A')
 
-    def test_dashboard_sorts_results_by_requested_column(self):
+    def test_full_list_sorts_results_by_requested_column(self):
         self.client.login(username='manager_dash', password='pass123')
-        response = self.client.get(reverse('dashboard-home'), {'sort': 'outstanding_total', 'direction': 'asc'})
+        response = self.client.get(reverse('dashboard-debtor-results'), {'sort': 'outstanding_total', 'direction': 'asc'})
         self.assertEqual(response.status_code, 200)
         results = list(response.context['results_page'].object_list)
         self.assertEqual(results[0].external_id, 'P1-002')
         self.assertEqual(results[1].external_id, 'P1-001')
+        self.assertContains(response, 'Sortable Debtor Results')
 
-    def test_dashboard_paginates_results(self):
+    def test_full_list_paginates_results(self):
         for idx in range(3, 31):
             Debtor.objects.create(
                 portfolio=self.portfolio_one,
@@ -120,7 +122,8 @@ class DashboardViewTests(TestCase):
             )
 
         self.client.login(username='manager_dash', password='pass123')
-        response = self.client.get(reverse('dashboard-home'), {'page': 2, 'sort': 'full_name', 'direction': 'asc'})
+        response = self.client.get(reverse('dashboard-debtor-results'), {'page': 2, 'sort': 'full_name', 'direction': 'asc'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['results_page'].number, 2)
         self.assertEqual(response.context['results_page'].paginator.num_pages, 2)
+        self.assertContains(response, '15 debtors per page')

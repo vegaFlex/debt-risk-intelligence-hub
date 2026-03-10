@@ -1,15 +1,14 @@
 from decimal import Decimal
 from urllib.parse import urlencode
 
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Count, DecimalField, Sum, Value
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-
-from apps.users.decorators import manager_or_admin_required
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
+from apps.users.decorators import manager_or_admin_required
 
 
 DEFAULT_STATUS_OPTIONS = [
@@ -30,9 +29,19 @@ ORDERABLE_COLUMNS = {
     'risk_band': 'risk_band',
 }
 
+SORT_LABELS = {
+    'full_name': 'debtor',
+    'portfolio': 'portfolio',
+    'status': 'status',
+    'days_past_due': 'days past due',
+    'outstanding_total': 'outstanding total',
+    'risk_score': 'risk score',
+    'risk_band': 'risk band',
+}
+
 DEFAULT_SORT = 'risk_score'
 DEFAULT_DIRECTION = 'desc'
-PAGE_SIZE = 25
+PAGE_SIZE = 15
 
 
 def _build_status_options():
@@ -75,42 +84,49 @@ def _build_query_string(params, **updates):
     return urlencode(query)
 
 
-@login_required
-@manager_or_admin_required
-def management_dashboard_view(request):
-    portfolio_id = request.GET.get('portfolio')
-    risk_band = request.GET.get('risk_band')
-    status = request.GET.get('status')
-    date_from = request.GET.get('date_from')
-    date_to = request.GET.get('date_to')
+def _current_filters(request, status_options):
     sort = request.GET.get('sort', DEFAULT_SORT)
     direction = request.GET.get('direction', DEFAULT_DIRECTION)
-    page_number = request.GET.get('page', '1')
+    status = request.GET.get('status', '')
 
     if sort not in ORDERABLE_COLUMNS:
         sort = DEFAULT_SORT
     if direction not in {'asc', 'desc'}:
         direction = DEFAULT_DIRECTION
 
-    status_options = _build_status_options()
     allowed_statuses = {value for value, _ in status_options}
     status = status if status in allowed_statuses else ''
 
+    return {
+        'portfolio': request.GET.get('portfolio', ''),
+        'risk_band': request.GET.get('risk_band', ''),
+        'status': status,
+        'date_from': request.GET.get('date_from', ''),
+        'date_to': request.GET.get('date_to', ''),
+        'sort': sort,
+        'direction': direction,
+        'page': request.GET.get('page', '1'),
+    }
+
+
+def _filtered_debtors(filters):
     debtors = Debtor.objects.select_related('portfolio').all()
 
-    if portfolio_id:
-        debtors = debtors.filter(portfolio_id=portfolio_id)
-    if risk_band:
-        debtors = debtors.filter(risk_band=risk_band)
-    if status:
-        debtors = debtors.filter(status=status)
-    if date_from:
-        debtors = debtors.filter(created_at__date__gte=date_from)
-    if date_to:
-        debtors = debtors.filter(created_at__date__lte=date_to)
+    if filters['portfolio']:
+        debtors = debtors.filter(portfolio_id=filters['portfolio'])
+    if filters['risk_band']:
+        debtors = debtors.filter(risk_band=filters['risk_band'])
+    if filters['status']:
+        debtors = debtors.filter(status=filters['status'])
+    if filters['date_from']:
+        debtors = debtors.filter(created_at__date__gte=filters['date_from'])
+    if filters['date_to']:
+        debtors = debtors.filter(created_at__date__lte=filters['date_to'])
 
-    filtered_debtors = debtors.order_by(*_build_ordering(sort, direction))
+    return debtors
 
+
+def _kpis_and_segments(filtered_debtors):
     zero_decimal = Value(Decimal('0.00'), output_field=DecimalField(max_digits=14, decimal_places=2))
 
     total_debtors = filtered_debtors.count()
@@ -125,9 +141,7 @@ def management_dashboard_view(request):
     paying_count = filtered_debtors.filter(status='paying').count()
 
     low_total = filtered_debtors.filter(risk_band='low').aggregate(value=Coalesce(Sum('outstanding_total'), zero_decimal))['value']
-    medium_total = filtered_debtors.filter(risk_band='medium').aggregate(
-        value=Coalesce(Sum('outstanding_total'), zero_decimal)
-    )['value']
+    medium_total = filtered_debtors.filter(risk_band='medium').aggregate(value=Coalesce(Sum('outstanding_total'), zero_decimal))['value']
     high_total = filtered_debtors.filter(risk_band='high').aggregate(value=Coalesce(Sum('outstanding_total'), zero_decimal))['value']
 
     expected_collections = (
@@ -150,42 +164,7 @@ def management_dashboard_view(request):
         .order_by('-debtor_count', '-total_outstanding')[:8]
     )
 
-    paginator = Paginator(filtered_debtors, PAGE_SIZE)
-    results_page = paginator.get_page(page_number)
-    page_range = paginator.get_elided_page_range(number=results_page.number, on_each_side=1, on_ends=1)
-
-    current_filters = {
-        'portfolio': portfolio_id or '',
-        'risk_band': risk_band or '',
-        'status': status or '',
-        'date_from': date_from or '',
-        'date_to': date_to or '',
-        'sort': sort,
-        'direction': direction,
-    }
-
-    sort_links = {}
-    for key in ORDERABLE_COLUMNS:
-        next_direction = 'asc'
-        if sort == key and direction == 'asc':
-            next_direction = 'desc'
-        sort_links[key] = _build_query_string(current_filters, sort=key, direction=next_direction, page='1')
-
-    page_links = {
-        'prev': _build_query_string(current_filters, page=results_page.previous_page_number()) if results_page.has_previous() else '',
-        'next': _build_query_string(current_filters, page=results_page.next_page_number()) if results_page.has_next() else '',
-        'numbers': [
-            {
-                'label': str(page_value),
-                'query': _build_query_string(current_filters, page=page_value),
-                'is_current': str(page_value) == str(results_page.number),
-                'is_ellipsis': str(page_value) == '…',
-            }
-            for page_value in page_range
-        ],
-    }
-
-    context = {
+    return {
         'kpis': {
             'total_debtors': total_debtors,
             'contact_rate': round(contact_rate, 2),
@@ -200,23 +179,109 @@ def management_dashboard_view(request):
             'paying_count': paying_count,
             'open_cases': filtered_debtors.exclude(status='closed').count(),
         },
-        'filters': {
-            'portfolio': portfolio_id or '',
-            'risk_band': risk_band or '',
-            'status': status or '',
-            'date_from': date_from or '',
-            'date_to': date_to or '',
-        },
-        'ordering': {
-            'sort': sort,
-            'direction': direction,
-        },
-        'portfolios': Portfolio.objects.order_by('name'),
-        'status_options': status_options,
-        'results_page': results_page,
-        'sort_links': sort_links,
-        'page_links': page_links,
         'top_risk_segments': top_risk_segments,
     }
 
+
+def _list_context(filters, filtered_debtors, *, anchor):
+    ordered_debtors = filtered_debtors.order_by(*_build_ordering(filters['sort'], filters['direction']))
+    paginator = Paginator(ordered_debtors, PAGE_SIZE)
+    results_page = paginator.get_page(filters['page'])
+    page_range = paginator.get_elided_page_range(number=results_page.number, on_each_side=1, on_ends=1)
+
+    active_params = {
+        'portfolio': filters['portfolio'],
+        'risk_band': filters['risk_band'],
+        'status': filters['status'],
+        'date_from': filters['date_from'],
+        'date_to': filters['date_to'],
+        'sort': filters['sort'],
+        'direction': filters['direction'],
+    }
+
+    sort_links = {}
+    sort_state = {}
+    for key in ORDERABLE_COLUMNS:
+        next_direction = 'desc' if filters['sort'] == key and filters['direction'] == 'asc' else 'asc'
+        sort_links[key] = f"{_build_query_string(active_params, sort=key, direction=next_direction, page='1')}#{anchor}"
+        sort_state[key] = {
+            'is_active': filters['sort'] == key,
+            'direction': filters['direction'] if filters['sort'] == key else '',
+        }
+
+    page_links = {
+        'prev': f"{_build_query_string(active_params, page=results_page.previous_page_number())}#{anchor}" if results_page.has_previous() else '',
+        'next': f"{_build_query_string(active_params, page=results_page.next_page_number())}#{anchor}" if results_page.has_next() else '',
+        'numbers': [
+            {
+                'label': str(page_value),
+                'query': f"{_build_query_string(active_params, page=page_value)}#{anchor}" if str(page_value) != '…' else '',
+                'is_current': str(page_value) == str(results_page.number),
+                'is_ellipsis': str(page_value) == '…',
+            }
+            for page_value in page_range
+        ],
+    }
+
+    return {
+        'results_page': results_page,
+        'sort_links': sort_links,
+        'sort_state': sort_state,
+        'page_links': page_links,
+        'ordering': {
+            'sort': filters['sort'],
+            'direction': filters['direction'],
+            'label': SORT_LABELS.get(filters['sort'], SORT_LABELS[DEFAULT_SORT]),
+        },
+    }
+
+
+def _base_context(filters, status_options):
+    return {
+        'filters': {
+            'portfolio': filters['portfolio'],
+            'risk_band': filters['risk_band'],
+            'status': filters['status'],
+            'date_from': filters['date_from'],
+            'date_to': filters['date_to'],
+        },
+        'portfolios': Portfolio.objects.order_by('name'),
+        'status_options': status_options,
+    }
+
+
+@login_required
+@manager_or_admin_required
+def management_dashboard_view(request):
+    status_options = _build_status_options()
+    filters = _current_filters(request, status_options)
+    filtered_debtors = _filtered_debtors(filters)
+
+    context = _base_context(filters, status_options)
+    context.update(_kpis_and_segments(filtered_debtors))
+    context.update({
+        'top_risk_debtors': filtered_debtors.order_by('-risk_score', '-outstanding_total', 'id')[:15],
+        'full_list_query': _build_query_string({
+            'portfolio': filters['portfolio'],
+            'risk_band': filters['risk_band'],
+            'status': filters['status'],
+            'date_from': filters['date_from'],
+            'date_to': filters['date_to'],
+            'sort': filters['sort'],
+            'direction': filters['direction'],
+        }),
+    })
     return render(request, 'dashboard/management_dashboard.html', context)
+
+
+@login_required
+@manager_or_admin_required
+def debtor_results_view(request):
+    status_options = _build_status_options()
+    filters = _current_filters(request, status_options)
+    filtered_debtors = _filtered_debtors(filters)
+
+    context = _base_context(filters, status_options)
+    context.update(_kpis_and_segments(filtered_debtors))
+    context.update(_list_context(filters, filtered_debtors, anchor='debtor-results'))
+    return render(request, 'dashboard/debtor_results.html', context)

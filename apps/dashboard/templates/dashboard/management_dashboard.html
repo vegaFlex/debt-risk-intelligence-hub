@@ -46,8 +46,9 @@
       <button type="submit" class="btn btn-primary">Apply Filters</button>
       <a href="?" class="btn btn-secondary">Reset</a>
       <a class="btn btn-secondary" href="/reports/management/?date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">Open Report Preview</a>
+      <a class="btn btn-secondary" href="/dashboard/debtors/?{{ full_list_query }}#debtor-results">Open Full Debtor List</a>
     </div>
-    <p class="filter-summary">{{ kpis.total_debtors }} debtors match the current filters. Sorted by {{ ordering.sort|cut:'_' }} ({{ ordering.direction }}).</p>
+    <p class="filter-summary">{{ kpis.total_debtors }} debtors match the current filters.</p>
   </form>
 </section>
 
@@ -62,6 +63,7 @@
 
 <section class="card">
   <h2>Call Center Performance</h2>
+  <p class="section-copy">Operational KPIs for the currently selected debtor set.</p>
   <section class="kpi-grid">
     <article class="kpi-card"><div class="kpi-label">Contacted Cases</div><div class="kpi-value">{{ performance.contacted_count }}</div></article>
     <article class="kpi-card"><div class="kpi-label">PTP Cases</div><div class="kpi-value">{{ performance.ptp_count }}</div></article>
@@ -70,21 +72,22 @@
   </section>
 </section>
 
+<section class="section-head">
+  <div>
+    <h2>Priority Debtor Preview</h2>
+    <p class="section-copy">Top 15 debtors ranked by risk score and outstanding balance for rapid review.</p>
+  </div>
+  <a class="btn btn-secondary" href="/dashboard/debtors/?{{ full_list_query }}#debtor-results">View All Matching Debtors</a>
+</section>
 <section class="table-wrap">
   <table>
     <thead>
       <tr>
-        <th><a class="sort-link" href="?{{ sort_links.full_name }}">Debtor</a></th>
-        <th><a class="sort-link" href="?{{ sort_links.portfolio }}">Portfolio</a></th>
-        <th><a class="sort-link" href="?{{ sort_links.status }}">Status</a></th>
-        <th><a class="sort-link" href="?{{ sort_links.days_past_due }}">Days Past Due</a></th>
-        <th><a class="sort-link" href="?{{ sort_links.outstanding_total }}">Outstanding Total</a></th>
-        <th><a class="sort-link" href="?{{ sort_links.risk_score }}">Risk Score</a></th>
-        <th><a class="sort-link" href="?{{ sort_links.risk_band }}">Risk Band</a></th>
+        <th>Debtor</th><th>Portfolio</th><th>Status</th><th>Days Past Due</th><th>Outstanding Total</th><th>Risk Score</th><th>Risk Band</th>
       </tr>
     </thead>
     <tbody>
-      {% for debtor in results_page %}
+      {% for debtor in top_risk_debtors %}
         <tr>
           <td>{{ debtor.full_name }}</td>
           <td>{{ debtor.portfolio.name }}</td>
@@ -101,27 +104,12 @@
   </table>
 </section>
 
-<section class="pagination-bar">
-  <p class="small">Showing page {{ results_page.number }} of {{ results_page.paginator.num_pages }}.</p>
-  <div class="pagination-links">
-    {% if page_links.prev %}
-      <a class="btn btn-secondary btn-page" href="?{{ page_links.prev }}">Previous</a>
-    {% endif %}
-    {% for page_item in page_links.numbers %}
-      {% if page_item.is_ellipsis %}
-        <span class="page-pill muted">{{ page_item.label }}</span>
-      {% elif page_item.is_current %}
-        <span class="page-pill active">{{ page_item.label }}</span>
-      {% else %}
-        <a class="page-pill" href="?{{ page_item.query }}">{{ page_item.label }}</a>
-      {% endif %}
-    {% endfor %}
-    {% if page_links.next %}
-      <a class="btn btn-secondary btn-page" href="?{{ page_links.next }}">Next</a>
-    {% endif %}
+<section class="section-head">
+  <div>
+    <h2>Risk Segment Breakdown</h2>
+    <p class="section-copy">Aggregated debtor counts and exposure split by portfolio, risk band, and status.</p>
   </div>
 </section>
-
 <section class="table-wrap">
   <table>
     <thead>
