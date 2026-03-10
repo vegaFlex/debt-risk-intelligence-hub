@@ -161,6 +161,10 @@ Planned next:
 Main management workspace with KPI cards, compact filters, quick navigation, dynamic charts, and portfolio-wide debt monitoring.
 ![Dashboard Overview](docs/images/dashboard-overview.jpg)
 
+### Dashboard Charts
+Dedicated analytics section with dynamic risk, status, and exposure visualizations that react to the selected debtor package.
+![Dashboard Charts](docs/images/dashboard-charts.jpg)
+
 ### Dashboard Actions
 Top navigation and filter toolbar designed for one-click access to reporting, debtor lists, admin workflows, and live chart updates.
 ![Dashboard Actions](docs/images/dashboard-actions.jpg)
