@@ -5,46 +5,48 @@
 {% block content %}
 <section class="card">
   <form method="get" id="dashboard-filters-form">
-    <div class="filters-grid">
-      <div>
-        <label for="portfolio">Portfolio</label>
-        <select name="portfolio" id="portfolio" class="auto-submit-filter">
-          <option value="">All portfolios</option>
-          {% for p in portfolios %}
-            <option value="{{ p.id }}" {% if filters.portfolio == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
-          {% endfor %}
-        </select>
+    <div class="filter-toolbar">
+      <div class="filters-grid filters-grid-toolbar">
+        <div>
+          <label for="portfolio">Portfolio</label>
+          <select name="portfolio" id="portfolio" class="auto-submit-filter">
+            <option value="">All portfolios</option>
+            {% for p in portfolios %}
+              <option value="{{ p.id }}" {% if filters.portfolio == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="risk_band">Risk Band</label>
+          <select name="risk_band" id="risk_band" class="auto-submit-filter">
+            <option value="">All</option>
+            <option value="high" {% if filters.risk_band == 'high' %}selected{% endif %}>High</option>
+            <option value="medium" {% if filters.risk_band == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="low" {% if filters.risk_band == 'low' %}selected{% endif %}>Low</option>
+          </select>
+        </div>
+        <div>
+          <label for="status">Status</label>
+          <select id="status" name="status" class="auto-submit-filter">
+            <option value="">All statuses</option>
+            {% for status_value, status_label in status_options %}
+              <option value="{{ status_value }}" {% if filters.status == status_value %}selected{% endif %}>{{ status_label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="date_from">Created From</label>
+          <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}" class="date-icon-field{% if filters.date_from %} has-value{% endif %}">
+        </div>
+        <div>
+          <label for="date_to">Created To</label>
+          <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}" class="date-icon-field{% if filters.date_to %} has-value{% endif %}">
+        </div>
       </div>
-      <div>
-        <label for="risk_band">Risk Band</label>
-        <select name="risk_band" id="risk_band" class="auto-submit-filter">
-          <option value="">All</option>
-          <option value="high" {% if filters.risk_band == 'high' %}selected{% endif %}>High</option>
-          <option value="medium" {% if filters.risk_band == 'medium' %}selected{% endif %}>Medium</option>
-          <option value="low" {% if filters.risk_band == 'low' %}selected{% endif %}>Low</option>
-        </select>
+      <div class="actions actions-toolbar">
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+        <a href="?" class="btn btn-secondary">Reset</a>
       </div>
-      <div>
-        <label for="status">Status</label>
-        <select id="status" name="status" class="auto-submit-filter">
-          <option value="">All statuses</option>
-          {% for status_value, status_label in status_options %}
-            <option value="{{ status_value }}" {% if filters.status == status_value %}selected{% endif %}>{{ status_label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div>
-        <label for="date_from">Created From</label>
-        <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}" class="date-icon-field{% if filters.date_from %} has-value{% endif %}">
-      </div>
-      <div>
-        <label for="date_to">Created To</label>
-        <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}" class="date-icon-field{% if filters.date_to %} has-value{% endif %}">
-      </div>
-    </div>
-    <div class="actions">
-      <button type="submit" class="btn btn-primary">Apply Filters</button>
-      <a href="?" class="btn btn-secondary">Reset</a>
     </div>
     <p class="filter-summary">{{ kpis.total_debtors }} debtors match the current filters.</p>
   </form>
@@ -59,14 +61,14 @@
   <article class="kpi-card"><div class="kpi-label">Expected Collections</div><div class="kpi-value">{{ kpis.expected_collections }}</div></article>
 </section>
 
-<section class="card">
+<section class="card card-compact">
   <h2>Call Center Performance</h2>
   <p class="section-copy">Operational KPIs for the currently selected debtor set.</p>
-  <section class="kpi-grid">
-    <article class="kpi-card"><div class="kpi-label">Contacted Cases</div><div class="kpi-value">{{ performance.contacted_count }}</div></article>
-    <article class="kpi-card"><div class="kpi-label">PTP Cases</div><div class="kpi-value">{{ performance.ptp_count }}</div></article>
-    <article class="kpi-card"><div class="kpi-label">Paying Cases</div><div class="kpi-value">{{ performance.paying_count }}</div></article>
-    <article class="kpi-card"><div class="kpi-label">Open Cases</div><div class="kpi-value">{{ performance.open_cases }}</div></article>
+  <section class="kpi-grid performance-grid">
+    <article class="kpi-card kpi-card-compact"><div class="kpi-label">Contacted Cases</div><div class="kpi-value">{{ performance.contacted_count }}</div></article>
+    <article class="kpi-card kpi-card-compact"><div class="kpi-label">PTP Cases</div><div class="kpi-value">{{ performance.ptp_count }}</div></article>
+    <article class="kpi-card kpi-card-compact"><div class="kpi-label">Paying Cases</div><div class="kpi-value">{{ performance.paying_count }}</div></article>
+    <article class="kpi-card kpi-card-compact"><div class="kpi-label">Open Cases</div><div class="kpi-value">{{ performance.open_cases }}</div></article>
   </section>
 </section>
 
