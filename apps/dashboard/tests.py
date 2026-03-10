@@ -88,3 +88,11 @@ class DashboardViewTests(TestCase):
         self.assertEqual(response.context['filters']['status'], '')
         self.assertContains(response, 'Debtor A')
         self.assertContains(response, 'Debtor B')
+
+    def test_dashboard_filters_by_portfolio_and_risk_band(self):
+        self.client.login(username='manager_dash', password='pass123')
+        response = self.client.get(reverse('dashboard-home'), {'portfolio': self.portfolio_one.id, 'risk_band': 'low'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['kpis']['total_debtors'], 1)
+        self.assertContains(response, 'Debtor B')
+        self.assertNotContains(response, 'Debtor A')

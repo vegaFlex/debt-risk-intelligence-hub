@@ -351,3 +351,15 @@ input[type="file"] {
 .inline-form {
   margin: 0;
 }
+
+.filter-summary {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+select.auto-submit-filter {
+  cursor: pointer;
+}
+

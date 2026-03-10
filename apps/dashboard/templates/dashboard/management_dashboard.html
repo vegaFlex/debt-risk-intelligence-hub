@@ -4,11 +4,11 @@
 
 {% block content %}
 <section class="card">
-  <form method="get">
+  <form method="get" id="dashboard-filters-form">
     <div class="filters-grid">
       <div>
         <label for="portfolio">Portfolio</label>
-        <select name="portfolio" id="portfolio">
+        <select name="portfolio" id="portfolio" class="auto-submit-filter">
           <option value="">All portfolios</option>
           {% for p in portfolios %}
             <option value="{{ p.id }}" {% if filters.portfolio == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
@@ -17,7 +17,7 @@
       </div>
       <div>
         <label for="risk_band">Risk Band</label>
-        <select name="risk_band" id="risk_band">
+        <select name="risk_band" id="risk_band" class="auto-submit-filter">
           <option value="">All</option>
           <option value="high" {% if filters.risk_band == 'high' %}selected{% endif %}>High</option>
           <option value="medium" {% if filters.risk_band == 'medium' %}selected{% endif %}>Medium</option>
@@ -26,7 +26,7 @@
       </div>
       <div>
         <label for="status">Status</label>
-        <select id="status" name="status">
+        <select id="status" name="status" class="auto-submit-filter">
           <option value="">All statuses</option>
           {% for status_value, status_label in status_options %}
             <option value="{{ status_value }}" {% if filters.status == status_value %}selected{% endif %}>{{ status_label }}</option>
@@ -47,6 +47,7 @@
       <a href="?" class="btn btn-secondary">Reset</a>
       <a class="btn btn-secondary" href="/reports/management/?date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">Open Report Preview</a>
     </div>
+    <p class="filter-summary">{{ kpis.total_debtors }} debtors match the current filters.</p>
   </form>
 </section>
 
@@ -115,17 +116,26 @@
   </table>
 </section>
 
-
 <script>
   (function () {
+    const form = document.getElementById('dashboard-filters-form');
     const dateInputs = document.querySelectorAll('.date-icon-field');
+    const autoSubmitFilters = document.querySelectorAll('.auto-submit-filter');
+
     dateInputs.forEach((input) => {
       const sync = () => input.classList.toggle('has-value', Boolean(input.value));
       input.addEventListener('change', sync);
       input.addEventListener('input', sync);
       sync();
     });
+
+    autoSubmitFilters.forEach((input) => {
+      input.addEventListener('change', () => {
+        if (form) {
+          form.requestSubmit();
+        }
+      });
+    });
   })();
 </script>
 {% endblock %}
-
