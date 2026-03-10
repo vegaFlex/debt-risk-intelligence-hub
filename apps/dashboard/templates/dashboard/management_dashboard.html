@@ -190,6 +190,12 @@
     }
 
     const chartData = JSON.parse(chartDataNode.textContent);
+    const compactNumber = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
+    const integerNumber = new Intl.NumberFormat('en');
+
+    function formatAxisLabel(label, maxLength) {
+      return label.length > maxLength ? `${label.slice(0, maxLength)}...` : label;
+    }
 
     function drawBarChart(canvas, config) {
       if (!canvas || !config.labels.length) {
@@ -211,11 +217,11 @@
       ctx.scale(ratio, ratio);
       ctx.clearRect(0, 0, width, height);
 
-      const padding = { top: 20, right: 18, bottom: 42, left: 44 };
+      const padding = { top: 24, right: 20, bottom: 46, left: 44 };
       const chartWidth = width - padding.left - padding.right;
       const chartHeight = height - padding.top - padding.bottom;
       const maxValue = Math.max(...config.values, 1);
-      const barGap = 14;
+      const barGap = 16;
       const barWidth = Math.max(24, (chartWidth - barGap * (config.values.length - 1)) / config.values.length);
 
       ctx.strokeStyle = '#d7e2df';
@@ -242,12 +248,12 @@
 
         ctx.fillStyle = '#1d2939';
         ctx.font = '700 12px Segoe UI';
-        ctx.fillText(String(value), x + barWidth / 2, y - 8);
+        ctx.fillText(integerNumber.format(value), x + barWidth / 2, y - 8);
 
         ctx.fillStyle = '#475467';
         ctx.font = '12px Segoe UI';
-        const label = config.labels[index].length > 16 ? `${config.labels[index].slice(0, 16)}…` : config.labels[index];
-        ctx.fillText(label, x + barWidth / 2, padding.top + chartHeight + 18);
+        const label = formatAxisLabel(config.labels[index], 16);
+        ctx.fillText(label, x + barWidth / 2, padding.top + chartHeight + 20);
       });
     }
 
@@ -271,9 +277,9 @@
       ctx.scale(ratio, ratio);
       ctx.clearRect(0, 0, width, height);
 
-      const padding = { top: 14, right: 48, bottom: 14, left: 168 };
+      const padding = { top: 18, right: 82, bottom: 18, left: 176 };
       const chartWidth = width - padding.left - padding.right;
-      const rowHeight = Math.max(28, Math.min(42, (height - padding.top - padding.bottom) / config.values.length));
+      const rowHeight = Math.max(30, Math.min(44, (height - padding.top - padding.bottom) / config.values.length));
       const maxValue = Math.max(...config.values, 1);
 
       config.values.forEach((value, index) => {
@@ -283,7 +289,7 @@
         ctx.fillStyle = '#475467';
         ctx.font = '12px Segoe UI';
         ctx.textAlign = 'left';
-        const label = config.labels[index].length > 24 ? `${config.labels[index].slice(0, 24)}…` : config.labels[index];
+        const label = formatAxisLabel(config.labels[index], 22);
         ctx.fillText(label, 0, y + 16);
 
         ctx.fillStyle = '#ecf3f1';
@@ -298,13 +304,23 @@
 
         ctx.fillStyle = '#1d2939';
         ctx.font = '700 12px Segoe UI';
-        ctx.fillText(String(value), padding.left + chartWidth + 10, y + 14);
+        ctx.fillText(compactNumber.format(value), padding.left + chartWidth + 12, y + 14);
       });
     }
 
-    drawBarChart(document.getElementById('risk-band-chart'), chartData.risk_band_distribution);
-    drawBarChart(document.getElementById('status-distribution-chart'), chartData.status_distribution);
-    drawHorizontalChart(document.getElementById('exposure-chart'), chartData.outstanding_exposure);
+    function renderCharts() {
+      drawBarChart(document.getElementById('risk-band-chart'), chartData.risk_band_distribution);
+      drawBarChart(document.getElementById('status-distribution-chart'), chartData.status_distribution);
+      drawHorizontalChart(document.getElementById('exposure-chart'), chartData.outstanding_exposure);
+    }
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(renderCharts, 120);
+    });
+
+    renderCharts();
   })();
 </script>
 {% endblock %}
