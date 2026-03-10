@@ -47,7 +47,7 @@
       <a href="?" class="btn btn-secondary">Reset</a>
       <a class="btn btn-secondary" href="/reports/management/?date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">Open Report Preview</a>
     </div>
-    <p class="filter-summary">{{ kpis.total_debtors }} debtors match the current filters.</p>
+    <p class="filter-summary">{{ kpis.total_debtors }} debtors match the current filters. Sorted by {{ ordering.sort|cut:'_' }} ({{ ordering.direction }}).</p>
   </form>
 </section>
 
@@ -74,11 +74,17 @@
   <table>
     <thead>
       <tr>
-        <th>Debtor</th><th>Portfolio</th><th>Status</th><th>Days Past Due</th><th>Outstanding Total</th><th>Risk Score</th><th>Risk Band</th>
+        <th><a class="sort-link" href="?{{ sort_links.full_name }}">Debtor</a></th>
+        <th><a class="sort-link" href="?{{ sort_links.portfolio }}">Portfolio</a></th>
+        <th><a class="sort-link" href="?{{ sort_links.status }}">Status</a></th>
+        <th><a class="sort-link" href="?{{ sort_links.days_past_due }}">Days Past Due</a></th>
+        <th><a class="sort-link" href="?{{ sort_links.outstanding_total }}">Outstanding Total</a></th>
+        <th><a class="sort-link" href="?{{ sort_links.risk_score }}">Risk Score</a></th>
+        <th><a class="sort-link" href="?{{ sort_links.risk_band }}">Risk Band</a></th>
       </tr>
     </thead>
     <tbody>
-      {% for debtor in top_risk_debtors %}
+      {% for debtor in results_page %}
         <tr>
           <td>{{ debtor.full_name }}</td>
           <td>{{ debtor.portfolio.name }}</td>
@@ -93,6 +99,27 @@
       {% endfor %}
     </tbody>
   </table>
+</section>
+
+<section class="pagination-bar">
+  <p class="small">Showing page {{ results_page.number }} of {{ results_page.paginator.num_pages }}.</p>
+  <div class="pagination-links">
+    {% if page_links.prev %}
+      <a class="btn btn-secondary btn-page" href="?{{ page_links.prev }}">Previous</a>
+    {% endif %}
+    {% for page_item in page_links.numbers %}
+      {% if page_item.is_ellipsis %}
+        <span class="page-pill muted">{{ page_item.label }}</span>
+      {% elif page_item.is_current %}
+        <span class="page-pill active">{{ page_item.label }}</span>
+      {% else %}
+        <a class="page-pill" href="?{{ page_item.query }}">{{ page_item.label }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page_links.next %}
+      <a class="btn btn-secondary btn-page" href="?{{ page_links.next }}">Next</a>
+    {% endif %}
+  </div>
 </section>
 
 <section class="table-wrap">

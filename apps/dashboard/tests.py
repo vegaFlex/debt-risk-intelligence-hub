@@ -73,7 +73,6 @@ class DashboardViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Debt & Risk Intelligence Hub')
 
-
     def test_dashboard_filters_by_selected_status(self):
         self.client.login(username='manager_dash', password='pass123')
         response = self.client.get(reverse('dashboard-home'), {'status': 'paying'})
@@ -96,3 +95,32 @@ class DashboardViewTests(TestCase):
         self.assertEqual(response.context['kpis']['total_debtors'], 1)
         self.assertContains(response, 'Debtor B')
         self.assertNotContains(response, 'Debtor A')
+
+    def test_dashboard_sorts_results_by_requested_column(self):
+        self.client.login(username='manager_dash', password='pass123')
+        response = self.client.get(reverse('dashboard-home'), {'sort': 'outstanding_total', 'direction': 'asc'})
+        self.assertEqual(response.status_code, 200)
+        results = list(response.context['results_page'].object_list)
+        self.assertEqual(results[0].external_id, 'P1-002')
+        self.assertEqual(results[1].external_id, 'P1-001')
+
+    def test_dashboard_paginates_results(self):
+        for idx in range(3, 31):
+            Debtor.objects.create(
+                portfolio=self.portfolio_one,
+                external_id=f'P1-{idx:03d}',
+                full_name=f'Debtor {idx}',
+                status='contacted',
+                days_past_due=30 + idx,
+                outstanding_principal=Decimal('200'),
+                outstanding_total=Decimal('250'),
+                risk_score=25,
+                risk_band='low',
+                risk_factors='sample',
+            )
+
+        self.client.login(username='manager_dash', password='pass123')
+        response = self.client.get(reverse('dashboard-home'), {'page': 2, 'sort': 'full_name', 'direction': 'asc'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['results_page'].number, 2)
+        self.assertEqual(response.context['results_page'].paginator.num_pages, 2)
