@@ -111,6 +111,36 @@ class DashboardViewTests(TestCase):
         self.assertEqual(chart_data['status_distribution']['values'], [1, 1])
         self.assertEqual(chart_data['outstanding_exposure']['labels'], ['Portfolio One - High', 'Portfolio One - Low'])
 
+    def test_dashboard_limits_exposure_chart_to_top_five_plus_others(self):
+        for idx in range(2, 8):
+            portfolio = Portfolio.objects.create(
+                name=f'Portfolio {idx}',
+                source_company=f'U{idx}',
+                purchase_date=date(2026, 3, idx),
+                purchase_price=Decimal('1000'),
+                face_value=Decimal('5000'),
+                currency='BGN',
+            )
+            Debtor.objects.create(
+                portfolio=portfolio,
+                external_id=f'PX-{idx:03d}',
+                full_name=f'Debtor {idx}',
+                status='new',
+                days_past_due=100 + idx,
+                outstanding_principal=Decimal('1000'),
+                outstanding_total=Decimal(str(1000 - (idx * 50))),
+                risk_score=80,
+                risk_band='high',
+                risk_factors='sample',
+            )
+
+        self.client.login(username='manager_dash', password='pass123')
+        response = self.client.get(reverse('dashboard-home'))
+        self.assertEqual(response.status_code, 200)
+        labels = response.context['chart_data']['outstanding_exposure']['labels']
+        self.assertEqual(len(labels), 6)
+        self.assertEqual(labels[-1], 'Others')
+
     def test_full_list_sorts_results_by_requested_column(self):
         self.client.login(username='manager_dash', password='pass123')
         response = self.client.get(reverse('dashboard-debtor-results'), {'sort': 'outstanding_total', 'direction': 'asc'})

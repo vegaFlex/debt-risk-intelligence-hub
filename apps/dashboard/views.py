@@ -126,7 +126,7 @@ def _filtered_debtors(filters):
     return debtors
 
 
-def _chart_context(filtered_debtors, status_options):
+def _chart_context(filtered_debtors, status_options, filters):
     zero_decimal = Value(Decimal('0.00'), output_field=DecimalField(max_digits=14, decimal_places=2))
     risk_order = [('high', 'High'), ('medium', 'Medium'), ('low', 'Low')]
 
@@ -157,15 +157,39 @@ def _chart_context(filtered_debtors, status_options):
             status_chart['values'].append(count)
             status_chart['colors'].append(status_palette[index % len(status_palette)])
 
-    segment_rows = (
+    segment_rows = list(
         filtered_debtors.values('portfolio__name', 'risk_band')
         .annotate(total_outstanding=Coalesce(Sum('outstanding_total'), zero_decimal))
-        .order_by('-total_outstanding', 'portfolio__name')[:6]
+        .order_by('-total_outstanding', 'portfolio__name')
     )
+
+    if filters['portfolio']:
+        visible_segments = segment_rows
+    else:
+        visible_segments = segment_rows[:5]
+        if len(segment_rows) > 5:
+            others_total = round(sum(float(row['total_outstanding']) for row in segment_rows[5:]), 2)
+            if others_total:
+                visible_segments.append({
+                    'portfolio__name': 'Others',
+                    'risk_band': 'mixed',
+                    'total_outstanding': others_total,
+                })
+
+    exposure_labels = []
+    exposure_values = []
+    for row in visible_segments:
+        if row['portfolio__name'] == 'Others':
+            exposure_labels.append('Others')
+            exposure_values.append(float(row['total_outstanding']))
+        else:
+            exposure_labels.append(f"{row['portfolio__name']} - {row['risk_band'].title()}")
+            exposure_values.append(float(row['total_outstanding']))
+
     exposure_chart = {
-        'labels': [f"{row['portfolio__name']} - {row['risk_band'].title()}" for row in segment_rows],
-        'values': [round(float(row['total_outstanding']), 2) for row in segment_rows],
-        'colors': ['#0f766e', '#0b4d47', '#2f855a', '#b45309', '#b42318', '#475467'][: len(segment_rows)],
+        'labels': exposure_labels,
+        'values': [round(value, 2) for value in exposure_values],
+        'colors': ['#0f766e', '#0b4d47', '#2f855a', '#b45309', '#b42318', '#64748b'][: len(exposure_labels)],
     }
 
     return {
@@ -347,7 +371,7 @@ def management_dashboard_view(request):
 
     context = _base_context(filters, status_options)
     context.update(_kpis_and_segments(filtered_debtors))
-    context['chart_data'] = _chart_context(filtered_debtors, status_options)
+    context['chart_data'] = _chart_context(filtered_debtors, status_options, filters)
     context.update({
         'top_risk_debtors': filtered_debtors.order_by('-risk_score', '-outstanding_total', 'id')[:15],
         'full_list_query': _build_query_string({
