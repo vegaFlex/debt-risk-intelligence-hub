@@ -1,0 +1,125 @@
+{% extends "base_app.html" %}
+
+{% block title %}Valuation Import | Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="section-head compact">
+    <div>
+      <p class="eyebrow">Acquisition Intake</p>
+      <h2>Valuation Import</h2>
+      <p class="section-copy">Upload a new debtor file, attach creditor context, validate the rows, and send the package directly into the valuation workspace.</p>
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="preview">
+
+    <div class="filters-grid">
+      <div>
+        <label for="id_portfolio_name">Portfolio Name</label>
+        {{ form.portfolio_name }}
+      </div>
+      <div>
+        <label for="id_source_company">Source Company</label>
+        {{ form.source_company }}
+      </div>
+      <div>
+        <label for="id_purchase_date">Purchase Date</label>
+        {{ form.purchase_date }}
+      </div>
+      <div>
+        <label for="id_currency">Currency</label>
+        {{ form.currency }}
+      </div>
+      <div>
+        <label for="id_purchase_price">Purchase Price</label>
+        {{ form.purchase_price }}
+      </div>
+      <div>
+        <label for="id_face_value">Face Value</label>
+        {{ form.face_value }}
+      </div>
+      <div>
+        <label for="id_existing_creditor">Existing Creditor</label>
+        {{ form.existing_creditor }}
+      </div>
+      <div>
+        <label for="id_creditor_name">New Creditor Name</label>
+        {{ form.creditor_name }}
+      </div>
+      <div>
+        <label for="id_creditor_category">Creditor Category</label>
+        {{ form.creditor_category }}
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <label for="id_data_file">Import File (CSV)</label>
+        {{ form.data_file }}
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Validate & Preview Acquisition File</button>
+    </div>
+  </form>
+
+  {% if uploaded_file_name %}
+    <p class="small">Uploaded file: <strong>{{ uploaded_file_name }}</strong></p>
+  {% endif %}
+
+  {% if summary %}
+    <section class="card card-compact" style="margin-top:12px;">
+      <h3>Import Readiness</h3>
+      <p class="small"><strong>Total rows:</strong> {{ summary.total_rows }}</p>
+      <p class="small"><strong>Valid rows:</strong> {{ summary.valid_rows }}</p>
+      <p class="small"><strong>Errors:</strong> {{ summary.error_count }}</p>
+      <p class="small"><strong>Creditor context:</strong> {{ summary.creditor_name }} ({{ summary.creditor_category }})</p>
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="confirm">
+        <button type="submit" class="btn btn-primary">Create Portfolio & Open Valuation</button>
+      </form>
+    </section>
+  {% endif %}
+</section>
+
+{% if row_errors %}
+<section class="card">
+  <h3>Validation Errors (first 20)</h3>
+  <ul>
+    {% for error in row_errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if preview_rows %}
+<section class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>external_id</th><th>full_name</th><th>days_past_due</th><th>outstanding_total</th><th>risk_score</th><th>risk_band</th><th>risk_factors</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in preview_rows %}
+        <tr>
+          <td>{{ row.external_id }}</td>
+          <td>{{ row.full_name }}</td>
+          <td>{{ row.days_past_due }}</td>
+          <td>{{ row.outstanding_total }}</td>
+          <td>{{ row.risk_score }}</td>
+          <td>{{ row.risk_band }}</td>
+          <td>{{ row.risk_factors }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block developer_api %}{% endblock %}

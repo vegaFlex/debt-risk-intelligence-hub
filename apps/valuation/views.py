@@ -1,18 +1,27 @@
 from decimal import Decimal
 
 from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
-from apps.portfolio.models import Portfolio
+from apps.portfolio.importers import ImportValidationError, parse_uploaded_file, validate_rows
+from apps.portfolio.models import DataImportLog, Debtor, Portfolio
 from apps.reports.views import ManagerOrAdminRequiredMixin
+from apps.scoring.services import calculate_risk_profile
+from apps.valuation.forms import ValuationImportForm
+from apps.valuation.models import Creditor, PortfolioUploadBatch
 from apps.valuation.services import build_rule_based_valuation, persist_rule_based_valuation
+
+
+VALUATION_IMPORT_SESSION_KEY = 'valuation_import_payload'
 
 
 def _workspace_nav(request):
     return {
         'primary': [
             {'label': 'Valuation Workspace', 'href': '/valuation/'},
+            {'label': 'Valuation Import', 'href': '/valuation/import/'},
         ],
         'secondary': [
             {'label': 'High Risk Cases', 'href': '/dashboard/?risk_band=high'},
@@ -49,6 +58,54 @@ def _portfolio_signal_label(score):
     if score >= Decimal('32.00'):
         return 'Review Closely'
     return 'Watchlist'
+
+
+def _attach_risk_profile(rows):
+    scored_rows = []
+    for row in rows:
+        risk = calculate_risk_profile(
+            days_past_due=row['days_past_due'],
+            outstanding_total=row['outstanding_total'],
+            status=row['status'],
+        )
+        scored_rows.append(
+            {
+                **row,
+                'risk_score': risk['risk_score'],
+                'risk_band': risk['risk_band'],
+                'risk_factors': ' | '.join(risk['reason_factors']),
+            }
+        )
+    return scored_rows
+
+
+def _resolve_creditor(form):
+    existing_creditor = form.cleaned_data.get('existing_creditor')
+    if existing_creditor:
+        return existing_creditor
+
+    creditor_name = form.cleaned_data.get('creditor_name', '').strip()
+    creditor_category = form.cleaned_data.get('creditor_category') or Creditor.Category.OTHER
+    creditor, _ = Creditor.objects.get_or_create(
+        name=creditor_name,
+        defaults={'category': creditor_category},
+    )
+    if creditor.category != creditor_category and creditor_name:
+        creditor.category = creditor_category
+        creditor.save(update_fields=['category'])
+    return creditor
+
+
+def _build_portfolio(form, user):
+    return Portfolio.objects.create(
+        name=form.cleaned_data['portfolio_name'],
+        source_company=form.cleaned_data['source_company'],
+        purchase_date=form.cleaned_data['purchase_date'],
+        purchase_price=form.cleaned_data['purchase_price'],
+        face_value=form.cleaned_data['face_value'],
+        currency=form.cleaned_data['currency'],
+        created_by=user if user.is_authenticated else None,
+    )
 
 
 class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):
@@ -97,6 +154,164 @@ class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):
                 'nav_actions': _workspace_nav(request),
             },
         )
+
+
+class ValuationImportView(ManagerOrAdminRequiredMixin, View):
+    def get(self, request):
+        return render(
+            request,
+            'valuation/import.html',
+            {
+                'form': ValuationImportForm(),
+                'uploaded_file_name': None,
+                'preview_rows': [],
+                'row_errors': [],
+                'summary': None,
+                'nav_actions': _workspace_nav(request),
+            },
+        )
+
+    def post(self, request):
+        context = {
+            'form': ValuationImportForm(),
+            'uploaded_file_name': None,
+            'preview_rows': [],
+            'row_errors': [],
+            'summary': None,
+            'nav_actions': _workspace_nav(request),
+        }
+        action = request.POST.get('action', 'preview')
+
+        if action == 'confirm':
+            payload = request.session.get(VALUATION_IMPORT_SESSION_KEY)
+            if not payload:
+                messages.error(request, 'No valuation import preview found. Please upload and validate again.')
+                return redirect('valuation-import')
+
+            with transaction.atomic():
+                creditor, _ = Creditor.objects.get_or_create(
+                    name=payload['creditor_name'],
+                    defaults={'category': payload['creditor_category']},
+                )
+                if creditor.category != payload['creditor_category']:
+                    creditor.category = payload['creditor_category']
+                    creditor.save(update_fields=['category'])
+
+                portfolio_form = ValuationImportForm(payload['portfolio_data'])
+                portfolio_form.fields['data_file'].required = False
+                portfolio_form.fields['existing_creditor'].queryset = Creditor.objects.order_by('name')
+                if not portfolio_form.is_valid():
+                    messages.error(request, 'Valuation import metadata is invalid. Please upload again.')
+                    return redirect('valuation-import')
+
+                portfolio = _build_portfolio(portfolio_form, request.user)
+                debtors = [Debtor(portfolio=portfolio, **row) for row in payload['cleaned_rows']]
+                Debtor.objects.bulk_create(debtors, batch_size=1000)
+
+                DataImportLog.objects.create(
+                    source_file_name=payload['source_file_name'],
+                    source_file_type=payload['source_file_type'],
+                    status=DataImportLog.ImportStatus.SUCCESS,
+                    total_rows=payload['total_rows'],
+                    valid_rows=payload['valid_rows'],
+                    imported_rows=payload['valid_rows'],
+                    error_count=payload['error_count'],
+                    details='\n'.join(payload['row_errors'][:20]),
+                    portfolio=portfolio,
+                    created_by=request.user if request.user.is_authenticated else None,
+                )
+
+                PortfolioUploadBatch.objects.create(
+                    name=f"{portfolio.name} Acquisition Batch",
+                    creditor=creditor,
+                    portfolio=portfolio,
+                    reporting_currency=portfolio.currency,
+                    source_file_name=payload['source_file_name'],
+                    uploaded_by=request.user if request.user.is_authenticated else None,
+                    notes='Created from valuation import flow.',
+                )
+
+            request.session.pop(VALUATION_IMPORT_SESSION_KEY, None)
+            messages.success(request, f'Valuation import completed for {portfolio.name}. The portfolio is ready for pricing analysis.')
+            return redirect('valuation-preview', portfolio_id=portfolio.id)
+
+        form = ValuationImportForm(request.POST, request.FILES)
+        form.fields['existing_creditor'].queryset = Creditor.objects.order_by('name')
+        context['form'] = form
+
+        if not form.is_valid():
+            return render(request, 'valuation/import.html', context)
+
+        context['uploaded_file_name'] = form.cleaned_data['data_file'].name
+
+        try:
+            raw_rows, source_file_type = parse_uploaded_file(form.cleaned_data['data_file'])
+            cleaned_rows, row_errors = validate_rows(raw_rows)
+            scored_rows = _attach_risk_profile(cleaned_rows)
+        except ImportValidationError as exc:
+            messages.error(request, str(exc))
+            DataImportLog.objects.create(
+                source_file_name=form.cleaned_data['data_file'].name,
+                source_file_type='unknown',
+                status=DataImportLog.ImportStatus.FAILED,
+                error_count=1,
+                details=str(exc),
+                created_by=request.user if request.user.is_authenticated else None,
+            )
+            return render(request, 'valuation/import.html', context)
+
+        creditor = _resolve_creditor(form)
+
+        DataImportLog.objects.create(
+            source_file_name=form.cleaned_data['data_file'].name,
+            source_file_type=source_file_type,
+            status=DataImportLog.ImportStatus.PREVIEW,
+            total_rows=len(raw_rows),
+            valid_rows=len(scored_rows),
+            error_count=len(row_errors),
+            details='\n'.join(row_errors[:20]),
+            created_by=request.user if request.user.is_authenticated else None,
+        )
+
+        request.session[VALUATION_IMPORT_SESSION_KEY] = {
+            'source_file_name': form.cleaned_data['data_file'].name,
+            'source_file_type': source_file_type,
+            'portfolio_data': {
+                'portfolio_name': form.cleaned_data['portfolio_name'],
+                'source_company': form.cleaned_data['source_company'],
+                'purchase_date': form.cleaned_data['purchase_date'].isoformat(),
+                'purchase_price': str(form.cleaned_data['purchase_price']),
+                'face_value': str(form.cleaned_data['face_value']),
+                'currency': form.cleaned_data['currency'],
+                'creditor_name': creditor.name,
+                'creditor_category': creditor.category,
+            },
+            'creditor_name': creditor.name,
+            'creditor_category': creditor.category,
+            'cleaned_rows': [
+                {
+                    **row,
+                    'outstanding_principal': str(row['outstanding_principal']),
+                    'outstanding_total': str(row['outstanding_total']),
+                }
+                for row in scored_rows
+            ],
+            'row_errors': row_errors,
+            'total_rows': len(raw_rows),
+            'valid_rows': len(scored_rows),
+            'error_count': len(row_errors),
+        }
+
+        context['preview_rows'] = scored_rows[:20]
+        context['row_errors'] = row_errors[:20]
+        context['summary'] = {
+            'total_rows': len(raw_rows),
+            'valid_rows': len(scored_rows),
+            'error_count': len(row_errors),
+            'creditor_name': creditor.name,
+            'creditor_category': creditor.get_category_display(),
+        }
+        return render(request, 'valuation/import.html', context)
 
 
 class PortfolioValuationPreviewView(ManagerOrAdminRequiredMixin, View):
