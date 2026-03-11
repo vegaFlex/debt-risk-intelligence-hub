@@ -401,6 +401,8 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertContains(response, 'Portfolio Ranking')
         self.assertContains(response, 'Workspace Portfolio')
         self.assertContains(response, 'Second Workspace Portfolio')
+        self.assertContains(response, 'Recommendation')
+        self.assertTrue(any(label in response.content.decode() for label in ['Bid', 'Hold', 'Reject']))
         self.assertContains(response, 'Open')
 
     def test_analyst_receives_friendly_access_page(self):
@@ -421,6 +423,7 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertContains(preview_response, 'Portfolio Signals')
         self.assertContains(preview_response, 'Scenario Analysis')
         self.assertContains(preview_response, 'Scenario ROI Ladder')
+        self.assertContains(preview_response, 'Recommended Action')
         self.assertContains(preview_response, 'ML-Ready Feature Snapshot')
         self.assertContains(preview_response, 'Collection Efficiency')
 
