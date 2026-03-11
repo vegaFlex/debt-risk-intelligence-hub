@@ -186,6 +186,53 @@
   </section>
 {% endif %}
 
+{% if comparison_summary %}
+  <section class="card">
+    <h3>Saved Run Comparison</h3>
+    <p class="section-copy">Track how the pricing recommendation changes across saved runs for the same portfolio.</p>
+    <div class="valuation-stat-list">
+      <div><span>Saved Runs</span><strong>{{ comparison_summary.run_count }}</strong></div>
+      <div><span>Latest Method</span><strong>{{ comparison_summary.latest_method }}</strong></div>
+      <div><span>Recovery Change</span><strong>{{ comparison_summary.recovery_delta }}%</strong></div>
+      <div><span>Bid Change</span><strong>{{ comparison_summary.bid_delta }}%</strong></div>
+      <div><span>ROI Change</span><strong>{{ comparison_summary.roi_delta }}%</strong></div>
+    </div>
+
+    <div class="table-wrap" style="margin-top: 14px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Saved At</th>
+            <th>Method</th>
+            <th>Expected Recovery</th>
+            <th>Recommended Bid</th>
+            <th>Projected ROI</th>
+            <th>Confidence</th>
+            <th>Delta Recovery</th>
+            <th>Delta Bid</th>
+            <th>Delta ROI</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in comparison_rows %}
+            <tr>
+              <td>{{ row.valuation.created_at|date:"M d, Y H:i" }}</td>
+              <td>{{ row.valuation.get_valuation_method_display }}</td>
+              <td>{{ row.valuation.expected_recovery_rate }}%</td>
+              <td>{{ row.valuation.recommended_bid_pct }}%</td>
+              <td>{{ row.valuation.projected_roi }}%</td>
+              <td>{{ row.valuation.confidence_score }}</td>
+              <td>{% if row.delta_recovery is not None %}{{ row.delta_recovery }}%{% else %}<span class="small">Baseline</span>{% endif %}</td>
+              <td>{% if row.delta_bid is not None %}{{ row.delta_bid }}%{% else %}<span class="small">Baseline</span>{% endif %}</td>
+              <td>{% if row.delta_roi is not None %}{{ row.delta_roi }}%{% else %}<span class="small">Baseline</span>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endif %}
+
 {% if latest_valuation %}
   <section class="card">
     <h3>Latest Saved Valuation</h3>

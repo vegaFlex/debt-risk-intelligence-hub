@@ -319,6 +319,30 @@ class PortfolioValuationPreviewView(ManagerOrAdminRequiredMixin, View):
         portfolio = get_object_or_404(Portfolio.objects.prefetch_related('valuations__factors'), id=portfolio_id)
         latest_valuation = portfolio.valuations.first()
 
+        valuation_history = list(portfolio.valuations.all()[:6])
+        comparison_rows = []
+        comparison_summary = None
+        if valuation_history:
+            newest = valuation_history[0]
+            oldest = valuation_history[-1]
+            comparison_summary = {
+                'run_count': len(valuation_history),
+                'latest_method': newest.get_valuation_method_display(),
+                'recovery_delta': newest.expected_recovery_rate - oldest.expected_recovery_rate,
+                'bid_delta': newest.recommended_bid_pct - oldest.recommended_bid_pct,
+                'roi_delta': newest.projected_roi - oldest.projected_roi,
+            }
+
+            previous = None
+            for valuation in valuation_history:
+                comparison_rows.append({
+                    'valuation': valuation,
+                    'delta_recovery': valuation.expected_recovery_rate - previous.expected_recovery_rate if previous else None,
+                    'delta_bid': valuation.recommended_bid_pct - previous.recommended_bid_pct if previous else None,
+                    'delta_roi': valuation.projected_roi - previous.projected_roi if previous else None,
+                })
+                previous = valuation
+
         return render(
             request,
             'valuation/preview.html',
@@ -327,6 +351,9 @@ class PortfolioValuationPreviewView(ManagerOrAdminRequiredMixin, View):
                 'preview': build_rule_based_valuation(portfolio),
                 'latest_valuation': latest_valuation,
                 'latest_factors': latest_valuation.factors.all()[:8] if latest_valuation else [],
+                'valuation_history': valuation_history,
+                'comparison_rows': comparison_rows,
+                'comparison_summary': comparison_summary,
                 'nav_actions': _workspace_nav(request),
             },
         )
