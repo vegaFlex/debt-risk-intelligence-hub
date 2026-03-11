@@ -208,6 +208,102 @@ class ValuationImportFlowTests(TestCase):
         self.assertContains(response, 'Manager or Admin')
 
 
+class BenchmarkManagementViewTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.manager = user_model.objects.create_user(
+            username='manager_bench_v2',
+            password='DemoPass123!',
+            role='manager',
+        )
+        self.analyst = user_model.objects.create_user(
+            username='analyst_bench_v2',
+            password='DemoPass123!',
+            role='analyst',
+        )
+        self.creditor = Creditor.objects.create(name='Benchmark Creditor', category=Creditor.Category.BANK)
+        self.benchmark = HistoricalBenchmark.objects.create(
+            creditor=self.creditor,
+            creditor_category=Creditor.Category.BANK,
+            product_type='Consumer Loan',
+            dpd_band='90-179 days',
+            balance_band='2000-4999',
+            region='Sofia',
+            avg_recovery_rate=Decimal('38.00'),
+            avg_contact_rate=Decimal('61.00'),
+            avg_ptp_rate=Decimal('19.00'),
+            avg_conversion_rate=Decimal('13.00'),
+            sample_size=180,
+        )
+
+    def test_manager_can_open_benchmark_library(self):
+        self.client.login(username='manager_bench_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-benchmarks'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Historical Benchmarks')
+        self.assertContains(response, 'Benchmark Library')
+        self.assertContains(response, 'Benchmark Creditor')
+
+    def test_manager_can_create_benchmark(self):
+        self.client.login(username='manager_bench_v2', password='DemoPass123!')
+        response = self.client.post(
+            reverse('valuation-benchmarks'),
+            {
+                'creditor': self.creditor.id,
+                'creditor_category': Creditor.Category.BANK,
+                'product_type': 'SME Loan',
+                'dpd_band': '180+ days',
+                'balance_band': '5000+',
+                'region': 'Plovdiv',
+                'avg_recovery_rate': '29.00',
+                'avg_contact_rate': '47.00',
+                'avg_ptp_rate': '14.00',
+                'avg_conversion_rate': '9.00',
+                'sample_size': '95',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Benchmark saved')
+        self.assertTrue(HistoricalBenchmark.objects.filter(product_type='SME Loan').exists())
+
+    def test_manager_can_edit_benchmark(self):
+        self.client.login(username='manager_bench_v2', password='DemoPass123!')
+        response = self.client.post(
+            reverse('valuation-benchmark-edit', args=[self.benchmark.id]),
+            {
+                'creditor': self.creditor.id,
+                'creditor_category': Creditor.Category.BANK,
+                'product_type': 'Consumer Loan',
+                'dpd_band': '90-179 days',
+                'balance_band': '2000-4999',
+                'region': 'Sofia',
+                'avg_recovery_rate': '41.00',
+                'avg_contact_rate': '63.00',
+                'avg_ptp_rate': '20.00',
+                'avg_conversion_rate': '15.00',
+                'sample_size': '200',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Benchmark updated')
+        self.benchmark.refresh_from_db()
+        self.assertEqual(self.benchmark.avg_recovery_rate, Decimal('41.00'))
+        self.assertEqual(self.benchmark.sample_size, 200)
+
+    def test_analyst_receives_friendly_access_page(self):
+        self.client.login(username='analyst_bench_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-benchmarks'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Access Restricted')
+        self.assertContains(response, 'Manager or Admin')
+
+
 class ValuationWorkspaceViewTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
