@@ -162,6 +162,15 @@ class ValuationWorkspaceViewTests(TestCase):
             currency='EUR',
             created_by=self.manager,
         )
+        self.second_portfolio = Portfolio.objects.create(
+            name='Second Workspace Portfolio',
+            source_company='Telecom Demo',
+            purchase_date=date(2026, 3, 10),
+            purchase_price=Decimal('12000.00'),
+            face_value=Decimal('70000.00'),
+            currency='EUR',
+            created_by=self.manager,
+        )
         debtor = Debtor.objects.create(
             portfolio=self.portfolio,
             external_id='WS-001',
@@ -181,6 +190,17 @@ class ValuationWorkspaceViewTests(TestCase):
             payment_date=date(2026, 3, 10),
             channel='bank_transfer',
         )
+        Debtor.objects.create(
+            portfolio=self.second_portfolio,
+            external_id='WS-002',
+            full_name='Second Debtor',
+            status='new',
+            days_past_due=210,
+            outstanding_principal=Decimal('2600.00'),
+            outstanding_total=Decimal('3010.00'),
+            risk_score=82,
+            risk_band='high',
+        )
 
     def test_manager_can_open_workspace(self):
         self.client.login(username='manager_v2', password='DemoPass123!')
@@ -188,7 +208,10 @@ class ValuationWorkspaceViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Valuation Workspace')
+        self.assertContains(response, 'Portfolio Ranking')
         self.assertContains(response, 'Workspace Portfolio')
+        self.assertContains(response, 'Second Workspace Portfolio')
+        self.assertContains(response, 'Open')
 
     def test_analyst_receives_friendly_access_page(self):
         self.client.login(username='analyst_v2', password='DemoPass123!')
