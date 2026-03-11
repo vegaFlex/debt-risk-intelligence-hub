@@ -104,6 +104,10 @@ class RuleBasedValuationServiceTests(TestCase):
         self.assertEqual(set(result['visuals'].keys()), {'risk_mix', 'recovery_bridge', 'operating_signals', 'scenario_roi'})
         self.assertEqual(len(result['visuals']['risk_mix']), 3)
         self.assertEqual(len(result['visuals']['scenario_roi']), 4)
+        self.assertEqual(set(result['features'].keys()), {'vector', 'groups', 'dominant_region'})
+        self.assertEqual(len(result['features']['groups']), 4)
+        self.assertIn('avg_balance', result['features']['vector'])
+        self.assertIn('purchase_price_pct_of_face', result['features']['vector'])
 
     def test_benchmark_fallback_blends_recovery_and_switches_to_hybrid(self):
         HistoricalBenchmark.objects.create(
@@ -396,6 +400,8 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertContains(preview_response, 'Portfolio Signals')
         self.assertContains(preview_response, 'Scenario Analysis')
         self.assertContains(preview_response, 'Scenario ROI Ladder')
+        self.assertContains(preview_response, 'ML-Ready Feature Snapshot')
+        self.assertContains(preview_response, 'Collection Efficiency')
 
         post_response = self.client.post(reverse('valuation-run', args=[self.portfolio.id]), follow=True)
         self.assertEqual(post_response.status_code, 200)
@@ -422,6 +428,7 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertContains(preview_response, 'Valuation Report')
         self.assertContains(preview_response, 'Download Excel')
         self.assertContains(preview_response, 'Scenario Analysis')
+        self.assertContains(preview_response, 'ML-Ready Feature Snapshot')
 
         excel_response = self.client.get(reverse('valuation-report-excel', args=[self.portfolio.id]))
         self.assertEqual(excel_response.status_code, 200)
