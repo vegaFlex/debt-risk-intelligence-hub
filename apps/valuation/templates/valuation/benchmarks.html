@@ -1,0 +1,110 @@
+{% extends "base_app.html" %}
+
+{% block title %}Benchmark Management | Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card card-compact">
+  <div class="section-head compact">
+    <div>
+      <p class="eyebrow">Benchmark Intelligence</p>
+      <h2>Historical Benchmarks</h2>
+      <p class="section-copy">Manage creditor-aware benchmark rows that feed the hybrid valuation logic and fallback pricing context.</p>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-head compact">
+    <div>
+      <h3>{% if editing_benchmark %}Edit Benchmark{% else %}Add Benchmark{% endif %}</h3>
+      <p class="section-copy">Use benchmark rows to guide valuation fallback when exact creditor history is not available.</p>
+    </div>
+    {% if editing_benchmark %}
+      <a class="btn btn-secondary" href="{% url 'valuation-benchmarks' %}">Cancel Edit</a>
+    {% endif %}
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="filters-grid">
+      <div><label for="id_creditor">Creditor</label>{{ form.creditor }}</div>
+      <div><label for="id_creditor_category">Category</label>{{ form.creditor_category }}</div>
+      <div><label for="id_product_type">Product Type</label>{{ form.product_type }}</div>
+      <div><label for="id_region">Region</label>{{ form.region }}</div>
+      <div><label for="id_dpd_band">DPD Band</label>{{ form.dpd_band }}</div>
+      <div><label for="id_balance_band">Balance Band</label>{{ form.balance_band }}</div>
+      <div><label for="id_avg_recovery_rate">Avg Recovery %</label>{{ form.avg_recovery_rate }}</div>
+      <div><label for="id_avg_contact_rate">Avg Contact %</label>{{ form.avg_contact_rate }}</div>
+      <div><label for="id_avg_ptp_rate">Avg PTP %</label>{{ form.avg_ptp_rate }}</div>
+      <div><label for="id_avg_conversion_rate">Avg Conversion %</label>{{ form.avg_conversion_rate }}</div>
+      <div><label for="id_sample_size">Sample Size</label>{{ form.sample_size }}</div>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">{% if editing_benchmark %}Update Benchmark{% else %}Save Benchmark{% endif %}</button>
+    </div>
+  </form>
+</section>
+
+<section class="card">
+  <div class="section-head compact">
+    <div>
+      <h3>Benchmark Library</h3>
+      <p class="section-copy">Review the strongest benchmark rows first and filter by creditor category when needed.</p>
+    </div>
+    <form method="get" class="benchmark-filter-form">
+      <label for="category_filter">Category</label>
+      <select id="category_filter" name="category" onchange="this.form.submit()">
+        <option value="">All categories</option>
+        {% for value, label in category_choices %}
+          <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Creditor</th>
+          <th>Category</th>
+          <th>Product</th>
+          <th>DPD Band</th>
+          <th>Balance Band</th>
+          <th>Region</th>
+          <th>Recovery</th>
+          <th>Contact</th>
+          <th>PTP</th>
+          <th>Conversion</th>
+          <th>Sample</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for benchmark in benchmarks %}
+          <tr>
+            <td>{{ benchmark.creditor|default:'Category Default' }}</td>
+            <td>{{ benchmark.get_creditor_category_display }}</td>
+            <td>{{ benchmark.product_type|default:'General' }}</td>
+            <td>{{ benchmark.dpd_band }}</td>
+            <td>{{ benchmark.balance_band }}</td>
+            <td>{{ benchmark.region|default:'All regions' }}</td>
+            <td>{{ benchmark.avg_recovery_rate }}%</td>
+            <td>{{ benchmark.avg_contact_rate }}%</td>
+            <td>{{ benchmark.avg_ptp_rate }}%</td>
+            <td>{{ benchmark.avg_conversion_rate }}%</td>
+            <td>{{ benchmark.sample_size }}</td>
+            <td><a class="btn btn-secondary btn-compact" href="{% url 'valuation-benchmark-edit' benchmark.id %}">Edit</a></td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="12">No benchmarks available yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block developer_api %}{% endblock %}

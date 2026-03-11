@@ -9,8 +9,8 @@ from apps.portfolio.importers import ImportValidationError, parse_uploaded_file,
 from apps.portfolio.models import DataImportLog, Debtor, Portfolio
 from apps.reports.views import ManagerOrAdminRequiredMixin
 from apps.scoring.services import calculate_risk_profile
-from apps.valuation.forms import ValuationImportForm
-from apps.valuation.models import Creditor, PortfolioUploadBatch
+from apps.valuation.forms import HistoricalBenchmarkForm, ValuationImportForm
+from apps.valuation.models import Creditor, HistoricalBenchmark, PortfolioUploadBatch
 from apps.valuation.services import build_rule_based_valuation, persist_rule_based_valuation
 
 
@@ -22,6 +22,7 @@ def _workspace_nav(request):
         'primary': [
             {'label': 'Valuation Workspace', 'href': '/valuation/'},
             {'label': 'Valuation Import', 'href': '/valuation/import/'},
+            {'label': 'Benchmarks', 'href': '/valuation/benchmarks/'},
         ],
         'secondary': [
             {'label': 'High Risk Cases', 'href': '/dashboard/?risk_band=high'},
@@ -106,6 +107,91 @@ def _build_portfolio(form, user):
         currency=form.cleaned_data['currency'],
         created_by=user if user.is_authenticated else None,
     )
+
+
+
+
+class HistoricalBenchmarkListView(ManagerOrAdminRequiredMixin, View):
+    def get(self, request):
+        selected_category = request.GET.get('category', '')
+        benchmarks = HistoricalBenchmark.objects.select_related('creditor').order_by('-sample_size', '-avg_recovery_rate')
+        if selected_category:
+            benchmarks = benchmarks.filter(creditor_category=selected_category)
+
+        return render(
+            request,
+            'valuation/benchmarks.html',
+            {
+                'benchmarks': benchmarks[:50],
+                'form': HistoricalBenchmarkForm(),
+                'selected_category': selected_category,
+                'category_choices': Creditor.Category.choices,
+                'editing_benchmark': None,
+                'nav_actions': _workspace_nav(request),
+            },
+        )
+
+    def post(self, request):
+        form = HistoricalBenchmarkForm(request.POST)
+        selected_category = request.GET.get('category', '')
+        if form.is_valid():
+            benchmark = form.save()
+            messages.success(request, f'Benchmark saved for {benchmark.creditor or benchmark.creditor_category}.')
+            return redirect('valuation-benchmarks')
+
+        benchmarks = HistoricalBenchmark.objects.select_related('creditor').order_by('-sample_size', '-avg_recovery_rate')[:50]
+        return render(
+            request,
+            'valuation/benchmarks.html',
+            {
+                'benchmarks': benchmarks,
+                'form': form,
+                'selected_category': selected_category,
+                'category_choices': Creditor.Category.choices,
+                'editing_benchmark': None,
+                'nav_actions': _workspace_nav(request),
+            },
+        )
+
+
+class HistoricalBenchmarkEditView(ManagerOrAdminRequiredMixin, View):
+    def get(self, request, benchmark_id):
+        benchmark = get_object_or_404(HistoricalBenchmark.objects.select_related('creditor'), id=benchmark_id)
+        benchmarks = HistoricalBenchmark.objects.select_related('creditor').order_by('-sample_size', '-avg_recovery_rate')[:50]
+        return render(
+            request,
+            'valuation/benchmarks.html',
+            {
+                'benchmarks': benchmarks,
+                'form': HistoricalBenchmarkForm(instance=benchmark),
+                'selected_category': '',
+                'category_choices': Creditor.Category.choices,
+                'editing_benchmark': benchmark,
+                'nav_actions': _workspace_nav(request),
+            },
+        )
+
+    def post(self, request, benchmark_id):
+        benchmark = get_object_or_404(HistoricalBenchmark.objects.select_related('creditor'), id=benchmark_id)
+        form = HistoricalBenchmarkForm(request.POST, instance=benchmark)
+        if form.is_valid():
+            saved = form.save()
+            messages.success(request, f'Benchmark updated for {saved.creditor or saved.creditor_category}.')
+            return redirect('valuation-benchmarks')
+
+        benchmarks = HistoricalBenchmark.objects.select_related('creditor').order_by('-sample_size', '-avg_recovery_rate')[:50]
+        return render(
+            request,
+            'valuation/benchmarks.html',
+            {
+                'benchmarks': benchmarks,
+                'form': form,
+                'selected_category': '',
+                'category_choices': Creditor.Category.choices,
+                'editing_benchmark': benchmark,
+                'nav_actions': _workspace_nav(request),
+            },
+        )
 
 
 class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):

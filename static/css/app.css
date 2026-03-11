@@ -974,3 +974,12 @@ select.auto-submit-filter {
   color: #475467;
   border: 1px solid #d0d5dd;
 }
+
+
+.benchmark-filter-form {
+  min-width: 220px;
+}
+
+.benchmark-filter-form label {
+  margin-bottom: 4px;
+}

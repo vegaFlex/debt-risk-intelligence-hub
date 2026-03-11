@@ -32,3 +32,30 @@ class ValuationImportForm(forms.Form):
             self.add_error('creditor_category', 'Choose a creditor category when entering a new creditor.')
 
         return cleaned_data
+
+
+from apps.valuation.models import HistoricalBenchmark
+
+
+class HistoricalBenchmarkForm(forms.ModelForm):
+    class Meta:
+        model = HistoricalBenchmark
+        fields = [
+            'creditor',
+            'creditor_category',
+            'product_type',
+            'dpd_band',
+            'balance_band',
+            'region',
+            'avg_recovery_rate',
+            'avg_contact_rate',
+            'avg_ptp_rate',
+            'avg_conversion_rate',
+            'sample_size',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['creditor'].queryset = Creditor.objects.order_by('name')
+        self.fields['product_type'].required = False
+        self.fields['region'].required = False
