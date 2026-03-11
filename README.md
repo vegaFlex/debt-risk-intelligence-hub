@@ -23,6 +23,7 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
   - `manager_demo / DemoPass123!`
   - `analyst_demo / DemoPass123!`
 - Note: the free Render instance may take a short time to wake up after inactivity.
+- If the live demo is unavailable, screenshots and local setup instructions are available below.
 
 ## Product Tour
 Open the app locally and review it in this order:
