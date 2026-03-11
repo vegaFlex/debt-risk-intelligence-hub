@@ -67,6 +67,41 @@ def _portfolio_signal_label(score):
     return 'Watchlist'
 
 
+def _recommended_action(preview, attractiveness_score):
+    confidence = Decimal(preview['confidence_score'])
+    roi = Decimal(preview['projected_roi'])
+    recovery = Decimal(preview['expected_recovery_rate'])
+    high_risk = Decimal(preview['stats']['high_risk_share'])
+    contactability = Decimal(preview['stats']['contactability_share'])
+
+    if attractiveness_score >= Decimal('46.00') and roi >= Decimal('160.00') and confidence >= Decimal('55.00'):
+        return {
+            'label': 'Bid',
+            'tone': 'strong',
+            'reason': 'Recovery, ROI, and confidence are strong enough to support an active bid.',
+        }
+
+    if high_risk >= Decimal('55.00') and contactability < Decimal('45.00'):
+        return {
+            'label': 'Reject',
+            'tone': 'danger',
+            'reason': 'High-risk concentration is too heavy relative to operational reach.',
+        }
+
+    if roi < Decimal('90.00') or recovery < Decimal('18.00'):
+        return {
+            'label': 'Reject',
+            'tone': 'danger',
+            'reason': 'Projected return is too weak for a disciplined acquisition bid.',
+        }
+
+    return {
+        'label': 'Hold',
+        'tone': 'review',
+        'reason': 'The portfolio is investable only after closer review of assumptions and segments.',
+    }
+
+
 def _attach_risk_profile(rows):
     scored_rows = []
     for row in rows:
@@ -215,6 +250,7 @@ class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):
                     'preview': preview,
                     'attractiveness_score': attractiveness_score,
                     'signal_label': _portfolio_signal_label(attractiveness_score),
+                    'recommended_action': _recommended_action(preview, attractiveness_score),
                 }
             )
 
@@ -512,12 +548,14 @@ class PortfolioValuationPreviewView(ManagerOrAdminRequiredMixin, View):
                 })
                 previous = valuation
 
+        preview = build_rule_based_valuation(portfolio)
         return render(
             request,
             'valuation/preview.html',
             {
                 'portfolio': portfolio,
-                'preview': build_rule_based_valuation(portfolio),
+                'preview': preview,
+                'recommended_action': _recommended_action(preview, _attractiveness_score(preview)),
                 'latest_valuation': latest_valuation,
                 'latest_factors': latest_valuation.factors.all()[:8] if latest_valuation else [],
                 'valuation_history': valuation_history,

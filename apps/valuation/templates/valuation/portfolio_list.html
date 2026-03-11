@@ -37,6 +37,7 @@
           <th>Projected ROI</th>
           <th>Confidence</th>
           <th>Mode</th>
+          <th>Recommendation</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -55,6 +56,9 @@
             <td>{{ item.preview.projected_roi }}%</td>
             <td>{{ item.preview.confidence_score }}</td>
             <td>{% if item.preview.benchmark_context %}Hybrid{% else %}Rule-Based{% endif %}</td>
+            <td>
+              <span class="valuation-pill {% if item.recommended_action.tone == 'strong' %}valuation-pill-strong{% elif item.recommended_action.tone == 'danger' %}valuation-pill-danger{% else %}valuation-pill-review{% endif %}">{{ item.recommended_action.label }}</span>
+            </td>
             <td><a class="btn btn-secondary btn-compact" href="{% url 'valuation-preview' item.portfolio.id %}">Open</a></td>
           </tr>
         {% endfor %}
@@ -98,6 +102,8 @@
         <p><strong>Max bid amount:</strong> {{ item.preview.recommended_bid_amount }}</p>
         <p><strong>Debtors:</strong> {{ item.preview.stats.total_debtors }}</p>
         <p><strong>Mode:</strong> {{ item.preview.valuation_method|title }}</p>
+        <p><strong>Recommendation:</strong> {{ item.recommended_action.label }}</p>
+        <p class="small">{{ item.recommended_action.reason }}</p>
         {% if item.latest_valuation %}
           <p><strong>Latest saved run:</strong> {{ item.latest_valuation.created_at|date:"M d, Y H:i" }}</p>
         {% else %}

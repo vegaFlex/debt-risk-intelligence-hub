@@ -22,6 +22,15 @@
   </div>
 </section>
 
+<section class="card card-compact">
+  <h3>Recommended Action</h3>
+  <p class="section-copy">Use this as the top-line acquisition decision before moving into memo export or scenario review.</p>
+  <div class="valuation-stat-list">
+    <div><span>Action</span><strong>{{ recommended_action.label }}</strong></div>
+    <div><span>Reason</span><strong>{{ recommended_action.reason }}</strong></div>
+  </div>
+</section>
+
 <section class="kpi-grid">
   <div class="kpi-card"><div class="kpi-label">Expected Recovery</div><div class="kpi-value">{{ preview.expected_recovery_rate }}%</div></div>
   <div class="kpi-card"><div class="kpi-label">Expected Collections</div><div class="kpi-value kpi-value-wide">{{ preview.expected_collections }}</div></div>
