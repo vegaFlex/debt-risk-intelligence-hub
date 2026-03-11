@@ -9,6 +9,7 @@ class GeneratedReport(models.Model):
 
     class ReportType(models.TextChoices):
         MANAGEMENT_WEEKLY = 'management_weekly', 'Management Weekly'
+        VALUATION_MEMO = 'valuation_memo', 'Valuation Memo'
 
     class Status(models.TextChoices):
         SUCCESS = 'success', 'Success'

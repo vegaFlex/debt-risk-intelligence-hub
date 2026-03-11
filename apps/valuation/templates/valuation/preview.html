@@ -10,10 +10,15 @@
       <h2>{{ portfolio.name }}</h2>
       <p class="section-copy">{{ portfolio.source_company|default:"No source company" }} · {{ portfolio.currency }} · Face value {{ portfolio.face_value }}</p>
     </div>
-    <form method="post" action="{% url 'valuation-run' portfolio.id %}">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-primary">Run and Save Valuation</button>
-    </form>
+    <div class="inline-actions">
+      <a href="{% url 'valuation-report-preview' portfolio.id %}" class="btn btn-secondary">Open Valuation Report</a>
+      <a href="{% url 'valuation-report-excel' portfolio.id %}" class="btn btn-secondary">Excel Memo</a>
+      <a href="{% url 'valuation-report-pdf' portfolio.id %}" class="btn btn-secondary">PDF Memo</a>
+      <form method="post" action="{% url 'valuation-run' portfolio.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Run and Save Valuation</button>
+      </form>
+    </div>
   </div>
 </section>
 

@@ -1,0 +1,144 @@
+{% extends "base_app.html" %}
+
+{% block title %}{{ portfolio.name }} Valuation Memo | Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">Acquisition Memo</p>
+      <h2>{{ portfolio.name }} Valuation Report</h2>
+      <p class="section-copy">Executive-ready memo for pricing discipline, recovery expectations, and benchmark-aware bidding.</p>
+    </div>
+    <div class="inline-actions">
+      <a href="{{ download_excel_url }}" class="btn btn-primary">Download Excel</a>
+      <a href="{{ download_pdf_url }}" class="btn btn-secondary">Download PDF</a>
+      <a href="{% url 'valuation-preview' portfolio.id %}" class="btn btn-secondary">Back to Valuation</a>
+    </div>
+  </div>
+</section>
+
+<section class="kpi-grid">
+  <div class="kpi-card"><div class="kpi-label">Expected Recovery</div><div class="kpi-value">{{ summary.preview.expected_recovery_rate }}%</div></div>
+  <div class="kpi-card"><div class="kpi-label">Expected Collections</div><div class="kpi-value kpi-value-wide">{{ summary.preview.expected_collections }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Recommended Bid</div><div class="kpi-value">{{ summary.preview.recommended_bid_pct }}%</div></div>
+  <div class="kpi-card"><div class="kpi-label">Max Purchase Price</div><div class="kpi-value kpi-value-wide">{{ summary.preview.recommended_bid_amount }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Projected ROI</div><div class="kpi-value">{{ summary.preview.projected_roi }}%</div></div>
+  <div class="kpi-card"><div class="kpi-label">Confidence</div><div class="kpi-value">{{ summary.preview.confidence_score }}</div></div>
+</section>
+
+<section class="valuation-preview-grid">
+  <article class="card">
+    <h3>Recommendation Snapshot</h3>
+    <p class="section-copy">This memo summarizes the current portfolio-level recommendation for a buy-side review.</p>
+    <div class="valuation-stat-list">
+      <div><span>Portfolio</span><strong>{{ portfolio.name }}</strong></div>
+      <div><span>Source Company</span><strong>{{ portfolio.source_company|default:"N/A" }}</strong></div>
+      <div><span>Currency</span><strong>{{ portfolio.currency }}</strong></div>
+      <div><span>Face Value</span><strong>{{ portfolio.face_value }}</strong></div>
+      <div><span>Method</span><strong>{{ summary.preview.valuation_method|cut:"_"|title }}</strong></div>
+      <div><span>Total Debtors</span><strong>{{ summary.preview.stats.total_debtors }}</strong></div>
+      <div><span>Contactability Share</span><strong>{{ summary.preview.stats.contactability_share }}%</strong></div>
+      <div><span>High Risk Share</span><strong>{{ summary.preview.stats.high_risk_share }}%</strong></div>
+    </div>
+  </article>
+
+  <article class="card">
+    <h3>Top Drivers</h3>
+    <p class="section-copy">The strongest positive and negative signals behind the current recommendation.</p>
+    <div class="factor-list">
+      {% for factor in summary.top_factors %}
+        <div class="factor-item">
+          <div class="factor-item-head">
+            <strong>{{ factor.factor_name|cut:"_"|title }}</strong>
+            <span>{{ factor.factor_weight }}</span>
+          </div>
+          <p class="small"><strong>Value:</strong> {{ factor.factor_value }}</p>
+          <p class="small">{{ factor.explanation }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="card">
+  <h3>Scenario Analysis</h3>
+  <p class="section-copy">Quick buy-side comparison of pricing discipline versus expected return.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Bid %</th>
+          <th>Bid Amount</th>
+          <th>Expected Profit</th>
+          <th>Projected ROI</th>
+          <th>Break-Even Recovery</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for scenario in summary.top_scenarios %}
+          <tr>
+            <td>{{ scenario.bid_pct }}%</td>
+            <td>{{ scenario.bid_amount }}</td>
+            <td>{{ scenario.expected_profit }}</td>
+            <td>{{ scenario.roi }}%</td>
+            <td>{{ scenario.break_even_recovery }}%</td>
+            <td>{% if scenario.is_recommended %}<strong>Recommended</strong>{% else %}Alternative{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if summary.preview.benchmark_context %}
+<section class="card">
+  <h3>Benchmark Context</h3>
+  <p class="section-copy">A comparable historical benchmark was blended into the current estimate.</p>
+  <div class="valuation-stat-list">
+    <div><span>Source</span><strong>{{ summary.preview.benchmark_context.source|cut:"_"|title }}</strong></div>
+    <div><span>Sample Size</span><strong>{{ summary.preview.benchmark_context.sample_size }}</strong></div>
+    <div><span>Benchmark Recovery</span><strong>{{ summary.preview.benchmark_context.avg_recovery_rate }}%</strong></div>
+    <div><span>Benchmark Contact</span><strong>{{ summary.preview.benchmark_context.avg_contact_rate }}%</strong></div>
+    <div><span>Benchmark PTP</span><strong>{{ summary.preview.benchmark_context.avg_ptp_rate }}%</strong></div>
+    <div><span>Benchmark Conversion</span><strong>{{ summary.preview.benchmark_context.avg_conversion_rate }}%</strong></div>
+  </div>
+</section>
+{% endif %}
+
+{% if summary.comparison_rows %}
+<section class="card">
+  <h3>Saved Run History</h3>
+  <p class="section-copy">Previously saved pricing runs for the same portfolio.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Saved At</th>
+          <th>Method</th>
+          <th>Expected Recovery</th>
+          <th>Recommended Bid</th>
+          <th>Projected ROI</th>
+          <th>Confidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in summary.comparison_rows %}
+          <tr>
+            <td>{{ row.valuation.created_at|date:"M d, Y H:i" }}</td>
+            <td>{{ row.valuation.get_valuation_method_display }}</td>
+            <td>{{ row.valuation.expected_recovery_rate }}%</td>
+            <td>{{ row.valuation.recommended_bid_pct }}%</td>
+            <td>{{ row.valuation.projected_roi }}%</td>
+            <td>{{ row.valuation.confidence_score }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block developer_api %}{% endblock %}

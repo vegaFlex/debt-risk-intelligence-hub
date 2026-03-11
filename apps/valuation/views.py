@@ -1,16 +1,22 @@
 from decimal import Decimal
 
+from datetime import date
+
 from django.contrib import messages
 from django.db import transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views import View
 
 from apps.portfolio.importers import ImportValidationError, parse_uploaded_file, validate_rows
 from apps.portfolio.models import DataImportLog, Debtor, Portfolio
+from apps.reports.models import GeneratedReport
 from apps.reports.views import ManagerOrAdminRequiredMixin
 from apps.scoring.services import calculate_risk_profile
 from apps.valuation.forms import HistoricalBenchmarkForm, ValuationImportForm
 from apps.valuation.models import Creditor, HistoricalBenchmark, PortfolioUploadBatch
+from apps.valuation.reporting import build_valuation_excel_report, build_valuation_pdf_report, build_valuation_report_summary
 from apps.valuation.services import build_rule_based_valuation, persist_rule_based_valuation
 
 
@@ -398,6 +404,83 @@ class ValuationImportView(ManagerOrAdminRequiredMixin, View):
             'creditor_category': creditor.get_category_display(),
         }
         return render(request, 'valuation/import.html', context)
+
+
+class ValuationReportPreviewView(ManagerOrAdminRequiredMixin, View):
+    def get(self, request, portfolio_id):
+        portfolio = get_object_or_404(Portfolio.objects.prefetch_related('valuations__factors'), id=portfolio_id)
+        preview = build_rule_based_valuation(portfolio)
+        latest_valuation = portfolio.valuations.first()
+        comparison_rows = [{'valuation': valuation} for valuation in portfolio.valuations.all()[:6]]
+        summary = build_valuation_report_summary(
+            portfolio,
+            preview,
+            latest_valuation=latest_valuation,
+            comparison_rows=comparison_rows,
+        )
+        return render(
+            request,
+            'valuation/report_preview.html',
+            {
+                'portfolio': portfolio,
+                'summary': summary,
+                'download_excel_url': f'/valuation/portfolio/{portfolio.id}/report/excel/',
+                'download_pdf_url': f'/valuation/portfolio/{portfolio.id}/report/pdf/',
+                'nav_actions': _workspace_nav(request),
+            },
+        )
+
+
+class ValuationExcelReportView(ManagerOrAdminRequiredMixin, View):
+    def get(self, request, portfolio_id):
+        portfolio = get_object_or_404(Portfolio.objects.prefetch_related('valuations__factors'), id=portfolio_id)
+        preview = build_rule_based_valuation(portfolio)
+        comparison_rows = [{'valuation': valuation} for valuation in portfolio.valuations.all()[:6]]
+        summary = build_valuation_report_summary(portfolio, preview, latest_valuation=portfolio.valuations.first(), comparison_rows=comparison_rows)
+        content = build_valuation_excel_report(summary)
+
+        stamp = timezone.now().strftime('%Y%m%d_%H%M')
+        file_name = f'valuation_memo_{portfolio.id}_{stamp}.xlsx'
+        GeneratedReport.objects.create(
+            report_type=GeneratedReport.ReportType.VALUATION_MEMO,
+            report_format=GeneratedReport.ReportFormat.XLSX,
+            status=GeneratedReport.Status.SUCCESS,
+            period_start=portfolio.purchase_date or date(2000, 1, 1),
+            period_end=timezone.localdate(),
+            file_name=file_name,
+            file_path='downloaded-via-web',
+            created_by=request.user if request.user.is_authenticated else None,
+            details=f'Valuation memo export for {portfolio.name}.',
+        )
+        response = HttpResponse(content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={file_name}'
+        return response
+
+
+class ValuationPdfReportView(ManagerOrAdminRequiredMixin, View):
+    def get(self, request, portfolio_id):
+        portfolio = get_object_or_404(Portfolio.objects.prefetch_related('valuations__factors'), id=portfolio_id)
+        preview = build_rule_based_valuation(portfolio)
+        comparison_rows = [{'valuation': valuation} for valuation in portfolio.valuations.all()[:6]]
+        summary = build_valuation_report_summary(portfolio, preview, latest_valuation=portfolio.valuations.first(), comparison_rows=comparison_rows)
+        content = build_valuation_pdf_report(summary)
+
+        stamp = timezone.now().strftime('%Y%m%d_%H%M')
+        file_name = f'valuation_memo_{portfolio.id}_{stamp}.pdf'
+        GeneratedReport.objects.create(
+            report_type=GeneratedReport.ReportType.VALUATION_MEMO,
+            report_format=GeneratedReport.ReportFormat.PDF,
+            status=GeneratedReport.Status.SUCCESS,
+            period_start=portfolio.purchase_date or date(2000, 1, 1),
+            period_end=timezone.localdate(),
+            file_name=file_name,
+            file_path='downloaded-via-web',
+            created_by=request.user if request.user.is_authenticated else None,
+            details=f'Valuation memo export for {portfolio.name}.',
+        )
+        response = HttpResponse(content, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename={file_name}'
+        return response
 
 
 class PortfolioValuationPreviewView(ManagerOrAdminRequiredMixin, View):
