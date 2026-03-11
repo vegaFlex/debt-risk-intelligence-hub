@@ -7,6 +7,12 @@ from apps.portfolio.models import Debtor, Payment
 from apps.valuation.models import HistoricalBenchmark, PortfolioValuation, ValuationFactor
 
 ZERO_DECIMAL = Value(Decimal('0.00'), output_field=DecimalField(max_digits=14, decimal_places=2))
+SCENARIO_BID_PCTS = (
+    Decimal('6.00'),
+    Decimal('8.00'),
+    Decimal('10.00'),
+    Decimal('12.00'),
+)
 
 
 def _round_money(value):
@@ -102,6 +108,45 @@ def _resolve_benchmark(portfolio, *, creditor, avg_days_past_due, outstanding_to
     return None, 'rule_only', creditor_category, dpd_band, balance_band, region
 
 
+def _build_scenarios(face_value, expected_collections, outstanding_total, recommended_bid_pct):
+    scenarios = []
+    closest_index = 0
+    closest_distance = None
+
+    for index, bid_pct in enumerate(SCENARIO_BID_PCTS):
+        bid_amount = _round_money(Decimal(face_value) * (bid_pct / Decimal('100')))
+        expected_profit = _round_money(expected_collections - bid_amount)
+        roi = Decimal('0.00')
+        if bid_amount > 0:
+            roi = _round_metric(((expected_collections - bid_amount) / bid_amount) * Decimal('100'))
+
+        break_even_recovery = Decimal('0.00')
+        if outstanding_total > 0:
+            break_even_recovery = _round_metric((bid_amount / Decimal(outstanding_total)) * Decimal('100'))
+
+        current_bid_pct = _round_metric(bid_pct)
+        distance = abs(current_bid_pct - _round_metric(recommended_bid_pct))
+        if closest_distance is None or distance < closest_distance:
+            closest_distance = distance
+            closest_index = index
+
+        scenarios.append(
+            {
+                'bid_pct': current_bid_pct,
+                'bid_amount': bid_amount,
+                'expected_profit': expected_profit,
+                'roi': roi,
+                'break_even_recovery': break_even_recovery,
+                'is_recommended': False,
+            }
+        )
+
+    if scenarios:
+        scenarios[closest_index]['is_recommended'] = True
+
+    return scenarios
+
+
 def build_rule_based_valuation(portfolio, *, creditor=None):
     debtors = _debtor_queryset(portfolio)
     payments = _payment_queryset(portfolio)
@@ -122,13 +167,9 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
             'valuation_method': PortfolioValuation.ValuationMethod.RULE_BASED,
             'benchmark': None,
             'benchmark_context': None,
+            'scenarios': [],
             'factors': [
-                _factor(
-                    'empty_portfolio',
-                    Decimal('0.00'),
-                    '0 debtors',
-                    'No debtors are available, so the portfolio cannot be valued yet.',
-                )
+                _factor('empty_portfolio', Decimal('0.00'), '0 debtors', 'No debtors are available, so the portfolio cannot be valued yet.')
             ],
             'stats': {
                 'total_debtors': 0,
@@ -283,6 +324,8 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
             'region': benchmark.region or region or 'All regions',
         }
 
+    scenarios = _build_scenarios(portfolio.face_value, expected_collections, outstanding_total, recommended_bid_pct)
+
     return {
         'portfolio': portfolio,
         'creditor': creditor,
@@ -296,6 +339,7 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
         'valuation_method': valuation_method,
         'benchmark': benchmark,
         'benchmark_context': benchmark_context,
+        'scenarios': scenarios,
         'factors': factors,
         'stats': {
             'total_debtors': total_debtors,
@@ -344,3 +388,4 @@ def persist_rule_based_valuation(portfolio, *, creditor=None, upload_batch=None,
     )
 
     return valuation
+

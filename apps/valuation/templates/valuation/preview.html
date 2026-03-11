@@ -60,6 +60,37 @@
   </article>
 </section>
 
+<section class="card">
+  <h3>Scenario Analysis</h3>
+  <p class="section-copy">Compare different purchase prices against the same expected collections to understand profit, ROI, and break-even recovery pressure.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Bid %</th>
+          <th>Bid Amount</th>
+          <th>Expected Profit</th>
+          <th>Projected ROI</th>
+          <th>Break-Even Recovery</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for scenario in preview.scenarios %}
+          <tr>
+            <td>{{ scenario.bid_pct }}%</td>
+            <td>{{ scenario.bid_amount }}</td>
+            <td>{{ scenario.expected_profit }}</td>
+            <td>{{ scenario.roi }}%</td>
+            <td>{{ scenario.break_even_recovery }}%</td>
+            <td>{% if scenario.is_recommended %}<strong>Recommended</strong>{% else %}Alternative{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
 {% if preview.benchmark_context %}
   <section class="card">
     <h3>Benchmark Context</h3>
@@ -76,6 +107,7 @@
     </div>
   </section>
 {% endif %}
+
 {% if latest_valuation %}
   <section class="card">
     <h3>Latest Saved Valuation</h3>
@@ -109,4 +141,3 @@
 {% endblock %}
 
 {% block developer_api %}{% endblock %}
-
