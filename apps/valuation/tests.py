@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
-from apps.valuation.models import Creditor, PortfolioValuation, ValuationFactor
+from apps.valuation.models import Creditor, HistoricalBenchmark, PortfolioValuation, ValuationFactor
 from apps.valuation.services import build_rule_based_valuation, persist_rule_based_valuation
 
 
@@ -95,6 +95,28 @@ class RuleBasedValuationServiceTests(TestCase):
         self.assertGreaterEqual(len(result['factors']), 6)
         self.assertIn('high_risk_concentration', {factor['factor_name'] for factor in result['factors']})
         self.assertIn('contactability', {factor['factor_name'] for factor in result['factors']})
+        self.assertEqual(result['valuation_method'], PortfolioValuation.ValuationMethod.RULE_BASED)
+        self.assertIsNone(result['benchmark_context'])
+
+    def test_benchmark_fallback_blends_recovery_and_switches_to_hybrid(self):
+        HistoricalBenchmark.objects.create(
+            creditor_category=Creditor.Category.FINTECH,
+            dpd_band='90-179 days',
+            balance_band='2000-4999',
+            avg_recovery_rate=Decimal('44.00'),
+            avg_contact_rate=Decimal('68.00'),
+            avg_ptp_rate=Decimal('21.00'),
+            avg_conversion_rate=Decimal('15.00'),
+            sample_size=240,
+        )
+
+        result = build_rule_based_valuation(self.portfolio, creditor=self.creditor)
+
+        self.assertEqual(result['valuation_method'], PortfolioValuation.ValuationMethod.HYBRID)
+        self.assertIsNotNone(result['benchmark_context'])
+        self.assertEqual(result['benchmark_context']['source'], 'category_fallback')
+        self.assertEqual(result['benchmark_context']['sample_size'], 240)
+        self.assertIn('historical_benchmark', {factor['factor_name'] for factor in result['factors']})
 
     def test_persist_rule_based_valuation_creates_valuation_and_factor_rows(self):
         valuation = persist_rule_based_valuation(
