@@ -147,6 +147,60 @@ def _build_scenarios(face_value, expected_collections, outstanding_total, recomm
     return scenarios
 
 
+def _as_percent_decimal(value):
+    return _round_metric(Decimal(value) * Decimal('100'))
+
+
+def _build_visuals(
+    *,
+    high_risk_share,
+    medium_risk_share,
+    low_risk_share,
+    contactability_share,
+    ptp_share,
+    paying_share,
+    recommended_bid_pct,
+    expected_recovery_rate,
+    confidence_score,
+    scenarios,
+):
+    risk_mix = [
+        {'label': 'High Risk', 'value': _as_percent_decimal(high_risk_share), 'tone': 'danger'},
+        {'label': 'Medium Risk', 'value': _as_percent_decimal(medium_risk_share), 'tone': 'warning'},
+        {'label': 'Low Risk', 'value': _as_percent_decimal(low_risk_share), 'tone': 'success'},
+    ]
+
+    recovery_bridge = [
+        {'label': 'Expected Recovery', 'value': _round_metric(expected_recovery_rate), 'tone': 'primary'},
+        {'label': 'Bid Threshold', 'value': _round_metric(recommended_bid_pct), 'tone': 'neutral'},
+        {'label': 'Confidence', 'value': _round_metric(confidence_score), 'tone': 'success'},
+    ]
+
+    operating_signals = [
+        {'label': 'Contactability', 'value': _as_percent_decimal(contactability_share), 'tone': 'primary'},
+        {'label': 'Promise To Pay', 'value': _as_percent_decimal(ptp_share), 'tone': 'warning'},
+        {'label': 'Paying Cases', 'value': _as_percent_decimal(paying_share), 'tone': 'success'},
+    ]
+
+    scenario_roi = [
+        {
+            'label': f"{scenario['bid_pct']}% bid",
+            'value': _round_metric(max(Decimal('0.00'), scenario['roi'])),
+            'raw_value': scenario['roi'],
+            'tone': 'highlight' if scenario['is_recommended'] else 'neutral',
+            'is_recommended': scenario['is_recommended'],
+        }
+        for scenario in scenarios
+    ]
+
+    return {
+        'risk_mix': risk_mix,
+        'recovery_bridge': recovery_bridge,
+        'operating_signals': operating_signals,
+        'scenario_roi': scenario_roi,
+    }
+
+
 def build_rule_based_valuation(portfolio, *, creditor=None):
     debtors = _debtor_queryset(portfolio)
     payments = _payment_queryset(portfolio)
@@ -168,6 +222,12 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
             'benchmark': None,
             'benchmark_context': None,
             'scenarios': [],
+            'visuals': {
+                'risk_mix': [],
+                'recovery_bridge': [],
+                'operating_signals': [],
+                'scenario_roi': [],
+            },
             'factors': [
                 _factor('empty_portfolio', Decimal('0.00'), '0 debtors', 'No debtors are available, so the portfolio cannot be valued yet.')
             ],
@@ -325,6 +385,18 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
         }
 
     scenarios = _build_scenarios(portfolio.face_value, expected_collections, outstanding_total, recommended_bid_pct)
+    visuals = _build_visuals(
+        high_risk_share=high_risk_share,
+        medium_risk_share=medium_risk_share,
+        low_risk_share=low_risk_share,
+        contactability_share=contactability_share,
+        ptp_share=ptp_share,
+        paying_share=paying_share,
+        recommended_bid_pct=recommended_bid_pct * Decimal('100'),
+        expected_recovery_rate=bounded_recovery_rate * Decimal('100'),
+        confidence_score=confidence_score,
+        scenarios=scenarios,
+    )
 
     return {
         'portfolio': portfolio,
@@ -340,6 +412,7 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
         'benchmark': benchmark,
         'benchmark_context': benchmark_context,
         'scenarios': scenarios,
+        'visuals': visuals,
         'factors': factors,
         'stats': {
             'total_debtors': total_debtors,
@@ -388,4 +461,3 @@ def persist_rule_based_valuation(portfolio, *, creditor=None, upload_batch=None,
     )
 
     return valuation
-

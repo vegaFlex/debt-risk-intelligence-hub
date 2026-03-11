@@ -26,6 +26,84 @@
   <div class="kpi-card"><div class="kpi-label">Confidence</div><div class="kpi-value">{{ preview.confidence_score }}</div></div>
 </section>
 
+<section class="card">
+  <h3>Valuation Visual Analytics</h3>
+  <p class="section-copy">These visuals turn the valuation into an acquisition story: risk composition, operating strength, pricing pressure, and scenario upside.</p>
+  <div class="valuation-visual-grid">
+    <article class="visual-card">
+      <div class="visual-card-head">
+        <h4>Risk Mix</h4>
+        <p>How much of the portfolio sits in high, medium, and low risk segments.</p>
+      </div>
+      <div class="visual-bars">
+        {% for item in preview.visuals.risk_mix %}
+          <div class="visual-row">
+            <div class="visual-row-head">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}%</strong>
+            </div>
+            <div class="visual-track"><div class="visual-fill tone-{{ item.tone }}" style="width: {{ item.value }}%"></div></div>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="visual-card">
+      <div class="visual-card-head">
+        <h4>Operating Signals</h4>
+        <p>Signals that make collections more realistic in practice, not only on paper.</p>
+      </div>
+      <div class="visual-bars">
+        {% for item in preview.visuals.operating_signals %}
+          <div class="visual-row">
+            <div class="visual-row-head">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}%</strong>
+            </div>
+            <div class="visual-track"><div class="visual-fill tone-{{ item.tone }}" style="width: {{ item.value }}%"></div></div>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="visual-card">
+      <div class="visual-card-head">
+        <h4>Recovery vs Pricing</h4>
+        <p>Quick bridge between expected recovery, bid threshold, and confidence in the estimate.</p>
+      </div>
+      <div class="visual-bars">
+        {% for item in preview.visuals.recovery_bridge %}
+          <div class="visual-row">
+            <div class="visual-row-head">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}%</strong>
+            </div>
+            <div class="visual-track"><div class="visual-fill tone-{{ item.tone }}" style="width: {{ item.value }}%"></div></div>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="visual-card">
+      <div class="visual-card-head">
+        <h4>Scenario ROI Ladder</h4>
+        <p>How the return profile changes if we bid more aggressively or stay disciplined.</p>
+      </div>
+      <div class="visual-bars">
+        {% for item in preview.visuals.scenario_roi %}
+          <div class="visual-row">
+            <div class="visual-row-head">
+              <span>{{ item.label }}{% if item.is_recommended %} · Recommended{% endif %}</span>
+              <strong>{{ item.raw_value }}%</strong>
+            </div>
+            <div class="visual-track"><div class="visual-fill tone-{{ item.tone }}" style="width: {{ item.value }}%"></div></div>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+</section>
+
 <section class="valuation-preview-grid">
   <article class="card">
     <h3>Portfolio Signals</h3>
