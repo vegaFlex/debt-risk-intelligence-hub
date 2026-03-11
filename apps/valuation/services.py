@@ -4,6 +4,7 @@ from django.db.models import DecimalField, Sum, Value
 from django.db.models.functions import Coalesce
 
 from apps.portfolio.models import Debtor, Payment
+from apps.valuation.features import build_feature_snapshot
 from apps.valuation.models import HistoricalBenchmark, PortfolioValuation, ValuationFactor
 
 ZERO_DECIMAL = Value(Decimal('0.00'), output_field=DecimalField(max_digits=14, decimal_places=2))
@@ -397,6 +398,22 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
         confidence_score=confidence_score,
         scenarios=scenarios,
     )
+    features = build_feature_snapshot(
+        portfolio=portfolio,
+        debtors=debtors,
+        payments=payments,
+        total_debtors=total_debtors,
+        outstanding_total=outstanding_total,
+        collected_total=collected_total,
+        avg_days_past_due=avg_days_past_due,
+        high_risk_share=high_risk_share,
+        medium_risk_share=medium_risk_share,
+        low_risk_share=low_risk_share,
+        contactability_share=contactability_share,
+        ptp_share=ptp_share,
+        paying_share=paying_share,
+        closed_share=closed_share,
+    )
 
     return {
         'portfolio': portfolio,
@@ -413,6 +430,7 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
         'benchmark_context': benchmark_context,
         'scenarios': scenarios,
         'visuals': visuals,
+        'features': features,
         'factors': factors,
         'stats': {
             'total_debtors': total_debtors,
