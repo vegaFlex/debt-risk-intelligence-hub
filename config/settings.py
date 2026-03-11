@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.scoring',
     'apps.reports',
     'apps.dashboard',
+    'apps.valuation',
 ]
 
 MIDDLEWARE = [
