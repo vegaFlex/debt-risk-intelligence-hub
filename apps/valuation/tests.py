@@ -308,3 +308,10 @@ class ValuationWorkspaceViewTests(TestCase):
             ValuationFactor.objects.filter(valuation__portfolio=self.portfolio).count(),
             0,
         )
+
+        self.client.post(reverse('valuation-run', args=[self.portfolio.id]), follow=True)
+        comparison_response = self.client.get(reverse('valuation-preview', args=[self.portfolio.id]))
+        self.assertEqual(comparison_response.status_code, 200)
+        self.assertContains(comparison_response, 'Saved Run Comparison')
+        self.assertContains(comparison_response, 'Baseline')
+        self.assertEqual(PortfolioValuation.objects.filter(portfolio=self.portfolio).count(), 2)
