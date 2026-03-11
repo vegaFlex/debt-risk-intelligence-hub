@@ -99,6 +99,9 @@ class RuleBasedValuationServiceTests(TestCase):
         self.assertIsNone(result['benchmark_context'])
         self.assertEqual(len(result['scenarios']), 4)
         self.assertTrue(any(scenario['is_recommended'] for scenario in result['scenarios']))
+        self.assertEqual(set(result['visuals'].keys()), {'risk_mix', 'recovery_bridge', 'operating_signals', 'scenario_roi'})
+        self.assertEqual(len(result['visuals']['risk_mix']), 3)
+        self.assertEqual(len(result['visuals']['scenario_roi']), 4)
 
     def test_benchmark_fallback_blends_recovery_and_switches_to_hybrid(self):
         HistoricalBenchmark.objects.create(
@@ -201,8 +204,10 @@ class ValuationWorkspaceViewTests(TestCase):
         preview_response = self.client.get(reverse('valuation-preview', args=[self.portfolio.id]))
         self.assertEqual(preview_response.status_code, 200)
         self.assertContains(preview_response, 'Run and Save Valuation')
+        self.assertContains(preview_response, 'Valuation Visual Analytics')
         self.assertContains(preview_response, 'Portfolio Signals')
         self.assertContains(preview_response, 'Scenario Analysis')
+        self.assertContains(preview_response, 'Scenario ROI Ladder')
 
         post_response = self.client.post(reverse('valuation-run', args=[self.portfolio.id]), follow=True)
         self.assertEqual(post_response.status_code, 200)
