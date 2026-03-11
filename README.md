@@ -19,10 +19,9 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
 
 ## Live Demo
 - App: https://debt-risk-intelligence-hub.onrender.com
-- Demo accounts:
+- Public demo accounts:
   - `manager_demo / DemoPass123!`
   - `analyst_demo / DemoPass123!`
-  - `admin_demo / DemoPass123!`
 - Note: the free Render instance may take a short time to wake up after inactivity.
 
 ## Product Tour
@@ -93,12 +92,13 @@ If someone opens the repo and wants to understand the product quickly:
 4. Change the portfolio filter and review how KPI cards and charts update
 5. Open `Full Debtor List`
 6. Open `Report Preview`
-7. Log in as `admin_demo` and open `/admin/`
+7. Log in as a private admin user and open `/admin/`
 
 ## Demo Accounts
-- `manager_demo / DemoPass123!`
-- `analyst_demo / DemoPass123!`
-- `admin_demo / DemoPass123!`
+- Public demo accounts:
+  - `manager_demo / DemoPass123!`
+  - `analyst_demo / DemoPass123!`
+- Private admin access is reserved for controlled demos.
 
 ## Demo Role Access
 
@@ -122,7 +122,7 @@ Allowed:
 
 Typical use: operations/management workflow.
 
-### admin_demo / DemoPass123!
+### Private admin access
 Allowed:
 - Everything available to `manager_demo`
 - Django admin panel: `/admin/`
