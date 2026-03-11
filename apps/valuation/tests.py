@@ -8,6 +8,7 @@ from django.urls import reverse
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
 from apps.valuation.models import Creditor, HistoricalBenchmark, PortfolioUploadBatch, PortfolioValuation, ValuationFactor
+from apps.reports.models import GeneratedReport
 from apps.valuation.services import build_rule_based_valuation, persist_rule_based_valuation
 
 
@@ -411,3 +412,37 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertContains(comparison_response, 'Saved Run Comparison')
         self.assertContains(comparison_response, 'Baseline')
         self.assertEqual(PortfolioValuation.objects.filter(portfolio=self.portfolio).count(), 2)
+
+    def test_manager_can_open_and_export_valuation_report(self):
+        self.client.login(username='manager_v2', password='DemoPass123!')
+        self.client.post(reverse('valuation-run', args=[self.portfolio.id]), follow=True)
+
+        preview_response = self.client.get(reverse('valuation-report-preview', args=[self.portfolio.id]))
+        self.assertEqual(preview_response.status_code, 200)
+        self.assertContains(preview_response, 'Valuation Report')
+        self.assertContains(preview_response, 'Download Excel')
+        self.assertContains(preview_response, 'Scenario Analysis')
+
+        excel_response = self.client.get(reverse('valuation-report-excel', args=[self.portfolio.id]))
+        self.assertEqual(excel_response.status_code, 200)
+        self.assertEqual(
+            excel_response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+
+        pdf_response = self.client.get(reverse('valuation-report-pdf', args=[self.portfolio.id]))
+        self.assertEqual(pdf_response.status_code, 200)
+        self.assertEqual(pdf_response['Content-Type'], 'application/pdf')
+
+        self.assertEqual(
+            GeneratedReport.objects.filter(report_type=GeneratedReport.ReportType.VALUATION_MEMO).count(),
+            2,
+        )
+
+    def test_analyst_receives_friendly_access_page_for_valuation_report(self):
+        self.client.login(username='analyst_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-report-preview', args=[self.portfolio.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Access Restricted')
+        self.assertContains(response, 'Manager or Admin')
