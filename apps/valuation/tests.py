@@ -361,6 +361,15 @@ class ValuationWorkspaceViewTests(TestCase):
             currency='EUR',
             created_by=self.manager,
         )
+        self.third_portfolio = Portfolio.objects.create(
+            name='Third Workspace Portfolio',
+            source_company='Utilities Demo',
+            purchase_date=date(2026, 3, 9),
+            purchase_price=Decimal('18000.00'),
+            face_value=Decimal('150000.00'),
+            currency='EUR',
+            created_by=self.manager,
+        )
         debtor = Debtor.objects.create(
             portfolio=self.portfolio,
             external_id='WS-001',
@@ -391,6 +400,40 @@ class ValuationWorkspaceViewTests(TestCase):
             risk_score=82,
             risk_band='high',
         )
+        Debtor.objects.create(
+            portfolio=self.third_portfolio,
+            external_id='WS-003',
+            full_name='Third Debtor One',
+            status='contacted',
+            days_past_due=115,
+            outstanding_principal=Decimal('4200.00'),
+            outstanding_total=Decimal('4630.00'),
+            risk_score=57,
+            risk_band='medium',
+            email='third@example.com',
+        )
+        Debtor.objects.create(
+            portfolio=self.third_portfolio,
+            external_id='WS-004',
+            full_name='Third Debtor Two',
+            status='promise_to_pay',
+            days_past_due=88,
+            outstanding_principal=Decimal('1650.00'),
+            outstanding_total=Decimal('1900.00'),
+            risk_score=49,
+            risk_band='medium',
+            phone_number='0888333333',
+        )
+        HistoricalBenchmark.objects.create(
+            creditor_category=Creditor.Category.OTHER,
+            dpd_band='180+ days',
+            balance_band='2000-4999',
+            avg_recovery_rate=Decimal('28.00'),
+            avg_contact_rate=Decimal('50.00'),
+            avg_ptp_rate=Decimal('14.00'),
+            avg_conversion_rate=Decimal('10.00'),
+            sample_size=120,
+        )
 
     def test_manager_can_open_workspace(self):
         self.client.login(username='manager_v2', password='DemoPass123!')
@@ -412,6 +455,35 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Access Restricted')
         self.assertContains(response, 'Manager or Admin')
+
+    def test_manager_can_filter_workspace_by_recommendation(self):
+        self.client.login(username='manager_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-workspace'), {'recommendation': 'Reject'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'portfolios match the current review filters')
+        cards = response.context['portfolio_cards']
+        self.assertTrue(cards)
+        self.assertTrue(all(item['recommended_action']['label'] == 'Reject' for item in cards))
+
+    def test_manager_can_filter_workspace_by_mode(self):
+        self.client.login(username='manager_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-workspace'), {'mode': 'Hybrid'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Hybrid')
+        cards = response.context['portfolio_cards']
+        self.assertTrue(cards)
+        self.assertTrue(all(item['mode_label'] == 'Hybrid' for item in cards))
+
+    def test_manager_can_sort_workspace_by_face_value(self):
+        self.client.login(username='manager_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-workspace'), {'sort': 'face_value_desc'})
+
+        self.assertEqual(response.status_code, 200)
+        cards = response.context['portfolio_cards']
+        self.assertEqual(cards[0]['portfolio'].name, 'Third Workspace Portfolio')
+        self.assertEqual(response.context['selected_sort'], 'face_value_desc')
 
     def test_manager_can_open_preview_and_run_saved_valuation(self):
         self.client.login(username='manager_v2', password='DemoPass123!')
