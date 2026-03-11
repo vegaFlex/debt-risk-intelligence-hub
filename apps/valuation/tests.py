@@ -2,11 +2,12 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
-from apps.valuation.models import Creditor, HistoricalBenchmark, PortfolioValuation, ValuationFactor
+from apps.valuation.models import Creditor, HistoricalBenchmark, PortfolioUploadBatch, PortfolioValuation, ValuationFactor
 from apps.valuation.services import build_rule_based_valuation, persist_rule_based_valuation
 
 
@@ -138,6 +139,73 @@ class RuleBasedValuationServiceTests(TestCase):
         self.assertEqual(valuation.created_by, self.user)
         self.assertEqual(valuation.valuation_method, PortfolioValuation.ValuationMethod.RULE_BASED)
         self.assertGreater(ValuationFactor.objects.filter(valuation=valuation).count(), 0)
+
+
+
+
+class ValuationImportFlowTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.manager = user_model.objects.create_user(
+            username='manager_import_v2',
+            password='DemoPass123!',
+            role='manager',
+        )
+        self.analyst = user_model.objects.create_user(
+            username='analyst_import_v2',
+            password='DemoPass123!',
+            role='analyst',
+        )
+        self.creditor = Creditor.objects.create(name='Import Creditor', category=Creditor.Category.FINTECH)
+
+    def _csv_file(self, name='valuation_upload.csv'):
+        content = (
+            'external_id,full_name,days_past_due,outstanding_principal,outstanding_total,phone_number,status\n'
+            'NEW-001,Import Debtor One,120,1400.00,1650.00,0888000011,new\n'
+            'NEW-002,Import Debtor Two,45,650.00,760.00,,promise_to_pay\n'
+        )
+        return SimpleUploadedFile(name, content.encode('utf-8'), content_type='text/csv')
+
+    def test_manager_can_preview_and_confirm_valuation_import(self):
+        self.client.login(username='manager_import_v2', password='DemoPass123!')
+
+        preview_response = self.client.post(
+            reverse('valuation-import'),
+            {
+                'action': 'preview',
+                'portfolio_name': 'Imported V2 Portfolio',
+                'source_company': 'Acquisition Source',
+                'purchase_date': '2026-03-11',
+                'purchase_price': '15000.00',
+                'face_value': '92000.00',
+                'currency': 'EUR',
+                'existing_creditor': self.creditor.id,
+                'creditor_name': '',
+                'creditor_category': '',
+                'data_file': self._csv_file(),
+            },
+        )
+
+        self.assertEqual(preview_response.status_code, 200)
+        self.assertContains(preview_response, 'Import Readiness')
+        self.assertContains(preview_response, 'Import Creditor')
+
+        confirm_response = self.client.post(reverse('valuation-import'), {'action': 'confirm'}, follow=True)
+        self.assertEqual(confirm_response.status_code, 200)
+        self.assertContains(confirm_response, 'Valuation import completed for Imported V2 Portfolio')
+        self.assertTrue(Portfolio.objects.filter(name='Imported V2 Portfolio').exists())
+        portfolio = Portfolio.objects.get(name='Imported V2 Portfolio')
+        self.assertEqual(portfolio.debtors.count(), 2)
+        self.assertTrue(PortfolioUploadBatch.objects.filter(portfolio=portfolio, creditor=self.creditor).exists())
+        self.assertContains(confirm_response, 'Valuation Visual Analytics')
+
+    def test_analyst_receives_friendly_access_page_for_import(self):
+        self.client.login(username='analyst_import_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-import'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Access Restricted')
+        self.assertContains(response, 'Manager or Admin')
 
 
 class ValuationWorkspaceViewTests(TestCase):
