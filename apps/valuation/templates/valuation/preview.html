@@ -60,6 +60,22 @@
   </article>
 </section>
 
+{% if preview.benchmark_context %}
+  <section class="card">
+    <h3>Benchmark Context</h3>
+    <p class="section-copy">A comparable historical benchmark was blended into the valuation to reduce pure rule-only bias.</p>
+    <div class="valuation-stat-list">
+      <div><span>Source</span><strong>{{ preview.benchmark_context.source|cut:"_"|title }}</strong></div>
+      <div><span>Sample Size</span><strong>{{ preview.benchmark_context.sample_size }}</strong></div>
+      <div><span>Benchmark Recovery</span><strong>{{ preview.benchmark_context.avg_recovery_rate }}%</strong></div>
+      <div><span>Benchmark Contact</span><strong>{{ preview.benchmark_context.avg_contact_rate }}%</strong></div>
+      <div><span>Benchmark PTP</span><strong>{{ preview.benchmark_context.avg_ptp_rate }}%</strong></div>
+      <div><span>Benchmark Conversion</span><strong>{{ preview.benchmark_context.avg_conversion_rate }}%</strong></div>
+      <div><span>DPD Band</span><strong>{{ preview.benchmark_context.dpd_band }}</strong></div>
+      <div><span>Balance Band</span><strong>{{ preview.benchmark_context.balance_band }}</strong></div>
+    </div>
+  </section>
+{% endif %}
 {% if latest_valuation %}
   <section class="card">
     <h3>Latest Saved Valuation</h3>
@@ -93,3 +109,4 @@
 {% endblock %}
 
 {% block developer_api %}{% endblock %}
+

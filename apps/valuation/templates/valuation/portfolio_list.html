@@ -21,7 +21,7 @@
           <h3>{{ item.portfolio.name }}</h3>
           <p class="section-copy">{{ item.portfolio.source_company|default:"No source company" }} · {{ item.portfolio.currency }} · Face value {{ item.portfolio.face_value }}</p>
         </div>
-        <span class="valuation-badge">Rule-Based Preview</span>
+        <span class="valuation-badge">{% if item.preview.benchmark_context %}Hybrid Preview{% else %}Rule-Based Preview{% endif %}</span>
       </div>
 
       <div class="valuation-kpis">
@@ -47,6 +47,7 @@
         <p><strong>Expected collections:</strong> {{ item.preview.expected_collections }}</p>
         <p><strong>Max bid amount:</strong> {{ item.preview.recommended_bid_amount }}</p>
         <p><strong>Debtors:</strong> {{ item.preview.stats.total_debtors }}</p>
+        <p><strong>Mode:</strong> {{ item.preview.valuation_method|title }}</p>
         {% if item.latest_valuation %}
           <p><strong>Latest saved run:</strong> {{ item.latest_valuation.created_at|date:"M d, Y H:i" }}</p>
         {% else %}
@@ -69,3 +70,4 @@
 {% endblock %}
 
 {% block developer_api %}{% endblock %}
+

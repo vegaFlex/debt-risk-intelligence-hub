@@ -1,10 +1,10 @@
 from decimal import Decimal, ROUND_HALF_UP
 
-from django.db.models import Count, DecimalField, Sum, Value
+from django.db.models import DecimalField, Sum, Value
 from django.db.models.functions import Coalesce
 
-from apps.portfolio.models import Debtor, Payment, Portfolio
-from apps.valuation.models import PortfolioValuation, ValuationFactor
+from apps.portfolio.models import Debtor, Payment
+from apps.valuation.models import HistoricalBenchmark, PortfolioValuation, ValuationFactor
 
 ZERO_DECIMAL = Value(Decimal('0.00'), output_field=DecimalField(max_digits=14, decimal_places=2))
 
@@ -34,14 +34,84 @@ def _payment_queryset(portfolio):
     return Payment.objects.filter(debtor__portfolio=portfolio)
 
 
-def build_rule_based_valuation(portfolio):
+def _portfolio_creditor(portfolio, creditor=None):
+    if creditor:
+        return creditor
+    batch = getattr(portfolio, 'valuation_batch', None)
+    return getattr(batch, 'creditor', None)
+
+
+def _dpd_band(avg_days_past_due):
+    if avg_days_past_due >= 180:
+        return '180+ days'
+    if avg_days_past_due >= 90:
+        return '90-179 days'
+    if avg_days_past_due >= 30:
+        return '30-89 days'
+    return 'under 30 days'
+
+
+def _balance_band(outstanding_total, total_debtors):
+    average_balance = Decimal(outstanding_total) / Decimal(total_debtors)
+    if average_balance >= Decimal('5000'):
+        return '5000+'
+    if average_balance >= Decimal('2000'):
+        return '2000-4999'
+    if average_balance >= Decimal('1000'):
+        return '1000-1999'
+    return 'under 1000'
+
+
+def _dominant_region(debtors):
+    region_rows = [row for row in debtors.exclude(region='').values('region').annotate(total=Sum(Value(1))) if row['region']]
+    if not region_rows:
+        return ''
+    region_rows.sort(key=lambda row: row['total'], reverse=True)
+    return region_rows[0]['region']
+
+
+def _resolve_benchmark(portfolio, *, creditor, avg_days_past_due, outstanding_total, total_debtors, debtors):
+    dpd_band = _dpd_band(avg_days_past_due)
+    balance_band = _balance_band(outstanding_total, total_debtors)
+    region = _dominant_region(debtors)
+    creditor_category = getattr(creditor, 'category', None) or HistoricalBenchmark._meta.get_field('creditor_category').default
+
+    queryset = HistoricalBenchmark.objects.filter(dpd_band=dpd_band, balance_band=balance_band)
+    if region:
+        region_match = queryset.filter(region=region)
+        if region_match.exists():
+            queryset = region_match
+        else:
+            queryset = queryset.filter(region='') | queryset.filter(region__isnull=True)
+
+    exact_creditor = queryset.filter(creditor=creditor).order_by('-sample_size', '-avg_recovery_rate') if creditor else HistoricalBenchmark.objects.none()
+    if exact_creditor.exists():
+        benchmark = exact_creditor.first()
+        return benchmark, 'creditor_specific', creditor_category, dpd_band, balance_band, region
+
+    category_match = queryset.filter(creditor__isnull=True, creditor_category=creditor_category).order_by('-sample_size', '-avg_recovery_rate')
+    if category_match.exists():
+        benchmark = category_match.first()
+        return benchmark, 'category_fallback', creditor_category, dpd_band, balance_band, region
+
+    generic_match = queryset.filter(creditor__isnull=True).order_by('-sample_size', '-avg_recovery_rate')
+    if generic_match.exists():
+        benchmark = generic_match.first()
+        return benchmark, 'generic_fallback', creditor_category, dpd_band, balance_band, region
+
+    return None, 'rule_only', creditor_category, dpd_band, balance_band, region
+
+
+def build_rule_based_valuation(portfolio, *, creditor=None):
     debtors = _debtor_queryset(portfolio)
     payments = _payment_queryset(portfolio)
+    creditor = _portfolio_creditor(portfolio, creditor=creditor)
 
     total_debtors = debtors.count()
     if total_debtors == 0:
         return {
             'portfolio': portfolio,
+            'creditor': creditor,
             'face_value': _round_money(portfolio.face_value),
             'expected_recovery_rate': Decimal('0.00'),
             'expected_collections': Decimal('0.00'),
@@ -49,6 +119,9 @@ def build_rule_based_valuation(portfolio):
             'recommended_bid_amount': Decimal('0.00'),
             'projected_roi': Decimal('0.00'),
             'confidence_score': Decimal('0.00'),
+            'valuation_method': PortfolioValuation.ValuationMethod.RULE_BASED,
+            'benchmark': None,
+            'benchmark_context': None,
             'factors': [
                 _factor(
                     'empty_portfolio',
@@ -66,6 +139,8 @@ def build_rule_based_valuation(portfolio):
                 'ptp_share': Decimal('0.00'),
                 'paying_share': Decimal('0.00'),
                 'median_days_past_due_proxy': Decimal('0.00'),
+                'dpd_band': 'n/a',
+                'balance_band': 'n/a',
             },
         }
 
@@ -98,103 +173,68 @@ def build_rule_based_valuation(portfolio):
 
     low_risk_boost = low_risk_share * Decimal('0.22')
     recovery_score += low_risk_boost
-    factors.append(
-        _factor(
-            'low_risk_mix',
-            low_risk_boost * Decimal('100'),
-            f'{(low_risk_share * Decimal("100")).quantize(Decimal("0.01"))}%',
-            'A larger low-risk share improves expected recoverability.',
-        )
-    )
+    factors.append(_factor('low_risk_mix', low_risk_boost * Decimal('100'), f'{(low_risk_share * Decimal("100")).quantize(Decimal("0.01"))}%', 'A larger low-risk share improves expected recoverability.'))
 
     medium_risk_boost = medium_risk_share * Decimal('0.08')
     recovery_score += medium_risk_boost
-    factors.append(
-        _factor(
-            'medium_risk_mix',
-            medium_risk_boost * Decimal('100'),
-            f'{(medium_risk_share * Decimal("100")).quantize(Decimal("0.01"))}%',
-            'Medium-risk debtors contribute moderate recovery potential.',
-        )
-    )
+    factors.append(_factor('medium_risk_mix', medium_risk_boost * Decimal('100'), f'{(medium_risk_share * Decimal("100")).quantize(Decimal("0.01"))}%', 'Medium-risk debtors contribute moderate recovery potential.'))
 
     high_risk_penalty = high_risk_share * Decimal('0.17')
     recovery_score -= high_risk_penalty
-    factors.append(
-        _factor(
-            'high_risk_concentration',
-            -(high_risk_penalty * Decimal('100')),
-            f'{(high_risk_share * Decimal("100")).quantize(Decimal("0.01"))}%',
-            'High-risk concentration reduces expected recovery performance.',
-        )
-    )
+    factors.append(_factor('high_risk_concentration', -(high_risk_penalty * Decimal('100')), f'{(high_risk_share * Decimal("100")).quantize(Decimal("0.01"))}%', 'High-risk concentration reduces expected recovery performance.'))
 
     contactability_boost = contactability_share * Decimal('0.16')
     recovery_score += contactability_boost
-    factors.append(
-        _factor(
-            'contactability',
-            contactability_boost * Decimal('100'),
-            f'{(contactability_share * Decimal("100")).quantize(Decimal("0.01"))}%',
-            'Reachable debtors improve operational recovery odds.',
-        )
-    )
+    factors.append(_factor('contactability', contactability_boost * Decimal('100'), f'{(contactability_share * Decimal("100")).quantize(Decimal("0.01"))}%', 'Reachable debtors improve operational recovery odds.'))
 
     ptp_boost = ptp_share * Decimal('0.14')
     recovery_score += ptp_boost
-    factors.append(
-        _factor(
-            'promise_to_pay_share',
-            ptp_boost * Decimal('100'),
-            f'{(ptp_share * Decimal("100")).quantize(Decimal("0.01"))}%',
-            'Promise-to-pay cases improve near-term collection expectations.',
-        )
-    )
+    factors.append(_factor('promise_to_pay_share', ptp_boost * Decimal('100'), f'{(ptp_share * Decimal("100")).quantize(Decimal("0.01"))}%', 'Promise-to-pay cases improve near-term collection expectations.'))
 
     paying_boost = paying_share * Decimal('0.18')
     recovery_score += paying_boost
-    factors.append(
-        _factor(
-            'paying_share',
-            paying_boost * Decimal('100'),
-            f'{(paying_share * Decimal("100")).quantize(Decimal("0.01"))}%',
-            'Active paying debtors improve projected realized collections.',
-        )
-    )
+    factors.append(_factor('paying_share', paying_boost * Decimal('100'), f'{(paying_share * Decimal("100")).quantize(Decimal("0.01"))}%', 'Active paying debtors improve projected realized collections.'))
 
     closed_boost = closed_share * Decimal('0.05')
     recovery_score += closed_boost
-    factors.append(
-        _factor(
-            'closed_share',
-            closed_boost * Decimal('100'),
-            f'{(closed_share * Decimal("100")).quantize(Decimal("0.01"))}%',
-            'Closed cases indicate some historical resolution capacity in the portfolio.',
-        )
-    )
+    factors.append(_factor('closed_share', closed_boost * Decimal('100'), f'{(closed_share * Decimal("100")).quantize(Decimal("0.01"))}%', 'Closed cases indicate some historical resolution capacity in the portfolio.'))
 
+    dpd_band = _dpd_band(avg_days_past_due)
     if avg_days_past_due >= 180:
         days_penalty = Decimal('0.08')
-        label = '180+ days'
     elif avg_days_past_due >= 90:
         days_penalty = Decimal('0.04')
-        label = '90+ days'
     elif avg_days_past_due >= 30:
         days_penalty = Decimal('0.02')
-        label = '30+ days'
     else:
         days_penalty = Decimal('-0.01')
-        label = 'under 30 days'
 
     recovery_score -= days_penalty
-    factors.append(
-        _factor(
-            'aging_profile',
-            -(days_penalty * Decimal('100')),
-            label,
-            'Older delinquency generally reduces recoverability and bid appetite.',
-        )
+    factors.append(_factor('aging_profile', -(days_penalty * Decimal('100')), dpd_band, 'Older delinquency generally reduces recoverability and bid appetite.'))
+
+    benchmark, benchmark_source, creditor_category, _, balance_band, region = _resolve_benchmark(
+        portfolio,
+        creditor=creditor,
+        avg_days_past_due=avg_days_past_due,
+        outstanding_total=outstanding_total,
+        total_debtors=total_debtors,
+        debtors=debtors,
     )
+
+    valuation_method = PortfolioValuation.ValuationMethod.RULE_BASED
+    if benchmark:
+        benchmark_rate = Decimal(benchmark.avg_recovery_rate) / Decimal('100')
+        benchmark_weight = Decimal('0.35') if benchmark.sample_size >= 150 else Decimal('0.20')
+        recovery_score = (recovery_score * (Decimal('1.00') - benchmark_weight)) + (benchmark_rate * benchmark_weight)
+        valuation_method = PortfolioValuation.ValuationMethod.HYBRID
+        factors.append(
+            _factor(
+                'historical_benchmark',
+                benchmark_weight * Decimal('100'),
+                f'{benchmark.avg_recovery_rate}% from {benchmark_source.replace("_", " ")}',
+                'Historical benchmark data blended into the pricing estimate when a comparable segment is available.',
+            )
+        )
 
     bounded_recovery_rate = max(Decimal('0.05'), min(recovery_score, Decimal('0.75')))
     expected_collections = _round_money(outstanding_total * bounded_recovery_rate)
@@ -205,6 +245,8 @@ def build_rule_based_valuation(portfolio):
     if high_risk_share >= Decimal('0.50'):
         bid_pct -= Decimal('0.02')
     if paying_share >= Decimal('0.15'):
+        bid_pct += Decimal('0.01')
+    if benchmark and benchmark.sample_size >= 150:
         bid_pct += Decimal('0.01')
 
     recommended_bid_pct = max(Decimal('0.03'), min(bid_pct, Decimal('0.25')))
@@ -222,10 +264,28 @@ def build_rule_based_valuation(portfolio):
     confidence_score += min(paying_share * Decimal('30'), Decimal('14'))
     confidence_score += min(collected_ratio * Decimal('60'), Decimal('14'))
     confidence_score -= min(high_risk_share * Decimal('18'), Decimal('12'))
+    if benchmark:
+        confidence_score += Decimal('6.0') if benchmark.sample_size >= 150 else Decimal('3.0')
     confidence_score = max(Decimal('15.0'), min(confidence_score, Decimal('95.0')))
+
+    benchmark_context = None
+    if benchmark:
+        benchmark_context = {
+            'source': benchmark_source,
+            'sample_size': benchmark.sample_size,
+            'avg_recovery_rate': _round_metric(benchmark.avg_recovery_rate),
+            'avg_contact_rate': _round_metric(benchmark.avg_contact_rate),
+            'avg_ptp_rate': _round_metric(benchmark.avg_ptp_rate),
+            'avg_conversion_rate': _round_metric(benchmark.avg_conversion_rate),
+            'creditor_category': creditor_category,
+            'dpd_band': benchmark.dpd_band,
+            'balance_band': benchmark.balance_band,
+            'region': benchmark.region or region or 'All regions',
+        }
 
     return {
         'portfolio': portfolio,
+        'creditor': creditor,
         'face_value': _round_money(portfolio.face_value),
         'expected_recovery_rate': _round_metric(bounded_recovery_rate * Decimal('100')),
         'expected_collections': expected_collections,
@@ -233,6 +293,9 @@ def build_rule_based_valuation(portfolio):
         'recommended_bid_amount': recommended_bid_amount,
         'projected_roi': _round_metric(projected_roi),
         'confidence_score': _round_metric(confidence_score),
+        'valuation_method': valuation_method,
+        'benchmark': benchmark,
+        'benchmark_context': benchmark_context,
         'factors': factors,
         'stats': {
             'total_debtors': total_debtors,
@@ -243,15 +306,18 @@ def build_rule_based_valuation(portfolio):
             'ptp_share': _round_metric(ptp_share * Decimal('100')),
             'paying_share': _round_metric(paying_share * Decimal('100')),
             'median_days_past_due_proxy': _round_metric(avg_days_past_due),
+            'dpd_band': dpd_band,
+            'balance_band': balance_band,
+            'region': region or 'All regions',
         },
     }
 
 
 def persist_rule_based_valuation(portfolio, *, creditor=None, upload_batch=None, created_by=None):
-    valuation_data = build_rule_based_valuation(portfolio)
+    valuation_data = build_rule_based_valuation(portfolio, creditor=creditor)
     valuation = PortfolioValuation.objects.create(
         portfolio=portfolio,
-        creditor=creditor,
+        creditor=creditor or valuation_data['creditor'],
         upload_batch=upload_batch,
         face_value=valuation_data['face_value'],
         expected_recovery_rate=valuation_data['expected_recovery_rate'],
@@ -260,7 +326,7 @@ def persist_rule_based_valuation(portfolio, *, creditor=None, upload_batch=None,
         recommended_bid_amount=valuation_data['recommended_bid_amount'],
         projected_roi=valuation_data['projected_roi'],
         confidence_score=valuation_data['confidence_score'],
-        valuation_method=PortfolioValuation.ValuationMethod.RULE_BASED,
+        valuation_method=valuation_data['valuation_method'],
         created_by=created_by,
     )
 
