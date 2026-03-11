@@ -1,0 +1,71 @@
+{% extends "base_app.html" %}
+
+{% block title %}Valuation Workspace | Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card card-compact">
+  <div class="section-head compact">
+    <div>
+      <p class="eyebrow">Acquisition Intelligence</p>
+      <h2>Valuation Workspace</h2>
+      <p class="section-copy">Preview rule-based acquisition estimates before saving a valuation run.</p>
+    </div>
+  </div>
+</section>
+
+<section class="valuation-grid">
+  {% for item in portfolio_cards %}
+    <article class="card valuation-card">
+      <div class="valuation-card-header">
+        <div>
+          <h3>{{ item.portfolio.name }}</h3>
+          <p class="section-copy">{{ item.portfolio.source_company|default:"No source company" }} · {{ item.portfolio.currency }} · Face value {{ item.portfolio.face_value }}</p>
+        </div>
+        <span class="valuation-badge">Rule-Based Preview</span>
+      </div>
+
+      <div class="valuation-kpis">
+        <div class="mini-kpi">
+          <span>Expected Recovery</span>
+          <strong>{{ item.preview.expected_recovery_rate }}%</strong>
+        </div>
+        <div class="mini-kpi">
+          <span>Recommended Bid</span>
+          <strong>{{ item.preview.recommended_bid_pct }}%</strong>
+        </div>
+        <div class="mini-kpi">
+          <span>Projected ROI</span>
+          <strong>{{ item.preview.projected_roi }}%</strong>
+        </div>
+        <div class="mini-kpi">
+          <span>Confidence</span>
+          <strong>{{ item.preview.confidence_score }}</strong>
+        </div>
+      </div>
+
+      <div class="valuation-meta">
+        <p><strong>Expected collections:</strong> {{ item.preview.expected_collections }}</p>
+        <p><strong>Max bid amount:</strong> {{ item.preview.recommended_bid_amount }}</p>
+        <p><strong>Debtors:</strong> {{ item.preview.stats.total_debtors }}</p>
+        {% if item.latest_valuation %}
+          <p><strong>Latest saved run:</strong> {{ item.latest_valuation.created_at|date:"M d, Y H:i" }}</p>
+        {% else %}
+          <p><strong>Latest saved run:</strong> No saved valuation yet</p>
+        {% endif %}
+      </div>
+
+      <div class="valuation-actions">
+        <a class="btn btn-primary" href="{% url 'valuation-preview' item.portfolio.id %}">Open Valuation</a>
+        <a class="btn btn-secondary" href="/dashboard/?portfolio={{ item.portfolio.id }}">Open Dashboard</a>
+      </div>
+    </article>
+  {% empty %}
+    <section class="card">
+      <h3>No portfolios available</h3>
+      <p class="small">Import or seed a portfolio first, then valuation previews will appear here.</p>
+    </section>
+  {% endfor %}
+</section>
+{% endblock %}
+
+{% block developer_api %}{% endblock %}

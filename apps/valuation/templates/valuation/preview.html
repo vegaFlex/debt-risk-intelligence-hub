@@ -1,0 +1,95 @@
+{% extends "base_app.html" %}
+
+{% block title %}{{ portfolio.name }} Valuation | Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">Acquisition Intelligence</p>
+      <h2>{{ portfolio.name }}</h2>
+      <p class="section-copy">{{ portfolio.source_company|default:"No source company" }} · {{ portfolio.currency }} · Face value {{ portfolio.face_value }}</p>
+    </div>
+    <form method="post" action="{% url 'valuation-run' portfolio.id %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">Run and Save Valuation</button>
+    </form>
+  </div>
+</section>
+
+<section class="kpi-grid">
+  <div class="kpi-card"><div class="kpi-label">Expected Recovery</div><div class="kpi-value">{{ preview.expected_recovery_rate }}%</div></div>
+  <div class="kpi-card"><div class="kpi-label">Expected Collections</div><div class="kpi-value kpi-value-wide">{{ preview.expected_collections }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Recommended Bid</div><div class="kpi-value">{{ preview.recommended_bid_pct }}%</div></div>
+  <div class="kpi-card"><div class="kpi-label">Max Purchase Price</div><div class="kpi-value kpi-value-wide">{{ preview.recommended_bid_amount }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Projected ROI</div><div class="kpi-value">{{ preview.projected_roi }}%</div></div>
+  <div class="kpi-card"><div class="kpi-label">Confidence</div><div class="kpi-value">{{ preview.confidence_score }}</div></div>
+</section>
+
+<section class="valuation-preview-grid">
+  <article class="card">
+    <h3>Portfolio Signals</h3>
+    <p class="section-copy">The rule-based engine scores the current debtor mix and turns it into a pricing recommendation.</p>
+    <div class="valuation-stat-list">
+      <div><span>Total debtors</span><strong>{{ preview.stats.total_debtors }}</strong></div>
+      <div><span>Outstanding total</span><strong>{{ preview.stats.outstanding_total }}</strong></div>
+      <div><span>Collected total</span><strong>{{ preview.stats.collected_total }}</strong></div>
+      <div><span>High-risk share</span><strong>{{ preview.stats.high_risk_share }}%</strong></div>
+      <div><span>Contactability share</span><strong>{{ preview.stats.contactability_share }}%</strong></div>
+      <div><span>PTP share</span><strong>{{ preview.stats.ptp_share }}%</strong></div>
+      <div><span>Paying share</span><strong>{{ preview.stats.paying_share }}%</strong></div>
+      <div><span>Avg days past due</span><strong>{{ preview.stats.median_days_past_due_proxy }}</strong></div>
+    </div>
+  </article>
+
+  <article class="card">
+    <h3>Key Drivers</h3>
+    <p class="section-copy">Positive and negative signals behind the current bid recommendation.</p>
+    <div class="factor-list">
+      {% for factor in preview.factors %}
+        <div class="factor-item">
+          <div class="factor-item-head">
+            <strong>{{ factor.factor_name|cut:"_"|title }}</strong>
+            <span>{{ factor.factor_weight }}</span>
+          </div>
+          <p class="small"><strong>Value:</strong> {{ factor.factor_value }}</p>
+          <p class="small">{{ factor.explanation }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+{% if latest_valuation %}
+  <section class="card">
+    <h3>Latest Saved Valuation</h3>
+    <p class="section-copy">Saved on {{ latest_valuation.created_at|date:"M d, Y H:i" }} using {{ latest_valuation.get_valuation_method_display }}.</p>
+    <div class="valuation-stat-list">
+      <div><span>Expected Recovery</span><strong>{{ latest_valuation.expected_recovery_rate }}%</strong></div>
+      <div><span>Expected Collections</span><strong>{{ latest_valuation.expected_collections }}</strong></div>
+      <div><span>Recommended Bid</span><strong>{{ latest_valuation.recommended_bid_pct }}%</strong></div>
+      <div><span>Bid Amount</span><strong>{{ latest_valuation.recommended_bid_amount }}</strong></div>
+      <div><span>Projected ROI</span><strong>{{ latest_valuation.projected_roi }}%</strong></div>
+      <div><span>Confidence</span><strong>{{ latest_valuation.confidence_score }}</strong></div>
+    </div>
+
+    {% if latest_factors %}
+      <h4>Saved Factors</h4>
+      <div class="factor-list">
+        {% for factor in latest_factors %}
+          <div class="factor-item">
+            <div class="factor-item-head">
+              <strong>{{ factor.factor_name|cut:"_"|title }}</strong>
+              <span>{{ factor.factor_weight }}</span>
+            </div>
+            <p class="small"><strong>Value:</strong> {{ factor.factor_value }}</p>
+            <p class="small">{{ factor.explanation }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}
+
+{% block developer_api %}{% endblock %}
