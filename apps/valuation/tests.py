@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
 from apps.valuation.models import Creditor, PortfolioValuation, ValuationFactor
@@ -108,3 +109,79 @@ class RuleBasedValuationServiceTests(TestCase):
         self.assertEqual(valuation.created_by, self.user)
         self.assertEqual(valuation.valuation_method, PortfolioValuation.ValuationMethod.RULE_BASED)
         self.assertGreater(ValuationFactor.objects.filter(valuation=valuation).count(), 0)
+
+
+class ValuationWorkspaceViewTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.manager = user_model.objects.create_user(
+            username='manager_v2',
+            password='DemoPass123!',
+            role='manager',
+        )
+        self.analyst = user_model.objects.create_user(
+            username='analyst_v2',
+            password='DemoPass123!',
+            role='analyst',
+        )
+        self.portfolio = Portfolio.objects.create(
+            name='Workspace Portfolio',
+            source_company='Collections Demo',
+            purchase_date=date(2026, 3, 11),
+            purchase_price=Decimal('15000.00'),
+            face_value=Decimal('90000.00'),
+            currency='EUR',
+            created_by=self.manager,
+        )
+        debtor = Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='WS-001',
+            full_name='Workspace Debtor',
+            status='paying',
+            days_past_due=44,
+            outstanding_principal=Decimal('850.00'),
+            outstanding_total=Decimal('990.00'),
+            risk_score=35,
+            risk_band='low',
+            phone_number='0888111111',
+            email='workspace@example.com',
+        )
+        Payment.objects.create(
+            debtor=debtor,
+            paid_amount=Decimal('110.00'),
+            payment_date=date(2026, 3, 10),
+            channel='bank_transfer',
+        )
+
+    def test_manager_can_open_workspace(self):
+        self.client.login(username='manager_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-workspace'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Valuation Workspace')
+        self.assertContains(response, 'Workspace Portfolio')
+
+    def test_analyst_receives_friendly_access_page(self):
+        self.client.login(username='analyst_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-workspace'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Access Restricted')
+        self.assertContains(response, 'Manager or Admin')
+
+    def test_manager_can_open_preview_and_run_saved_valuation(self):
+        self.client.login(username='manager_v2', password='DemoPass123!')
+
+        preview_response = self.client.get(reverse('valuation-preview', args=[self.portfolio.id]))
+        self.assertEqual(preview_response.status_code, 200)
+        self.assertContains(preview_response, 'Run and Save Valuation')
+        self.assertContains(preview_response, 'Portfolio Signals')
+
+        post_response = self.client.post(reverse('valuation-run', args=[self.portfolio.id]), follow=True)
+        self.assertEqual(post_response.status_code, 200)
+        self.assertContains(post_response, 'Rule-based valuation saved')
+        self.assertEqual(PortfolioValuation.objects.filter(portfolio=self.portfolio).count(), 1)
+        self.assertGreater(
+            ValuationFactor.objects.filter(valuation__portfolio=self.portfolio).count(),
+            0,
+        )
