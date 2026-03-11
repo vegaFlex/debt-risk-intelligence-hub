@@ -145,6 +145,27 @@ class RuleBasedValuationServiceTests(TestCase):
         self.assertEqual(valuation.valuation_method, PortfolioValuation.ValuationMethod.RULE_BASED)
         self.assertGreater(ValuationFactor.objects.filter(valuation=valuation).count(), 0)
 
+    def test_similarity_fallback_uses_closest_comparable_benchmark(self):
+        HistoricalBenchmark.objects.create(
+            creditor_category=Creditor.Category.FINTECH,
+            dpd_band='180+ days',
+            balance_band='5000+',
+            region='Varna',
+            avg_recovery_rate=Decimal('31.00'),
+            avg_contact_rate=Decimal('52.00'),
+            avg_ptp_rate=Decimal('16.00'),
+            avg_conversion_rate=Decimal('11.00'),
+            sample_size=130,
+        )
+
+        result = build_rule_based_valuation(self.portfolio, creditor=self.creditor)
+
+        self.assertEqual(result['valuation_method'], PortfolioValuation.ValuationMethod.HYBRID)
+        self.assertIsNotNone(result['benchmark_context'])
+        self.assertEqual(result['benchmark_context']['source'], 'category_similarity')
+        self.assertGreater(result['benchmark_context']['similarity_score'], Decimal('0.00'))
+        self.assertIn('historical_benchmark', {factor['factor_name'] for factor in result['factors']})
+
 
 
 
