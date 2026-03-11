@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: debt-risk-intelligence-hub
+    runtime: python
+    plan: free
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: debt-risk-intelligence-hub-db
+          property: connectionString
+      - key: RENDER_SEED_DEMO_DATA
+        sync: false
+databases:
+  - name: debt-risk-intelligence-hub-db
+    databaseName: debt_risk_intelligence_hub
+    user: debt_risk_intelligence_hub
+    plan: free
