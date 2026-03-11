@@ -77,6 +77,91 @@ def _dominant_region(debtors):
     return region_rows[0]['region']
 
 
+def _dpd_band_rank(dpd_band):
+    ranks = {
+        'under 30 days': 0,
+        '30-89 days': 1,
+        '90-179 days': 2,
+        '180+ days': 3,
+    }
+    return ranks.get(dpd_band, 4)
+
+
+def _balance_band_rank(balance_band):
+    ranks = {
+        'under 1000': 0,
+        '1000-1999': 1,
+        '2000-4999': 2,
+        '5000+': 3,
+    }
+    return ranks.get(balance_band, 4)
+
+
+def _benchmark_similarity_score(benchmark, *, creditor, creditor_category, dpd_band, balance_band, region):
+    score = Decimal('0.00')
+
+    if creditor and benchmark.creditor_id == creditor.id:
+        score += Decimal('4.00')
+    elif benchmark.creditor_category == creditor_category:
+        score += Decimal('2.50')
+    elif benchmark.creditor_category:
+        score += Decimal('0.50')
+
+    dpd_distance = abs(_dpd_band_rank(benchmark.dpd_band) - _dpd_band_rank(dpd_band))
+    balance_distance = abs(_balance_band_rank(benchmark.balance_band) - _balance_band_rank(balance_band))
+
+    score += max(Decimal('0.00'), Decimal('3.00') - Decimal(dpd_distance))
+    score += max(Decimal('0.00'), Decimal('2.50') - (Decimal(balance_distance) * Decimal('0.75')))
+
+    benchmark_region = (benchmark.region or '').strip()
+    if region and benchmark_region == region:
+        score += Decimal('1.50')
+    elif not benchmark_region:
+        score += Decimal('0.40')
+
+    if benchmark.sample_size >= 200:
+        score += Decimal('1.20')
+    elif benchmark.sample_size >= 100:
+        score += Decimal('0.80')
+    elif benchmark.sample_size >= 50:
+        score += Decimal('0.40')
+
+    return _round_metric(score)
+
+
+def _resolve_similarity_benchmark(*, creditor, creditor_category, dpd_band, balance_band, region):
+    candidates = HistoricalBenchmark.objects.all()
+    if creditor or creditor_category:
+        candidates = candidates.filter(creditor__isnull=True) | HistoricalBenchmark.objects.filter(creditor=creditor) | HistoricalBenchmark.objects.filter(creditor__isnull=True, creditor_category=creditor_category)
+
+    best_match = None
+    best_source = 'rule_only'
+    best_score = Decimal('0.00')
+
+    for benchmark in candidates.distinct():
+        similarity_score = _benchmark_similarity_score(
+            benchmark,
+            creditor=creditor,
+            creditor_category=creditor_category,
+            dpd_band=dpd_band,
+            balance_band=balance_band,
+            region=region,
+        )
+        if similarity_score > best_score:
+            best_match = benchmark
+            best_score = similarity_score
+            if creditor and benchmark.creditor_id == getattr(creditor, 'id', None):
+                best_source = 'creditor_similarity'
+            elif benchmark.creditor_category == creditor_category:
+                best_source = 'category_similarity'
+            else:
+                best_source = 'generic_similarity'
+
+    if best_match and best_score >= Decimal('4.50'):
+        return best_match, best_source, best_score
+    return None, 'rule_only', Decimal('0.00')
+
+
 def _resolve_benchmark(portfolio, *, creditor, avg_days_past_due, outstanding_total, total_debtors, debtors):
     dpd_band = _dpd_band(avg_days_past_due)
     balance_band = _balance_band(outstanding_total, total_debtors)
@@ -94,19 +179,29 @@ def _resolve_benchmark(portfolio, *, creditor, avg_days_past_due, outstanding_to
     exact_creditor = queryset.filter(creditor=creditor).order_by('-sample_size', '-avg_recovery_rate') if creditor else HistoricalBenchmark.objects.none()
     if exact_creditor.exists():
         benchmark = exact_creditor.first()
-        return benchmark, 'creditor_specific', creditor_category, dpd_band, balance_band, region
+        return benchmark, 'creditor_specific', creditor_category, dpd_band, balance_band, region, Decimal('10.00')
 
     category_match = queryset.filter(creditor__isnull=True, creditor_category=creditor_category).order_by('-sample_size', '-avg_recovery_rate')
     if category_match.exists():
         benchmark = category_match.first()
-        return benchmark, 'category_fallback', creditor_category, dpd_band, balance_band, region
+        return benchmark, 'category_fallback', creditor_category, dpd_band, balance_band, region, Decimal('8.50')
 
     generic_match = queryset.filter(creditor__isnull=True).order_by('-sample_size', '-avg_recovery_rate')
     if generic_match.exists():
         benchmark = generic_match.first()
-        return benchmark, 'generic_fallback', creditor_category, dpd_band, balance_band, region
+        return benchmark, 'generic_fallback', creditor_category, dpd_band, balance_band, region, Decimal('7.00')
 
-    return None, 'rule_only', creditor_category, dpd_band, balance_band, region
+    similarity_benchmark, similarity_source, similarity_score = _resolve_similarity_benchmark(
+        creditor=creditor,
+        creditor_category=creditor_category,
+        dpd_band=dpd_band,
+        balance_band=balance_band,
+        region=region,
+    )
+    if similarity_benchmark:
+        return similarity_benchmark, similarity_source, creditor_category, dpd_band, balance_band, region, similarity_score
+
+    return None, 'rule_only', creditor_category, dpd_band, balance_band, region, Decimal('0.00')
 
 
 def _build_scenarios(face_value, expected_collections, outstanding_total, recommended_bid_pct):
@@ -314,7 +409,7 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
     recovery_score -= days_penalty
     factors.append(_factor('aging_profile', -(days_penalty * Decimal('100')), dpd_band, 'Older delinquency generally reduces recoverability and bid appetite.'))
 
-    benchmark, benchmark_source, creditor_category, _, balance_band, region = _resolve_benchmark(
+    benchmark, benchmark_source, creditor_category, _, balance_band, region, benchmark_similarity_score = _resolve_benchmark(
         portfolio,
         creditor=creditor,
         avg_days_past_due=avg_days_past_due,
@@ -333,7 +428,7 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
             _factor(
                 'historical_benchmark',
                 benchmark_weight * Decimal('100'),
-                f'{benchmark.avg_recovery_rate}% from {benchmark_source.replace("_", " ")}',
+                f'{benchmark.avg_recovery_rate}% from {benchmark_source.replace("_", " ")} (score {benchmark_similarity_score})',
                 'Historical benchmark data blended into the pricing estimate when a comparable segment is available.',
             )
         )
@@ -383,6 +478,7 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
             'dpd_band': benchmark.dpd_band,
             'balance_band': benchmark.balance_band,
             'region': benchmark.region or region or 'All regions',
+            'similarity_score': benchmark_similarity_score,
         }
 
     scenarios = _build_scenarios(portfolio.face_value, expected_collections, outstanding_total, recommended_bid_pct)
