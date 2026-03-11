@@ -97,6 +97,8 @@ class RuleBasedValuationServiceTests(TestCase):
         self.assertIn('contactability', {factor['factor_name'] for factor in result['factors']})
         self.assertEqual(result['valuation_method'], PortfolioValuation.ValuationMethod.RULE_BASED)
         self.assertIsNone(result['benchmark_context'])
+        self.assertEqual(len(result['scenarios']), 4)
+        self.assertTrue(any(scenario['is_recommended'] for scenario in result['scenarios']))
 
     def test_benchmark_fallback_blends_recovery_and_switches_to_hybrid(self):
         HistoricalBenchmark.objects.create(
@@ -117,6 +119,8 @@ class RuleBasedValuationServiceTests(TestCase):
         self.assertEqual(result['benchmark_context']['source'], 'category_fallback')
         self.assertEqual(result['benchmark_context']['sample_size'], 240)
         self.assertIn('historical_benchmark', {factor['factor_name'] for factor in result['factors']})
+        self.assertEqual(len(result['scenarios']), 4)
+        self.assertTrue(any(scenario['is_recommended'] for scenario in result['scenarios']))
 
     def test_persist_rule_based_valuation_creates_valuation_and_factor_rows(self):
         valuation = persist_rule_based_valuation(
@@ -198,6 +202,7 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertEqual(preview_response.status_code, 200)
         self.assertContains(preview_response, 'Run and Save Valuation')
         self.assertContains(preview_response, 'Portfolio Signals')
+        self.assertContains(preview_response, 'Scenario Analysis')
 
         post_response = self.client.post(reverse('valuation-run', args=[self.portfolio.id]), follow=True)
         self.assertEqual(post_response.status_code, 200)
