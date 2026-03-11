@@ -67,6 +67,60 @@ def _portfolio_signal_label(score):
     return 'Watchlist'
 
 
+VALUATION_SORT_OPTIONS = [
+    ('attractiveness_desc', 'Attractiveness'),
+    ('recovery_desc', 'Expected Recovery'),
+    ('bid_desc', 'Recommended Bid'),
+    ('roi_desc', 'Projected ROI'),
+    ('confidence_desc', 'Confidence'),
+    ('face_value_desc', 'Face Value'),
+]
+
+
+FILTER_SIGNAL_OPTIONS = [
+    ('', 'All signals'),
+    ('Strong Buy Zone', 'Strong Buy Zone'),
+    ('Review Closely', 'Review Closely'),
+    ('Watchlist', 'Watchlist'),
+]
+
+
+FILTER_RECOMMENDATION_OPTIONS = [
+    ('', 'All recommendations'),
+    ('Bid', 'Bid'),
+    ('Hold', 'Hold'),
+    ('Reject', 'Reject'),
+]
+
+
+FILTER_MODE_OPTIONS = [
+    ('', 'All modes'),
+    ('Hybrid', 'Hybrid'),
+    ('Rule-Based', 'Rule-Based'),
+]
+
+
+DEFAULT_SORT = 'attractiveness_desc'
+
+
+def _portfolio_mode_label(preview):
+    return 'Hybrid' if preview['benchmark_context'] else 'Rule-Based'
+
+
+def _sort_portfolio_cards(portfolio_cards, sort_by):
+    sort_map = {
+        'attractiveness_desc': lambda item: item['attractiveness_score'],
+        'recovery_desc': lambda item: Decimal(item['preview']['expected_recovery_rate']),
+        'bid_desc': lambda item: Decimal(item['preview']['recommended_bid_pct']),
+        'roi_desc': lambda item: Decimal(item['preview']['projected_roi']),
+        'confidence_desc': lambda item: Decimal(item['preview']['confidence_score']),
+        'face_value_desc': lambda item: Decimal(item['portfolio'].face_value),
+    }
+    selected_sort = sort_by if sort_by in sort_map else DEFAULT_SORT
+    portfolio_cards.sort(key=sort_map[selected_sort], reverse=True)
+    return selected_sort
+
+
 def _recommended_action(preview, attractiveness_score):
     confidence = Decimal(preview['confidence_score'])
     roi = Decimal(preview['projected_roi'])
@@ -237,24 +291,40 @@ class HistoricalBenchmarkEditView(ManagerOrAdminRequiredMixin, View):
 
 class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):
     def get(self, request):
+        selected_signal = request.GET.get('signal', '')
+        selected_recommendation = request.GET.get('recommendation', '')
+        selected_mode = request.GET.get('mode', '')
+        selected_sort = request.GET.get('sort', DEFAULT_SORT)
+
         portfolios = Portfolio.objects.all().prefetch_related('valuations').order_by('-purchase_date', '-id')
         portfolio_cards = []
 
         for portfolio in portfolios:
             preview = build_rule_based_valuation(portfolio)
             attractiveness_score = _attractiveness_score(preview)
+            signal_label = _portfolio_signal_label(attractiveness_score)
+            recommended_action = _recommended_action(preview, attractiveness_score)
+            mode_label = _portfolio_mode_label(preview)
             portfolio_cards.append(
                 {
                     'portfolio': portfolio,
                     'latest_valuation': portfolio.valuations.first(),
                     'preview': preview,
                     'attractiveness_score': attractiveness_score,
-                    'signal_label': _portfolio_signal_label(attractiveness_score),
-                    'recommended_action': _recommended_action(preview, attractiveness_score),
+                    'signal_label': signal_label,
+                    'recommended_action': recommended_action,
+                    'mode_label': mode_label,
                 }
             )
 
-        portfolio_cards.sort(key=lambda item: item['attractiveness_score'], reverse=True)
+        if selected_signal:
+            portfolio_cards = [item for item in portfolio_cards if item['signal_label'] == selected_signal]
+        if selected_recommendation:
+            portfolio_cards = [item for item in portfolio_cards if item['recommended_action']['label'] == selected_recommendation]
+        if selected_mode:
+            portfolio_cards = [item for item in portfolio_cards if item['mode_label'] == selected_mode]
+
+        applied_sort = _sort_portfolio_cards(portfolio_cards, selected_sort)
 
         top_score = portfolio_cards[0]['attractiveness_score'] if portfolio_cards else Decimal('0.00')
         avg_recovery = Decimal('0.00')
@@ -280,6 +350,14 @@ class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):
                 'portfolio_cards': portfolio_cards,
                 'summary': summary,
                 'nav_actions': _workspace_nav(request),
+                'selected_signal': selected_signal,
+                'selected_recommendation': selected_recommendation,
+                'selected_mode': selected_mode,
+                'selected_sort': applied_sort,
+                'signal_options': FILTER_SIGNAL_OPTIONS,
+                'recommendation_options': FILTER_RECOMMENDATION_OPTIONS,
+                'mode_options': FILTER_MODE_OPTIONS,
+                'sort_options': VALUATION_SORT_OPTIONS,
             },
         )
 

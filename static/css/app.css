@@ -174,6 +174,18 @@ body {
   gap: 10px;
 }
 
+.filter-toolbar-valuation {
+  grid-template-columns: repeat(4, minmax(160px, 1fr)) auto;
+}
+
+.valuation-filter-count {
+  margin-top: 10px;
+}
+
+.valuation-empty-state {
+  text-align: left;
+}
+
 label {
   font-size: 11px;
   font-weight: 800;
@@ -393,6 +405,10 @@ tbody tr:hover {
   }
 
   .filter-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-toolbar-valuation {
     grid-template-columns: 1fr;
   }
 
