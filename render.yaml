@@ -3,9 +3,11 @@ services:
     name: debt-risk-intelligence-hub
     runtime: python
     plan: free
-    buildCommand: bash build.sh
+    buildCommand: pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput && if [ "$RENDER_SEED_DEMO_DATA" = "1" ]; then python manage.py seed_demo_data; fi
     startCommand: gunicorn config.wsgi:application
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.4"
       - key: DJANGO_DEBUG
         value: "False"
       - key: DJANGO_ALLOWED_HOSTS
