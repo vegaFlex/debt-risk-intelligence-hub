@@ -17,6 +17,14 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
 - Includes: dynamic charts, API layer, role-based access, tests, CI
 - Reporting currency for demo data: `EUR`
 
+## Live Demo
+- App: https://debt-risk-intelligence-hub.onrender.com
+- Demo accounts:
+  - `manager_demo / DemoPass123!`
+  - `analyst_demo / DemoPass123!`
+  - `admin_demo / DemoPass123!`
+- Note: the free Render instance may take a short time to wake up after inactivity.
+
 ## Product Tour
 Open the app locally and review it in this order:
 1. Dashboard: KPI cards, portfolio filters, charts, debtor preview
@@ -69,7 +77,7 @@ This project centralizes those workflows into one system that supports:
 
 ## Local Setup
 1. `python -m venv .venv`
-2. `.\.venv\Scripts\Activate.ps1`
+2. `\.venv\Scripts\Activate.ps1`
 3. `pip install -r requirements.txt`
 4. `python manage.py migrate`
 5. `python manage.py seed_demo_data`
