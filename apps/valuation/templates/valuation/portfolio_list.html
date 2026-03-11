@@ -8,8 +8,58 @@
     <div>
       <p class="eyebrow">Acquisition Intelligence</p>
       <h2>Valuation Workspace</h2>
-      <p class="section-copy">Preview rule-based acquisition estimates before saving a valuation run.</p>
+      <p class="section-copy">Rank portfolios by expected recovery quality, pricing discipline, and operational strength before saving a valuation run.</p>
     </div>
+  </div>
+</section>
+
+<section class="kpi-grid">
+  <div class="kpi-card"><div class="kpi-label">Portfolios Ranked</div><div class="kpi-value">{{ summary.portfolio_count }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Top Attractiveness</div><div class="kpi-value">{{ summary.top_score }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Avg Recovery</div><div class="kpi-value">{{ summary.avg_recovery }}%</div></div>
+  <div class="kpi-card"><div class="kpi-label">Avg Confidence</div><div class="kpi-value">{{ summary.avg_confidence }}</div></div>
+  <div class="kpi-card kpi-card-wide-value"><div class="kpi-label">Total Face Value</div><div class="kpi-value kpi-value-wide">{{ summary.total_face_value }}</div></div>
+</section>
+
+<section class="card">
+  <h3>Portfolio Ranking</h3>
+  <p class="section-copy">The table below surfaces the most attractive buying opportunities first, based on recovery strength, ROI, confidence, and risk drag.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Portfolio</th>
+          <th>Attractiveness</th>
+          <th>Signal</th>
+          <th>Expected Recovery</th>
+          <th>Recommended Bid</th>
+          <th>Projected ROI</th>
+          <th>Confidence</th>
+          <th>Mode</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in portfolio_cards %}
+          <tr>
+            <td><strong>#{{ forloop.counter }}</strong></td>
+            <td>
+              <strong>{{ item.portfolio.name }}</strong><br>
+              <span class="small">{{ item.portfolio.source_company|default:"No source company" }} · {{ item.portfolio.currency }}</span>
+            </td>
+            <td><strong>{{ item.attractiveness_score }}</strong></td>
+            <td><span class="valuation-pill {% if item.attractiveness_score >= 45 %}valuation-pill-strong{% elif item.attractiveness_score >= 32 %}valuation-pill-review{% else %}valuation-pill-watch{% endif %}">{{ item.signal_label }}</span></td>
+            <td>{{ item.preview.expected_recovery_rate }}%</td>
+            <td>{{ item.preview.recommended_bid_pct }}%</td>
+            <td>{{ item.preview.projected_roi }}%</td>
+            <td>{{ item.preview.confidence_score }}</td>
+            <td>{% if item.preview.benchmark_context %}Hybrid{% else %}Rule-Based{% endif %}</td>
+            <td><a class="btn btn-secondary btn-compact" href="{% url 'valuation-preview' item.portfolio.id %}">Open</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </section>
 
@@ -21,10 +71,14 @@
           <h3>{{ item.portfolio.name }}</h3>
           <p class="section-copy">{{ item.portfolio.source_company|default:"No source company" }} · {{ item.portfolio.currency }} · Face value {{ item.portfolio.face_value }}</p>
         </div>
-        <span class="valuation-badge">{% if item.preview.benchmark_context %}Hybrid Preview{% else %}Rule-Based Preview{% endif %}</span>
+        <span class="valuation-badge">{{ item.signal_label }}</span>
       </div>
 
       <div class="valuation-kpis">
+        <div class="mini-kpi">
+          <span>Attractiveness</span>
+          <strong>{{ item.attractiveness_score }}</strong>
+        </div>
         <div class="mini-kpi">
           <span>Expected Recovery</span>
           <strong>{{ item.preview.expected_recovery_rate }}%</strong>
@@ -36,10 +90,6 @@
         <div class="mini-kpi">
           <span>Projected ROI</span>
           <strong>{{ item.preview.projected_roi }}%</strong>
-        </div>
-        <div class="mini-kpi">
-          <span>Confidence</span>
-          <strong>{{ item.preview.confidence_score }}</strong>
         </div>
       </div>
 
@@ -70,4 +120,3 @@
 {% endblock %}
 
 {% block developer_api %}{% endblock %}
-

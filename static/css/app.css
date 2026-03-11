@@ -943,3 +943,34 @@ select.auto-submit-filter {
 .tone-highlight {
   background: linear-gradient(90deg, #6d28d9 0%, #8b5cf6 100%);
 }
+
+
+.valuation-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.valuation-pill-strong {
+  background: #e7f8ee;
+  color: #067647;
+  border: 1px solid #a6e0bb;
+}
+
+.valuation-pill-review {
+  background: #fff4e5;
+  color: #b45309;
+  border: 1px solid #f7c78b;
+}
+
+.valuation-pill-watch {
+  background: #f2f4f7;
+  color: #475467;
+  border: 1px solid #d0d5dd;
+}
