@@ -12,12 +12,25 @@ def manager_or_admin_required(view_func):
             return view_func(request, *args, **kwargs)
 
         if getattr(user, 'role', None) not in {'manager', 'admin'}:
+            primary_action = {
+                'label': 'Open Debtor API',
+                'url': '/api/debtors/',
+                'style': 'btn-secondary',
+            }
+            if getattr(user, 'role', None) not in {'analyst'}:
+                primary_action = {
+                    'label': 'Back to Home',
+                    'url': '/',
+                    'style': 'btn-secondary',
+                }
+
             return render(
                 request,
                 'access_denied.html',
                 {
                     'message': 'You do not have permission to access this page.',
                     'required_role': 'Manager or Admin',
+                    'primary_action': primary_action,
                 },
                 status=200,
             )

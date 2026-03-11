@@ -8,7 +8,7 @@
   <p>{{ message|default:"You do not have access to this resource." }}</p>
   <p class="small">Required role: <strong>{{ required_role|default:"Authorized user" }}</strong></p>
   <div class="actions">
-    <a class="btn btn-secondary" href="/dashboard/">Back to Dashboard</a>
+    <a class="btn {{ primary_action.style|default:'btn-secondary' }}" href="{{ primary_action.url|default:'/' }}">{{ primary_action.label|default:'Back to Home' }}</a>
     <a class="btn btn-primary" href="/accounts/login/">Switch Account</a>
   </div>
 </section>
