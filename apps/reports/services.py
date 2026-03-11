@@ -10,6 +10,19 @@ from reportlab.pdfgen import canvas
 from apps.portfolio.models import Debtor, Payment
 
 
+def _format_compact_number(value):
+    numeric_value = float(value)
+    absolute = abs(numeric_value)
+
+    if absolute >= 1_000_000:
+        return f'{numeric_value / 1_000_000:.2f}M'
+    if absolute >= 1_000:
+        return f'{numeric_value / 1_000:.1f}K'
+    if numeric_value.is_integer():
+        return str(int(numeric_value))
+    return f'{numeric_value:.2f}'
+
+
 def build_summary(period_start=None, period_end=None):
     debtors = Debtor.objects.select_related('portfolio').all()
     payments = Payment.objects.select_related('debtor').all()
@@ -37,6 +50,9 @@ def build_summary(period_start=None, period_end=None):
     conversion_rate = (paying_count / contacted_count * 100) if contacted_count else 0
     recovery_rate = (collected_total / outstanding_total * 100) if outstanding_total else 0
 
+    outstanding_total_value = round(float(outstanding_total), 2)
+    collected_total_value = round(float(collected_total), 2)
+
     top_segments = list(
         debtors.values('portfolio__name', 'risk_band', 'status')
         .annotate(
@@ -53,8 +69,9 @@ def build_summary(period_start=None, period_end=None):
             'ptp_rate': round(ptp_rate, 2),
             'conversion_rate': round(conversion_rate, 2),
             'recovery_rate': round(float(recovery_rate), 2),
-            'outstanding_total': round(float(outstanding_total), 2),
-            'collected_total': round(float(collected_total), 2),
+            'outstanding_total': outstanding_total_value,
+            'outstanding_total_display': _format_compact_number(outstanding_total_value),
+            'collected_total': collected_total_value,
         },
         'top_segments': [
             {
