@@ -13,7 +13,7 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
 ## Recruiter Snapshot
 - Business use case: debt portfolio operations, collections analytics, and acquisition review
 - End-to-end flow: `import -> validation -> scoring -> dashboard -> reports -> admin`
-- V2 branch adds: `valuation -> benchmark fallback -> scenario analysis -> comparison desk -> ML baseline scaffold`
+- Acquisition layer includes: `valuation -> benchmark fallback -> scenario analysis -> comparison desk -> ML baseline scaffold`
 - Built with: Django, DRF, SQLite (demo/dev), openpyxl, reportlab
 - Includes: dynamic charts, API layer, role-based access, tests, CI
 - Reporting currency for demo data: `EUR`
@@ -31,8 +31,8 @@ Open the app locally and review it in this order:
 1. Dashboard: KPI cards, portfolio filters, charts, debtor preview
 2. Full Debtor List: sortable and paginated operational view
 3. Report Preview: Excel/PDF-ready management reporting
-4. Valuation Workspace (V2 branch): portfolio ranking, recommendation actions, and benchmark-aware acquisition review
-5. Portfolio Comparison Desk (V2 branch): side-by-side acquisition comparison for multiple packages
+4. Valuation Workspace: portfolio ranking, recommendation actions, and benchmark-aware acquisition review
+5. Portfolio Comparison Desk: side-by-side acquisition comparison for multiple packages
 6. Admin Panel: portfolio, debtor, report, and access management
 
 ## Business Problem
@@ -48,7 +48,7 @@ This project centralizes those workflows into one system that supports:
 - CSV/Excel import with required-column validation, row-level errors, preview before save
 - Baseline rule-based risk scoring (`risk_score`, `risk_band`, reason factors)
 - REST API for portfolios, debtors, risk details, and KPI overview
-- Management dashboard with filters, KPI cards, dynamic visual analytics, and segment breakdowns
+- Management dashboard with filters, KPI cards, dynamic visual analytics, segment breakdowns, and one-click navigation to valuation flows
 - Performance module (`contact_rate`, `ptp_rate`, `conversion_rate`, `recovery_rate`)
 - Excel and PDF management report exports
 - Weekly report generation command
@@ -56,8 +56,8 @@ This project centralizes those workflows into one system that supports:
 - GitHub Actions CI pipeline
 - Demo portfolios standardized to `EUR` as the reporting currency
 
-## V2 Acquisition Intelligence Layer
-Available on the `feature/valuation-v2` branch:
+## Acquisition Intelligence Layer
+Available in the current main application:
 - Portfolio valuation workspace with attractiveness ranking and recommendation actions (`Bid / Hold / Reject`)
 - Rule-based pricing engine with benchmark and similarity fallback
 - Scenario analysis for multiple bid levels (`6% / 8% / 10% / 12%`)
@@ -109,8 +109,8 @@ If someone opens the repo and wants to understand the product quickly:
 4. Change the portfolio filter and review how KPI cards and charts update
 5. Open `Full Debtor List`
 6. Open `Report Preview`
-7. Switch to the `feature/valuation-v2` branch and open `/valuation/`
-8. Review the ranking workspace, comparison desk, and valuation preview
+7. Open `/valuation/`
+8. Review the ranking workspace, comparison desk, valuation preview, and benchmark library
 9. Log in as a private admin user and open `/admin/`
 
 ## Demo Accounts
@@ -134,12 +134,21 @@ Restricted (friendly access message shown):
 ### visitor_demo / DemoPass123!
 Allowed:
 - `/dashboard/`
-- `/api/kpis/overview/`
-- `/reports/management/` + Excel/PDF download
+- `/reports/management/` (preview only)
+- `/valuation/`
+- `/valuation/compare/`
+- `/valuation/benchmarks/` (read-only)
 - `/api/portfolios/`
 - `/api/debtors/`
 
-Typical use: operations/management workflow.
+Restricted (friendly access message shown):
+- report Excel/PDF downloads
+- valuation import
+- run and save valuation
+- benchmark editing
+- `/admin/`
+
+Typical use: public review-only walkthrough account.
 
 ### Private admin access
 Allowed:
@@ -153,8 +162,10 @@ Allowed:
 - Data import: `http://127.0.0.1:8000/portfolio/import/`
 - Full debtor list: `http://127.0.0.1:8000/dashboard/debtors/`
 - Report preview: `http://127.0.0.1:8000/reports/management/`
-- Valuation workspace (V2 branch): `http://127.0.0.1:8000/valuation/`
-- Portfolio comparison desk (V2 branch): `http://127.0.0.1:8000/valuation/compare/`
+- Valuation workspace: `http://127.0.0.1:8000/valuation/`
+- Valuation comparison desk: `http://127.0.0.1:8000/valuation/compare/`
+- Benchmark library: `http://127.0.0.1:8000/valuation/benchmarks/`
+- Valuation import (manager/admin): `http://127.0.0.1:8000/valuation/import/`
 - API portfolios: `http://127.0.0.1:8000/api/portfolios/`
 - API debtors: `http://127.0.0.1:8000/api/debtors/`
 - API KPI overview: `http://127.0.0.1:8000/api/kpis/overview/`
@@ -197,28 +208,24 @@ Workflow file: `.github/workflows/ci.yml`
 See `docs/demo_checklist.md` for a step-by-step localhost QA flow.
 
 ## Current Status
-Stable on `main`:
+Current `main` application includes:
 - data import + validation + preview + persistence
 - risk scoring engine v1
 - API layer
 - dashboard + performance module + dynamic portfolio charts
 - reporting exports + weekly command
-- RBAC
-- CI and tests
-
-In progress on `feature/valuation-v2`:
+- RBAC with public `visitor_demo` read-only access
 - acquisition intelligence workspace
 - valuation ranking and recommendation actions
 - benchmark and similarity fallback
 - scenario analysis and valuation memo exports
 - ML baseline forecast scaffold
 - portfolio comparison desk
+- CI and tests
 
 Planned next:
-- V2 screenshots and demo polish
 - optional training dataset ingestion path
-- merge decision once V2 is presentation-ready
-- import column mapping and normalization layer for heterogeneous source files
+- optional import column mapping and normalization layer for heterogeneous source files
 
 ## UI Preview
 
