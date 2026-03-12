@@ -12,7 +12,7 @@ from django.views import View
 from apps.portfolio.importers import ImportValidationError, parse_uploaded_file, validate_rows
 from apps.portfolio.models import DataImportLog, Debtor, Portfolio
 from apps.reports.models import GeneratedReport
-from apps.reports.views import ManagerOrAdminRequiredMixin
+from apps.reports.views import ManagerOrAdminRequiredMixin, ViewerOrManagerOrAdminReadOnlyMixin
 from apps.scoring.services import calculate_risk_profile
 from apps.valuation.forms import HistoricalBenchmarkForm, ValuationImportForm
 from apps.valuation.models import Creditor, HistoricalBenchmark, PortfolioUploadBatch
@@ -24,10 +24,10 @@ VALUATION_IMPORT_SESSION_KEY = 'valuation_import_payload'
 
 
 def _workspace_nav(request):
-    return {
+    nav = {
         'primary': [
             {'label': 'Valuation Workspace', 'href': '/valuation/'},
-            {'label': 'Valuation Import', 'href': '/valuation/import/'},
+            {'label': 'Compare', 'href': '/valuation/compare/'},
             {'label': 'Benchmarks', 'href': '/valuation/benchmarks/'},
         ],
         'secondary': [
@@ -35,14 +35,21 @@ def _workspace_nav(request):
             {'label': 'PTP Cases', 'href': '/dashboard/?status=promise_to_pay'},
             {'label': 'Paying Cases', 'href': '/dashboard/?status=paying'},
             {'label': 'Open Cases', 'href': '/dashboard/?status=new'},
-            {'label': 'Excel Report', 'href': '/reports/management/excel/'},
-            {'label': 'PDF Report', 'href': '/reports/management/pdf/'},
             {'label': 'API Portfolios', 'href': '/api/portfolios/'},
             {'label': 'API Debtors', 'href': '/api/debtors/'},
             {'label': 'API KPIs', 'href': '/api/kpis/overview/'},
         ],
         'admin_href': '/admin/' if getattr(request.user, 'role', None) == 'admin' else None,
     }
+
+    if getattr(request.user, 'role', None) in {'manager', 'admin'}:
+        nav['primary'].insert(1, {'label': 'Valuation Import', 'href': '/valuation/import/'})
+        nav['secondary'][4:4] = [
+            {'label': 'Excel Report', 'href': '/reports/management/excel/'},
+            {'label': 'PDF Report', 'href': '/reports/management/pdf/'},
+        ]
+
+    return nav
 
 
 def _round_score(value):
@@ -260,7 +267,7 @@ def _comparison_delta(left, right):
     return _round_score(Decimal(left) - Decimal(right))
 
 
-class HistoricalBenchmarkListView(ManagerOrAdminRequiredMixin, View):
+class HistoricalBenchmarkListView(ViewerOrManagerOrAdminReadOnlyMixin, View):
     def get(self, request):
         selected_category = request.GET.get('category', '')
         benchmarks = HistoricalBenchmark.objects.select_related('creditor').order_by('-sample_size', '-avg_recovery_rate')
@@ -276,7 +283,9 @@ class HistoricalBenchmarkListView(ManagerOrAdminRequiredMixin, View):
                 'selected_category': selected_category,
                 'category_choices': Creditor.Category.choices,
                 'editing_benchmark': None,
+                'can_manage_benchmarks': getattr(request.user, 'role', None) in {'manager', 'admin'},
                 'nav_actions': _workspace_nav(request),
+                'can_export_reports': getattr(request.user, 'role', None) in {'manager', 'admin'},
             },
         )
 
@@ -298,7 +307,10 @@ class HistoricalBenchmarkListView(ManagerOrAdminRequiredMixin, View):
                 'selected_category': selected_category,
                 'category_choices': Creditor.Category.choices,
                 'editing_benchmark': None,
+                'can_manage_benchmarks': getattr(request.user, 'role', None) in {'manager', 'admin'},
                 'nav_actions': _workspace_nav(request),
+                'can_run_valuation': getattr(request.user, 'role', None) in {'manager', 'admin'},
+                'can_export_reports': getattr(request.user, 'role', None) in {'manager', 'admin'},
             },
         )
 
@@ -316,6 +328,7 @@ class HistoricalBenchmarkEditView(ManagerOrAdminRequiredMixin, View):
                 'selected_category': '',
                 'category_choices': Creditor.Category.choices,
                 'editing_benchmark': benchmark,
+                'can_manage_benchmarks': True,
                 'nav_actions': _workspace_nav(request),
             },
         )
@@ -338,12 +351,13 @@ class HistoricalBenchmarkEditView(ManagerOrAdminRequiredMixin, View):
                 'selected_category': '',
                 'category_choices': Creditor.Category.choices,
                 'editing_benchmark': benchmark,
+                'can_manage_benchmarks': True,
                 'nav_actions': _workspace_nav(request),
             },
         )
 
 
-class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):
+class ValuationWorkspaceView(ViewerOrManagerOrAdminReadOnlyMixin, View):
     def get(self, request):
         selected_signal = request.GET.get('signal', '')
         selected_recommendation = request.GET.get('recommendation', '')
@@ -402,7 +416,7 @@ class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):
         )
 
 
-class ValuationComparisonView(ManagerOrAdminRequiredMixin, View):
+class ValuationComparisonView(ViewerOrManagerOrAdminReadOnlyMixin, View):
     def get(self, request):
         selected_ids = request.GET.getlist('portfolio')
         portfolios = Portfolio.objects.all().prefetch_related('valuations').order_by('-purchase_date', '-id')
@@ -641,7 +655,7 @@ class ValuationImportView(ManagerOrAdminRequiredMixin, View):
         return render(request, 'valuation/import.html', context)
 
 
-class ValuationReportPreviewView(ManagerOrAdminRequiredMixin, View):
+class ValuationReportPreviewView(ViewerOrManagerOrAdminReadOnlyMixin, View):
     def get(self, request, portfolio_id):
         portfolio = get_object_or_404(Portfolio.objects.prefetch_related('valuations__factors'), id=portfolio_id)
         preview = _decorate_preview(build_rule_based_valuation(portfolio), portfolio)
@@ -662,6 +676,7 @@ class ValuationReportPreviewView(ManagerOrAdminRequiredMixin, View):
                 'download_excel_url': f'/valuation/portfolio/{portfolio.id}/report/excel/',
                 'download_pdf_url': f'/valuation/portfolio/{portfolio.id}/report/pdf/',
                 'nav_actions': _workspace_nav(request),
+                'can_export_reports': getattr(request.user, 'role', None) in {'manager', 'admin'},
             },
         )
 
@@ -718,7 +733,7 @@ class ValuationPdfReportView(ManagerOrAdminRequiredMixin, View):
         return response
 
 
-class PortfolioValuationPreviewView(ManagerOrAdminRequiredMixin, View):
+class PortfolioValuationPreviewView(ViewerOrManagerOrAdminReadOnlyMixin, View):
     def get(self, request, portfolio_id):
         portfolio = get_object_or_404(Portfolio.objects.prefetch_related('valuations__factors'), id=portfolio_id)
         latest_valuation = portfolio.valuations.first()
@@ -748,6 +763,13 @@ class PortfolioValuationPreviewView(ManagerOrAdminRequiredMixin, View):
                 previous = valuation
 
         preview = _decorate_preview(build_rule_based_valuation(portfolio), portfolio)
+        latest_saved = None
+        if latest_valuation:
+            latest_saved = {
+                'expected_collections_display': _format_compact_money(latest_valuation.expected_collections),
+                'recommended_bid_amount_display': _format_compact_money(latest_valuation.recommended_bid_amount),
+            }
+
         return render(
             request,
             'valuation/preview.html',
@@ -756,11 +778,14 @@ class PortfolioValuationPreviewView(ManagerOrAdminRequiredMixin, View):
                 'preview': preview,
                 'recommended_action': _recommended_action(preview, _attractiveness_score(preview)),
                 'latest_valuation': latest_valuation,
+                'latest_saved': latest_saved,
                 'latest_factors': latest_valuation.factors.all()[:8] if latest_valuation else [],
                 'valuation_history': valuation_history,
                 'comparison_rows': comparison_rows,
                 'comparison_summary': comparison_summary,
                 'nav_actions': _workspace_nav(request),
+                'can_run_valuation': getattr(request.user, 'role', None) in {'manager', 'admin'},
+                'can_export_reports': getattr(request.user, 'role', None) in {'manager', 'admin'},
             },
         )
 

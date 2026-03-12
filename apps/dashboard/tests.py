@@ -12,6 +12,7 @@ class DashboardViewTests(TestCase):
     def setUp(self):
         self.analyst = AppUser.objects.create_user(username='analyst_dash', password='pass123', role='analyst')
         self.manager = AppUser.objects.create_user(username='manager_dash', password='pass123', role='manager')
+        self.visitor = AppUser.objects.create_user(username='visitor_dash', password='pass123', role='visitor')
 
         self.portfolio_one = Portfolio.objects.create(
             name='Portfolio One',
@@ -66,6 +67,14 @@ class DashboardViewTests(TestCase):
         response = self.client.get(reverse('dashboard-home'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Access Restricted')
+
+    def test_dashboard_allowed_for_visitor(self):
+        self.client.login(username='visitor_dash', password='pass123')
+        response = self.client.get(reverse('dashboard-home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Full Debtor List')
+        self.assertContains(response, 'Report Preview')
+        self.assertContains(response, 'Priority Debtor Preview')
 
     def test_dashboard_allowed_for_manager(self):
         self.client.login(username='manager_dash', password='pass123')

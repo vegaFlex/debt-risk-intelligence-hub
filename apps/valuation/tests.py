@@ -188,6 +188,11 @@ class ValuationImportFlowTests(TestCase):
             password='DemoPass123!',
             role='analyst',
         )
+        self.visitor = user_model.objects.create_user(
+            username='visitor_import_v2',
+            password='DemoPass123!',
+            role='visitor',
+        )
         self.creditor = Creditor.objects.create(name='Import Creditor', category=Creditor.Category.FINTECH)
 
     def _csv_file(self, name='valuation_upload.csv'):
@@ -231,6 +236,13 @@ class ValuationImportFlowTests(TestCase):
         self.assertTrue(PortfolioUploadBatch.objects.filter(portfolio=portfolio, creditor=self.creditor).exists())
         self.assertContains(confirm_response, 'Valuation Visual Analytics')
 
+    def test_visitor_receives_friendly_access_page_for_import(self):
+        self.client.login(username='visitor_import_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-import'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'view-only')
+
     def test_analyst_receives_friendly_access_page_for_import(self):
         self.client.login(username='analyst_import_v2', password='DemoPass123!')
         response = self.client.get(reverse('valuation-import'))
@@ -252,6 +264,11 @@ class BenchmarkManagementViewTests(TestCase):
             username='analyst_bench_v2',
             password='DemoPass123!',
             role='analyst',
+        )
+        self.visitor = user_model.objects.create_user(
+            username='visitor_bench_v2',
+            password='DemoPass123!',
+            role='visitor',
         )
         self.creditor = Creditor.objects.create(name='Benchmark Creditor', category=Creditor.Category.BANK)
         self.benchmark = HistoricalBenchmark.objects.create(
@@ -327,6 +344,14 @@ class BenchmarkManagementViewTests(TestCase):
         self.assertEqual(self.benchmark.avg_recovery_rate, Decimal('41.00'))
         self.assertEqual(self.benchmark.sample_size, 200)
 
+    def test_visitor_can_open_read_only_benchmark_library(self):
+        self.client.login(username='visitor_bench_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-benchmarks'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Read-Only Benchmark Review')
+        self.assertContains(response, 'Read only')
+
     def test_analyst_receives_friendly_access_page(self):
         self.client.login(username='analyst_bench_v2', password='DemoPass123!')
         response = self.client.get(reverse('valuation-benchmarks'))
@@ -348,6 +373,11 @@ class ValuationWorkspaceViewTests(TestCase):
             username='analyst_v2',
             password='DemoPass123!',
             role='analyst',
+        )
+        self.visitor = user_model.objects.create_user(
+            username='visitor_v2',
+            password='DemoPass123!',
+            role='visitor',
         )
         self.portfolio = Portfolio.objects.create(
             name='Workspace Portfolio',
@@ -441,6 +471,15 @@ class ValuationWorkspaceViewTests(TestCase):
             sample_size=120,
         )
 
+    def test_visitor_can_open_workspace(self):
+        self.client.login(username='visitor_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-workspace'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Valuation Workspace')
+        self.assertContains(response, 'Portfolio Ranking')
+        self.assertNotContains(response, 'Valuation Import')
+
     def test_manager_can_open_workspace(self):
         self.client.login(username='manager_v2', password='DemoPass123!')
         response = self.client.get(reverse('valuation-workspace'))
@@ -453,6 +492,14 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertContains(response, 'Recommendation')
         self.assertTrue(any(label in response.content.decode() for label in ['Bid', 'Hold', 'Reject']))
         self.assertContains(response, 'Open')
+
+    def test_visitor_can_open_read_only_benchmark_library(self):
+        self.client.login(username='visitor_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-benchmarks'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Read-Only Benchmark Review')
+        self.assertContains(response, 'Read only')
 
     def test_analyst_receives_friendly_access_page(self):
         self.client.login(username='analyst_v2', password='DemoPass123!')
@@ -504,6 +551,16 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertContains(response, 'Lead vs Challenger Delta')
         self.assertContains(response, 'Third Workspace Portfolio')
 
+    def test_visitor_can_open_comparison_desk(self):
+        self.client.login(username='visitor_v2', password='DemoPass123!')
+        response = self.client.get(
+            reverse('valuation-compare'),
+            {'portfolio': [self.portfolio.id, self.second_portfolio.id]},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Portfolio Comparison Desk')
+
     def test_analyst_receives_friendly_access_page_for_comparison_desk(self):
         self.client.login(username='analyst_v2', password='DemoPass123!')
         response = self.client.get(reverse('valuation-compare'))
@@ -511,6 +568,18 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Access Restricted')
         self.assertContains(response, 'Manager or Admin')
+
+    def test_visitor_can_open_preview_but_not_run_saved_valuation(self):
+        self.client.login(username='visitor_v2', password='DemoPass123!')
+
+        preview_response = self.client.get(reverse('valuation-preview', args=[self.portfolio.id]))
+        self.assertEqual(preview_response.status_code, 200)
+        self.assertContains(preview_response, 'Open Valuation Report')
+        self.assertNotContains(preview_response, 'Run and Save Valuation')
+
+        post_response = self.client.post(reverse('valuation-run', args=[self.portfolio.id]), follow=True)
+        self.assertEqual(post_response.status_code, 200)
+        self.assertContains(post_response, 'view-only')
 
     def test_manager_can_open_preview_and_run_saved_valuation(self):
         self.client.login(username='manager_v2', password='DemoPass123!')
@@ -571,6 +640,18 @@ class ValuationWorkspaceViewTests(TestCase):
             GeneratedReport.objects.filter(report_type=GeneratedReport.ReportType.VALUATION_MEMO).count(),
             2,
         )
+
+    def test_visitor_can_open_report_preview_but_not_export(self):
+        self.client.login(username='visitor_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-report-preview', args=[self.portfolio.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Valuation Report')
+        self.assertNotContains(response, 'Download Excel')
+
+        excel_response = self.client.get(reverse('valuation-report-excel', args=[self.portfolio.id]))
+        self.assertEqual(excel_response.status_code, 200)
+        self.assertContains(excel_response, 'view-only')
 
     def test_analyst_receives_friendly_access_page_for_valuation_report(self):
         self.client.login(username='analyst_v2', password='DemoPass123!')

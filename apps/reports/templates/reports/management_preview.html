@@ -8,8 +8,12 @@
   <p class="small">Period: <strong>{{ period_start }}</strong> to <strong>{{ period_end }}</strong></p>
 
   <div class="actions">
-    <a class="btn btn-primary" href="{{ download_excel_url }}">Download Excel</a>
-    <a class="btn btn-secondary" href="{{ download_pdf_url }}">Download PDF</a>
+    {% if can_export_reports %}
+      <a class="btn btn-primary" href="{{ download_excel_url }}">Download Excel</a>
+      <a class="btn btn-secondary" href="{{ download_pdf_url }}">Download PDF</a>
+    {% else %}
+      <span class="small">This demo account is view-only. Export actions are reserved for manager or admin accounts.</span>
+    {% endif %}
   </div>
 </section>
 

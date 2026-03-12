@@ -11,8 +11,8 @@
       <p class="section-copy">Executive-ready memo for pricing discipline, recovery expectations, and benchmark-aware bidding.</p>
     </div>
     <div class="inline-actions">
-      <a href="{{ download_excel_url }}" class="btn btn-primary">Download Excel</a>
-      <a href="{{ download_pdf_url }}" class="btn btn-secondary">Download PDF</a>
+      {% if can_export_reports %}<a href="{{ download_excel_url }}" class="btn btn-primary">Download Excel</a>
+      <a href="{{ download_pdf_url }}" class="btn btn-secondary">Download PDF</a>{% endif %}
       <a href="{% url 'valuation-preview' portfolio.id %}" class="btn btn-secondary">Back to Valuation</a>
     </div>
   </div>

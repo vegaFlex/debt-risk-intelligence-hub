@@ -34,7 +34,7 @@
     <nav class="nav nav-shell">
       <div class="nav-main">
         <a class="{% if request.path|slice:":11" == "/dashboard/" %}active{% endif %}" href="/dashboard/">Dashboard</a>
-        <a class="{% if request.path == "/portfolio/import/" %}active{% endif %}" href="/portfolio/import/">Import</a>
+        {% if request.user.role != "visitor" %}<a class="{% if request.path == "/portfolio/import/" %}active{% endif %}" href="/portfolio/import/">Import</a>{% endif %}
         <a class="{% if request.path|slice:":9" == "/reports/" %}active{% endif %}" href="/reports/management/">Reports</a>
         {% if nav_actions %}
           {% for action in nav_actions.primary %}

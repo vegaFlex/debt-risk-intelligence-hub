@@ -72,6 +72,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Demo data ready.'))
         self.stdout.write('Users:')
+        self.stdout.write(f'  visitor_demo / {self.visitor_password} (Visitor)')
         self.stdout.write(f'  manager_demo / {self.manager_password} (Manager)')
         self.stdout.write(f'  analyst_demo / {self.analyst_password} (Analyst)')
         self.stdout.write('  admin_demo / private password (Admin)')
@@ -81,6 +82,7 @@ class Command(BaseCommand):
             self.stdout.write(f'  - {package.name}')
 
     def _seed_users(self):
+        self.visitor_password = os.getenv('DEMO_VISITOR_PASSWORD', 'DemoPass123!')
         self.manager_password = os.getenv('DEMO_MANAGER_PASSWORD', 'DemoPass123!')
         self.analyst_password = os.getenv('DEMO_ANALYST_PASSWORD', 'DemoPass123!')
         admin_password_override = os.getenv('DEMO_ADMIN_PASSWORD')
@@ -127,7 +129,20 @@ class Command(BaseCommand):
             admin.set_password(admin_password_override)
         admin.save()
 
-        return {'manager': manager, 'analyst': analyst, 'admin': admin}
+        visitor, _ = AppUser.objects.get_or_create(
+            username='visitor_demo',
+            defaults={
+                'email': 'visitor_demo@example.com',
+                'role': UserRole.VISITOR,
+            },
+        )
+        visitor.role = UserRole.VISITOR
+        visitor.is_staff = False
+        visitor.is_superuser = False
+        visitor.set_password(self.visitor_password)
+        visitor.save()
+
+        return {'visitor': visitor, 'manager': manager, 'analyst': analyst, 'admin': admin}
 
     def _seed_creditors(self):
         creditors = {}

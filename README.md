@@ -21,7 +21,7 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
 ## Live Demo
 - App: https://debt-risk-intelligence-hub.onrender.com
 - Public demo accounts:
-  - `manager_demo / DemoPass123!`
+  - `visitor_demo / DemoPass123!`
   - `analyst_demo / DemoPass123!`
 - Note: the free Render instance may take a short time to wake up after inactivity.
 - If the live demo is unavailable, screenshots and local setup instructions are available below.
@@ -104,7 +104,7 @@ Demo note: sample portfolios are normalized to `EUR` for consistent KPI and repo
 ## Quick Demo Flow
 If someone opens the repo and wants to understand the product quickly:
 1. Run the app locally
-2. Log in with `manager_demo / DemoPass123!`
+2. Log in with `visitor_demo / DemoPass123!`
 3. Open `/dashboard/`
 4. Change the portfolio filter and review how KPI cards and charts update
 5. Open `Full Debtor List`
@@ -115,7 +115,7 @@ If someone opens the repo and wants to understand the product quickly:
 
 ## Demo Accounts
 - Public demo accounts:
-  - `manager_demo / DemoPass123!`
+  - `visitor_demo / DemoPass123!`
   - `analyst_demo / DemoPass123!`
 - Private admin access is reserved for controlled demos.
 
@@ -131,7 +131,7 @@ Restricted (friendly access message shown):
 - `/api/kpis/overview/`
 - `/reports/management/` (including Excel/PDF downloads)
 
-### manager_demo / DemoPass123!
+### visitor_demo / DemoPass123!
 Allowed:
 - `/dashboard/`
 - `/api/kpis/overview/`

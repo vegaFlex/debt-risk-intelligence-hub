@@ -17,6 +17,7 @@ class ReportsModuleTests(TestCase):
     def setUp(self):
         self.analyst = AppUser.objects.create_user(username='analyst_report', password='pass123', role='analyst')
         self.manager = AppUser.objects.create_user(username='manager_report', password='pass123', role='manager')
+        self.visitor = AppUser.objects.create_user(username='visitor_report', password='pass123', role='visitor')
 
         self.portfolio = Portfolio.objects.create(
             name='Report Portfolio',
@@ -58,6 +59,19 @@ class ReportsModuleTests(TestCase):
         self.assertIn('kpis', summary)
         self.assertIn('top_segments', summary)
         self.assertEqual(summary['kpis']['total_debtors'], 1)
+
+    def test_report_preview_allowed_for_visitor(self):
+        self.client.login(username='visitor_report', password='pass123')
+        response = self.client.get(reverse('report-management-preview'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Management Report Preview')
+        self.assertNotContains(response, 'Download Excel')
+
+    def test_excel_report_shows_access_restricted_for_visitor(self):
+        self.client.login(username='visitor_report', password='pass123')
+        response = self.client.get(reverse('report-management-excel'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'view-only')
 
     def test_excel_report_shows_access_restricted_for_analyst(self):
         self.client.login(username='analyst_report', password='pass123')

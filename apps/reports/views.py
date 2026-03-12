@@ -16,26 +16,66 @@ def _period_dates(request):
     return date_from or None, date_to or None
 
 
+def _access_denied(request, message, required_role, primary_action=None):
+    return render(
+        request,
+        'access_denied.html',
+        {
+            'message': message,
+            'required_role': required_role,
+            'primary_action': primary_action or {'label': 'Back to Home', 'url': '/', 'style': 'btn-secondary'},
+        },
+        status=200,
+    )
+
+
 class ManagerOrAdminRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
 
         if getattr(request.user, 'role', None) not in {'manager', 'admin'}:
-            return render(
+            message = 'You do not have permission to access report pages.'
+            if getattr(request.user, 'role', None) == 'visitor':
+                message = 'This demo account is view-only. You can review reports here, but only manager or admin accounts can generate or export them.'
+            return _access_denied(
                 request,
-                'access_denied.html',
-                {
-                    'message': 'You do not have permission to access report pages.',
-                    'required_role': 'Manager or Admin',
-                },
-                status=200,
+                message,
+                'Manager or Admin',
+                primary_action={'label': 'Open Report Preview', 'url': '/reports/management/', 'style': 'btn-secondary'},
             )
 
         return super().dispatch(request, *args, **kwargs)
 
 
-class ManagementReportPreviewView(ManagerOrAdminRequiredMixin, View):
+class ViewerOrManagerOrAdminReadOnlyMixin(LoginRequiredMixin):
+    safe_methods = {'GET', 'HEAD', 'OPTIONS'}
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        role = getattr(request.user, 'role', None)
+        if role not in {'visitor', 'manager', 'admin'}:
+            return _access_denied(
+                request,
+                'You do not have permission to access this page.',
+                'Visitor, Manager or Admin',
+                primary_action={'label': 'Back to Home', 'url': '/', 'style': 'btn-secondary'},
+            )
+
+        if role == 'visitor' and request.method not in self.safe_methods:
+            return _access_denied(
+                request,
+                'This demo account is view-only. Sign in with a manager or admin account to make changes.',
+                'Manager or Admin for changes',
+                primary_action={'label': 'Back to Home', 'url': '/', 'style': 'btn-secondary'},
+            )
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+class ManagementReportPreviewView(ViewerOrManagerOrAdminReadOnlyMixin, View):
     def get(self, request):
         period_start, period_end = _period_dates(request)
         summary = build_summary(period_start=period_start, period_end=period_end)
@@ -47,6 +87,7 @@ class ManagementReportPreviewView(ManagerOrAdminRequiredMixin, View):
             'top_segments': summary['top_segments'][:8],
             'download_excel_url': f"/reports/management/excel/?date_from={period_start or ''}&date_to={period_end or ''}",
             'download_pdf_url': f"/reports/management/pdf/?date_from={period_start or ''}&date_to={period_end or ''}",
+            'can_export_reports': getattr(request.user, 'role', None) in {'manager', 'admin'},
         }
         return render(request, 'reports/management_preview.html', context)
 

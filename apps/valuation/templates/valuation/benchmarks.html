@@ -13,7 +13,7 @@
   </div>
 </section>
 
-<section class="card">
+{% if can_manage_benchmarks %}<section class="card">
   <div class="section-head compact">
     <div>
       <h3>{% if editing_benchmark %}Edit Benchmark{% else %}Add Benchmark{% endif %}</h3>
@@ -43,7 +43,10 @@
       <button type="submit" class="btn btn-primary">{% if editing_benchmark %}Update Benchmark{% else %}Save Benchmark{% endif %}</button>
     </div>
   </form>
-</section>
+</section>{% else %}<section class="card card-compact">
+  <h3>Read-Only Benchmark Review</h3>
+  <p class="section-copy">This demo account can inspect benchmark logic, but only manager or admin accounts can create or edit benchmark rows.</p>
+</section>{% endif %}
 
 <section class="card">
   <div class="section-head compact">
@@ -94,7 +97,7 @@
             <td>{{ benchmark.avg_ptp_rate }}%</td>
             <td>{{ benchmark.avg_conversion_rate }}%</td>
             <td>{{ benchmark.sample_size }}</td>
-            <td><a class="btn btn-secondary btn-compact" href="{% url 'valuation-benchmark-edit' benchmark.id %}">Edit</a></td>
+            <td>{% if can_manage_benchmarks %}<a class="btn btn-secondary btn-compact" href="{% url 'valuation-benchmark-edit' benchmark.id %}">Edit</a>{% else %}<span class="small">Read only</span>{% endif %}</td>
           </tr>
         {% empty %}
           <tr>

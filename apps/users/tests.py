@@ -2,6 +2,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from apps.portfolio.models import Debtor, Portfolio
+from apps.users.models import AppUser
 from apps.valuation.models import Creditor, HistoricalBenchmark, PortfolioUploadBatch
 
 
@@ -21,3 +22,4 @@ class SeedDemoDataCommandTests(TestCase):
         self.assertEqual(HistoricalBenchmark.objects.count(), 7)
         self.assertEqual(PortfolioUploadBatch.objects.count(), 6)
         self.assertEqual(PortfolioUploadBatch.objects.filter(creditor__isnull=False).count(), 6)
+        self.assertTrue(AppUser.objects.filter(username='visitor_demo', role='visitor').exists())
