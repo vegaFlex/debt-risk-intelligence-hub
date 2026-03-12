@@ -40,8 +40,6 @@
           <summary class="{% if request.path|slice:":6" == "/docs/" %}active{% endif %}">Documentation</summary>
           <div class="nav-more-menu nav-docs-menu">
             <a href="/docs/user-guide/">User Guide</a>
-            <a href="/docs/buyer-guide/">Buyer Guide</a>
-            <a href="/docs/buyer-one-pager/">Buyer One-Pager</a>
           </div>
         </details>
         {% if request.user.is_authenticated %}
