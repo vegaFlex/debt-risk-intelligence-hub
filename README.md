@@ -245,6 +245,24 @@ Detailed operational view showing performance KPIs, dynamic visual analytics, pr
 Lightly branded Django admin console for portfolios, debtors, reports, and role-based access management.
 ![Admin Workspace](docs/images/admin-dashboard.jpg)
 
+
+## V2 Preview
+
+### Valuation Preview
+The core acquisition review screen shows the recommendation, compact pricing KPIs, visual analytics, key drivers, and scenario ladder in one place.
+![Valuation Preview](docs/images/valuation-preview.jpg)
+
+### Portfolio Comparison Desk
+Compare multiple acquisition targets side by side across attractiveness, expected recovery, bid discipline, ROI, confidence, and recommendation output.
+![Portfolio Comparison Desk](docs/images/valuation-comparison.jpg)
+
+### Ranking Cards
+The valuation workspace ranks all reviewed portfolios and surfaces recommendation-ready summary cards for faster buy-side review.
+![Ranking Cards](docs/images/valuation-ranking-cards.jpg)
+
+### Benchmark Library
+The benchmark workspace manages historical recovery assumptions that feed the hybrid valuation and similarity fallback logic.
+![Benchmark Library](docs/images/valuation-benchmarks.jpg)
 ## How The Charts Work
 - `Risk Band Distribution` updates from the currently filtered debtor set and shows how cases split across `high`, `medium`, and `low` risk.
 - `Status Distribution` reflects the live operational mix for the filtered population.
@@ -262,3 +280,4 @@ Lightly branded Django admin console for portfolios, debtors, reports, and role-
 
 ### KPI Overview Endpoint
 ![API KPIs](docs/images/api-kpis.jpg)
+
