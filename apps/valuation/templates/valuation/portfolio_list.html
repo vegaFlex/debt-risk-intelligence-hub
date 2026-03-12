@@ -65,16 +65,7 @@
   <p class="section-copy valuation-filter-count">{{ summary.portfolio_count }} portfolios match the current review filters.</p>
 </section>
 
-<section class="card card-compact valuation-callout">
-  <div>
-    <p class="eyebrow">Review Tool</p>
-    <h3>Portfolio Comparison Desk</h3>
-    <p class="section-copy">Open a side-by-side review for two or three packages when you need a faster acquisition decision.</p>
-  </div>
-  <div class="valuation-actions">
-    <a class="btn btn-primary" href="{% url 'valuation-compare' %}">Open Comparison Desk</a>
-  </div>
-</section>
+<section class="card card-compact valuation-callout">`r`n  <div class="valuation-callout-copy">`r`n    <p class="eyebrow">Review Tool</p>`r`n    <h3>Portfolio Comparison Desk</h3>`r`n    <p class="section-copy">Open a side-by-side review for two or three packages when you need a faster acquisition decision.</p>`r`n  </div>`r`n  <div class="valuation-callout-action">`r`n    <span class="valuation-callout-meta">Side-by-side package review</span>`r`n    <a class="btn btn-primary valuation-callout-button" href="{% url 'valuation-compare' %}">Open Comparison Desk</a>`r`n  </div>`r`n</section>
 
 <section class="card">
   <h3>Portfolio Ranking</h3>
@@ -185,3 +176,4 @@
 {% endblock %}
 
 {% block developer_api %}{% endblock %}
+
