@@ -62,7 +62,7 @@
         <div><span>Recovery Gap</span><strong>{{ comparison_summary.recovery_gap }}%</strong></div>
         <div><span>Bid Gap</span><strong>{{ comparison_summary.bid_gap }}%</strong></div>
         <div><span>ROI Gap</span><strong>{{ comparison_summary.roi_gap }}%</strong></div>
-        <div><span>Confidence Gap (score)</span><strong>{{ comparison_summary.confidence_gap }}</strong></div>
+        <div><span>Confidence Gap (score)</span><strong>{{ comparison_summary.confidence_gap }}</strong><small class="stat-meta">Score delta on a 0-100 scale</small></div>
       </div>
     </section>
   {% endif %}
@@ -120,7 +120,7 @@
           </div>
           <div class="mini-kpi">
             <span>Confidence Score</span>
-            <strong>{{ card.preview.confidence_score }}<span class="mini-score-suffix">/100</span></strong>
+            <strong>{{ card.preview.confidence_score }}</strong><div class="mini-kpi-meta">Score out of 100</div>
           </div>
         </div>
 

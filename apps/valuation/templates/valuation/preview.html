@@ -37,7 +37,7 @@
   <div class="kpi-card"><div class="kpi-label">Recommended Bid</div><div class="kpi-value">{{ preview.recommended_bid_pct }}%</div></div>
   <div class="kpi-card"><div class="kpi-label">Max Purchase Price</div><div class="kpi-value kpi-value-wide">{{ preview.recommended_bid_amount_display }}</div></div>
   <div class="kpi-card"><div class="kpi-label">Projected ROI</div><div class="kpi-value">{{ preview.projected_roi }}%</div></div>
-  <div class="kpi-card"><div class="kpi-label">Confidence Score</div><div class="kpi-value">{{ preview.confidence_score }}<span class="kpi-score-suffix">/100</span></div></div>
+  <div class="kpi-card"><div class="kpi-label">Confidence Score</div><div class="kpi-value">{{ preview.confidence_score }}</div><div class="kpi-meta">Score out of 100</div></div>
 </section>
 
 <section class="card">
@@ -196,7 +196,7 @@
         <div><span>Predicted Bid</span><strong>{{ preview.ml_baseline.predicted_bid_pct }}%</strong></div>
         <div><span>Predicted Bid Amount</span><strong>{{ preview.ml_baseline.predicted_bid_amount_display }}</strong></div>
         <div><span>Predicted ROI</span><strong>{{ preview.ml_baseline.predicted_roi }}%</strong></div>
-        <div><span>Baseline Confidence Score</span><strong>{{ preview.ml_baseline.confidence }}<span class="mini-score-suffix">/100</span></strong></div>
+        <div><span>Baseline Confidence Score</span><strong>{{ preview.ml_baseline.confidence }}</strong><small class="stat-meta">Score out of 100</small></div>
         <div><span>Alignment</span><strong>{{ preview.ml_baseline.alignment }}</strong></div>
         <div><span>Recovery Delta</span><strong>{{ preview.ml_baseline.delta_recovery }}%</strong></div>
         <div><span>Bid Delta</span><strong>{{ preview.ml_baseline.delta_bid }}%</strong></div>
@@ -290,7 +290,7 @@
               <td>{{ row.valuation.expected_recovery_rate }}%</td>
               <td>{{ row.valuation.recommended_bid_pct }}%</td>
               <td>{{ row.valuation.projected_roi }}%</td>
-              <td>{{ row.valuation.confidence_score }}<span class="mini-score-suffix">/100</span></td>
+              <td>{{ row.valuation.confidence_score }}<div class="table-meta">Score out of 100</div></td>
               <td>{% if row.delta_recovery is not None %}{{ row.delta_recovery }}%{% else %}<span class="small">Baseline</span>{% endif %}</td>
               <td>{% if row.delta_bid is not None %}{{ row.delta_bid }}%{% else %}<span class="small">Baseline</span>{% endif %}</td>
               <td>{% if row.delta_roi is not None %}{{ row.delta_roi }}%{% else %}<span class="small">Baseline</span>{% endif %}</td>
@@ -312,7 +312,7 @@
       <div><span>Recommended Bid</span><strong>{{ latest_valuation.recommended_bid_pct }}%</strong></div>
       <div><span>Bid Amount</span><strong>{{ latest_saved.recommended_bid_amount_display }}</strong></div>
       <div><span>Projected ROI</span><strong>{{ latest_valuation.projected_roi }}%</strong></div>
-      <div><span>Confidence Score</span><strong>{{ latest_valuation.confidence_score }}<span class="mini-score-suffix">/100</span></strong></div>
+      <div><span>Confidence Score</span><strong>{{ latest_valuation.confidence_score }}</strong><small class="stat-meta">Score out of 100</small></div>
     </div>
 
     {% if latest_factors %}

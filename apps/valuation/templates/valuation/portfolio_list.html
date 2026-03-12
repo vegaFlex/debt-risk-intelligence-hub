@@ -15,9 +15,9 @@
 
 <section class="kpi-grid">
   <div class="kpi-card"><div class="kpi-label">Portfolios Ranked</div><div class="kpi-value">{{ summary.portfolio_count }}</div></div>
-  <div class="kpi-card"><div class="kpi-label">Top Attractiveness Score</div><div class="kpi-value">{{ summary.top_score }}<span class="kpi-score-suffix">/100</span></div></div>
+  <div class="kpi-card"><div class="kpi-label">Top Attractiveness Score</div><div class="kpi-value">{{ summary.top_score }}</div><div class="kpi-meta">Score out of 100</div></div>
   <div class="kpi-card"><div class="kpi-label">Avg Recovery</div><div class="kpi-value">{{ summary.avg_recovery }}%</div></div>
-  <div class="kpi-card"><div class="kpi-label">Avg Confidence Score</div><div class="kpi-value">{{ summary.avg_confidence }}<span class="kpi-score-suffix">/100</span></div></div>
+  <div class="kpi-card"><div class="kpi-label">Avg Confidence Score</div><div class="kpi-value">{{ summary.avg_confidence }}</div><div class="kpi-meta">Score out of 100</div></div>
   <div class="kpi-card kpi-card-wide-value"><div class="kpi-label">Total Face Value</div><div class="kpi-value kpi-value-wide">{{ summary.total_face_value_display }}</div></div>
 </section>
 
@@ -104,12 +104,12 @@
               <strong>{{ item.portfolio.name }}</strong><br>
               <span class="small">{{ item.portfolio.source_company|default:"No source company" }} · {{ item.portfolio.currency }}</span>
             </td>
-            <td><strong>{{ item.attractiveness_score }}<span class="mini-score-suffix">/100</span></strong></td>
+            <td><strong>{{ item.attractiveness_score }}</strong><div class="mini-kpi-meta">Score out of 100</div></td>
             <td><span class="valuation-pill {% if item.attractiveness_score >= 45 %}valuation-pill-strong{% elif item.attractiveness_score >= 32 %}valuation-pill-review{% else %}valuation-pill-watch{% endif %}">{{ item.signal_label }}</span></td>
             <td>{{ item.preview.expected_recovery_rate }}%</td>
             <td>{{ item.preview.recommended_bid_pct }}%</td>
             <td>{{ item.preview.projected_roi }}%</td>
-            <td>{{ item.preview.confidence_score }}<span class="mini-score-suffix">/100</span></td>
+            <td>{{ item.preview.confidence_score }}<div class="table-meta">Score out of 100</div></td>
             <td>{{ item.mode_label }}</td>
             <td>
               <span class="valuation-pill {% if item.recommended_action.tone == 'strong' %}valuation-pill-strong{% elif item.recommended_action.tone == 'danger' %}valuation-pill-danger{% else %}valuation-pill-review{% endif %}">{{ item.recommended_action.label }}</span>
@@ -136,7 +136,7 @@
       <div class="valuation-kpis">
         <div class="mini-kpi">
           <span>Attractiveness Score</span>
-          <strong>{{ item.attractiveness_score }}<span class="mini-score-suffix">/100</span></strong>
+          <strong>{{ item.attractiveness_score }}</strong><div class="mini-kpi-meta">Score out of 100</div>
         </div>
         <div class="mini-kpi">
           <span>Expected Recovery</span>

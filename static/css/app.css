@@ -1031,20 +1031,6 @@ select.auto-submit-filter {
 }
 
 
-.kpi-score-suffix {
-  margin-left: 4px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.mini-score-suffix {
-  margin-left: 3px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #667085;
-}
-
 .valuation-score-note {
   margin: -6px 0 14px;
   color: var(--muted);
@@ -1073,4 +1059,34 @@ select.auto-submit-filter {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+
+.kpi-meta {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mini-kpi-meta {
+  margin-top: 4px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.stat-meta {
+  display: block;
+  margin-top: 4px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.table-meta {
+  margin-top: 4px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 600;
 }
