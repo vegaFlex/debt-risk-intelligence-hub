@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import redirect, render
 
@@ -6,6 +7,7 @@ from apps.portfolio.forms import PortfolioImportForm
 from apps.portfolio.importers import ImportValidationError, parse_uploaded_file, validate_rows
 from apps.portfolio.models import DataImportLog, Debtor, Portfolio
 from apps.scoring.services import calculate_risk_profile
+from apps.users.decorators import manager_or_admin_required
 
 
 IMPORT_SESSION_KEY = 'portfolio_import_payload'
@@ -42,6 +44,8 @@ def _attach_risk_profile(rows):
     return scored_rows
 
 
+@login_required
+@manager_or_admin_required
 def portfolio_import_view(request):
     context = {
         'form': PortfolioImportForm(),

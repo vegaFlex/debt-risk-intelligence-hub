@@ -1,6 +1,8 @@
 from datetime import date
 from decimal import Decimal
 
+from django.test import TestCase
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -91,3 +93,26 @@ class PortfolioApiTests(APITestCase):
         self.assertIn('ptp_rate', response.data)
         self.assertIn('recovery_rate', response.data)
         self.assertIn('expected_collections', response.data)
+
+
+class PortfolioImportAccessTests(TestCase):
+    def setUp(self):
+        self.visitor = AppUser.objects.create_user(username='visitor_import', password='pass123', role='visitor')
+        self.manager = AppUser.objects.create_user(username='manager_import', password='pass123', role='manager')
+
+    def test_portfolio_import_requires_login(self):
+        response = self.client.get(reverse('portfolio-import'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+
+    def test_portfolio_import_shows_friendly_message_for_visitor(self):
+        self.client.login(username='visitor_import', password='pass123')
+        response = self.client.get(reverse('portfolio-import'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'view-only')
+
+    def test_portfolio_import_allowed_for_manager(self):
+        self.client.login(username='manager_import', password='pass123')
+        response = self.client.get(reverse('portfolio-import'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Portfolio Data Import')
