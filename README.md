@@ -23,6 +23,7 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
 - Public demo accounts:
   - `visitor_demo / DemoPass123!`
   - `analyst_demo / DemoPass123!`
+- `visitor_demo` is the recommended review-only account for recruiters and clients.
 - Note: the free Render instance may take a short time to wake up after inactivity.
 - If the live demo is unavailable, screenshots and local setup instructions are available below.
 
@@ -117,6 +118,7 @@ If someone opens the repo and wants to understand the product quickly:
 - Public demo accounts:
   - `visitor_demo / DemoPass123!`
   - `analyst_demo / DemoPass123!`
+- `visitor_demo` is the recommended review-only account for recruiters and clients.
 - Private admin access is reserved for controlled demos.
 
 ## Demo Role Access
@@ -253,7 +255,7 @@ Lightly branded Django admin console for portfolios, debtors, reports, and role-
 ![Admin Workspace](docs/images/admin-dashboard.jpg)
 
 
-## V2 Preview
+## Acquisition Preview
 
 ### Valuation Preview
 The core acquisition review screen shows the recommendation, compact pricing KPIs, visual analytics, key drivers, and scenario ladder in one place.
