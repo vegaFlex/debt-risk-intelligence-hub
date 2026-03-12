@@ -14,8 +14,19 @@
 </section>
 
 <section class="card">
-  <h3>Select Portfolios</h3>
-  <p class="section-copy">Pick two or three portfolios to compare recovery profile, bid discipline, confidence, and recommendation quality.</p>
+  <div class="section-head compact">
+    <div>
+      <h3>Select Portfolios</h3>
+      <p class="section-copy">Pick two or three portfolios to compare recovery profile, bid discipline, confidence, and recommendation quality.</p>
+    </div>
+    <div class="valuation-actions">
+      <a class="btn btn-secondary" href="{% url 'valuation-workspace' %}">Back to Workspace</a>
+      <a class="btn btn-secondary" href="{% url 'valuation-import' %}">Open Valuation Import</a>
+    </div>
+  </div>
+  {% if selection_warning %}
+    <div class="alert error comparison-warning">{{ selection_warning }}</div>
+  {% endif %}
   <form method="get" class="comparison-picker">
     <div class="comparison-picker-grid">
       {% for item in portfolio_cards %}

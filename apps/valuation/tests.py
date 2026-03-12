@@ -579,3 +579,5 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Access Restricted')
         self.assertContains(response, 'Manager or Admin')
+
+
