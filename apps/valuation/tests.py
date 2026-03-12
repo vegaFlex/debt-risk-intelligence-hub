@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
-from apps.valuation.models import Creditor, HistoricalBenchmark, PortfolioUploadBatch, PortfolioValuation, ValuationFactor
+from apps.valuation.models import Creditor, HistoricalBenchmark, ModelPredictionLog, PortfolioUploadBatch, PortfolioValuation, ValuationFactor
 from apps.reports.models import GeneratedReport
 from apps.valuation.services import build_rule_based_valuation, persist_rule_based_valuation
 
@@ -108,6 +108,10 @@ class RuleBasedValuationServiceTests(TestCase):
         self.assertEqual(len(result['features']['groups']), 4)
         self.assertIn('avg_balance', result['features']['vector'])
         self.assertIn('purchase_price_pct_of_face', result['features']['vector'])
+        self.assertIn('ml_baseline', result)
+        self.assertEqual(result['ml_baseline']['model_version'], 'baseline_v1_proxy')
+        self.assertGreater(result['ml_baseline']['predicted_recovery_rate'], Decimal('0.00'))
+        self.assertGreaterEqual(len(result['ml_baseline']['top_signals']), 1)
 
     def test_benchmark_fallback_blends_recovery_and_switches_to_hybrid(self):
         HistoricalBenchmark.objects.create(
@@ -144,6 +148,8 @@ class RuleBasedValuationServiceTests(TestCase):
         self.assertEqual(valuation.created_by, self.user)
         self.assertEqual(valuation.valuation_method, PortfolioValuation.ValuationMethod.RULE_BASED)
         self.assertGreater(ValuationFactor.objects.filter(valuation=valuation).count(), 0)
+        self.assertEqual(ModelPredictionLog.objects.filter(valuation=valuation).count(), 4)
+        self.assertTrue(ModelPredictionLog.objects.filter(valuation=valuation, model_version='baseline_v1_proxy').exists())
 
     def test_similarity_fallback_uses_closest_comparable_benchmark(self):
         HistoricalBenchmark.objects.create(
@@ -496,6 +502,8 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertContains(preview_response, 'Scenario Analysis')
         self.assertContains(preview_response, 'Scenario ROI Ladder')
         self.assertContains(preview_response, 'Recommended Action')
+        self.assertContains(preview_response, 'ML Baseline Forecast')
+        self.assertContains(preview_response, 'Baseline Recovery Model')
         self.assertContains(preview_response, 'ML-Ready Feature Snapshot')
         self.assertContains(preview_response, 'Collection Efficiency')
 
@@ -524,6 +532,7 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertContains(preview_response, 'Valuation Report')
         self.assertContains(preview_response, 'Download Excel')
         self.assertContains(preview_response, 'Scenario Analysis')
+        self.assertContains(preview_response, 'ML Baseline Forecast')
         self.assertContains(preview_response, 'ML-Ready Feature Snapshot')
 
         excel_response = self.client.get(reverse('valuation-report-excel', args=[self.portfolio.id]))
