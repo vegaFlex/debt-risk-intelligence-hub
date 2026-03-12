@@ -18,7 +18,7 @@
   <div class="kpi-card"><div class="kpi-label">Top Attractiveness</div><div class="kpi-value">{{ summary.top_score }}</div></div>
   <div class="kpi-card"><div class="kpi-label">Avg Recovery</div><div class="kpi-value">{{ summary.avg_recovery }}%</div></div>
   <div class="kpi-card"><div class="kpi-label">Avg Confidence</div><div class="kpi-value">{{ summary.avg_confidence }}</div></div>
-  <div class="kpi-card kpi-card-wide-value"><div class="kpi-label">Total Face Value</div><div class="kpi-value kpi-value-wide">{{ summary.total_face_value }}</div></div>
+  <div class="kpi-card kpi-card-wide-value"><div class="kpi-label">Total Face Value</div><div class="kpi-value kpi-value-wide">{{ summary.total_face_value_display }}</div></div>
 </section>
 
 <section class="card card-compact">
@@ -121,7 +121,7 @@
       <div class="valuation-card-header">
         <div>
           <h3>{{ item.portfolio.name }}</h3>
-          <p class="section-copy">{{ item.portfolio.source_company|default:"No source company" }} · {{ item.portfolio.currency }} · Face value {{ item.portfolio.face_value }}</p>
+          <p class="section-copy">{{ item.portfolio.source_company|default:"No source company" }} · {{ item.portfolio.currency }} · Face value {{ item.preview.face_value_display }}</p>
         </div>
         <span class="valuation-badge">{{ item.signal_label }}</span>
       </div>
@@ -146,8 +146,8 @@
       </div>
 
       <div class="valuation-meta">
-        <p><strong>Expected collections:</strong> {{ item.preview.expected_collections }}</p>
-        <p><strong>Max bid amount:</strong> {{ item.preview.recommended_bid_amount }}</p>
+        <p><strong>Expected collections:</strong> {{ item.preview.expected_collections_display }}</p>
+        <p><strong>Max bid amount:</strong> {{ item.preview.recommended_bid_amount_display }}</p>
         <p><strong>Debtors:</strong> {{ item.preview.stats.total_debtors }}</p>
         <p><strong>Mode:</strong> {{ item.preview.valuation_method|title }}</p>
         <p><strong>Recommendation:</strong> {{ item.recommended_action.label }}</p>

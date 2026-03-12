@@ -49,6 +49,41 @@ def _round_score(value):
     return Decimal(value).quantize(Decimal('0.01'))
 
 
+def _format_compact_money(value):
+    numeric = float(value or 0)
+    absolute = abs(numeric)
+    if absolute >= 1_000_000:
+        return f"{numeric / 1_000_000:.2f}M"
+    if absolute >= 1_000:
+        return f"{numeric / 1_000:.1f}K"
+    return f"{numeric:.2f}"
+
+
+def _decorate_preview(preview, portfolio):
+    stats = dict(preview['stats'])
+    stats['outstanding_total_display'] = _format_compact_money(stats['outstanding_total'])
+    ml_baseline = dict(preview['ml_baseline']) if preview.get('ml_baseline') else None
+    if ml_baseline:
+        ml_baseline['predicted_collections_display'] = _format_compact_money(ml_baseline['predicted_collections'])
+        ml_baseline['predicted_bid_amount_display'] = _format_compact_money(ml_baseline['predicted_bid_amount'])
+    scenarios = []
+    for scenario in preview.get('scenarios', []):
+        scenarios.append({
+            **scenario,
+            'bid_amount_display': _format_compact_money(scenario['bid_amount']),
+            'expected_profit_display': _format_compact_money(scenario['expected_profit']),
+        })
+    return {
+        **preview,
+        'expected_collections_display': _format_compact_money(preview['expected_collections']),
+        'recommended_bid_amount_display': _format_compact_money(preview['recommended_bid_amount']),
+        'face_value_display': _format_compact_money(portfolio.face_value),
+        'stats': stats,
+        'ml_baseline': ml_baseline,
+        'scenarios': scenarios,
+    }
+
+
 def _attractiveness_score(preview):
     score = Decimal('0.00')
     score += Decimal(preview['expected_recovery_rate']) * Decimal('0.40')
@@ -205,7 +240,7 @@ def _build_portfolio(form, user):
 
 
 def _portfolio_card_payload(portfolio):
-    preview = build_rule_based_valuation(portfolio)
+    preview = _decorate_preview(build_rule_based_valuation(portfolio), portfolio)
     attractiveness_score = _attractiveness_score(preview)
     signal_label = _portfolio_signal_label(attractiveness_score)
     recommended_action = _recommended_action(preview, attractiveness_score)
@@ -345,6 +380,7 @@ class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):
             'avg_recovery': avg_recovery,
             'avg_confidence': avg_confidence,
             'total_face_value': total_face_value.quantize(Decimal('0.01')) if portfolio_cards else Decimal('0.00'),
+            'total_face_value_display': _format_compact_money(total_face_value),
         }
 
         return render(
@@ -608,7 +644,7 @@ class ValuationImportView(ManagerOrAdminRequiredMixin, View):
 class ValuationReportPreviewView(ManagerOrAdminRequiredMixin, View):
     def get(self, request, portfolio_id):
         portfolio = get_object_or_404(Portfolio.objects.prefetch_related('valuations__factors'), id=portfolio_id)
-        preview = build_rule_based_valuation(portfolio)
+        preview = _decorate_preview(build_rule_based_valuation(portfolio), portfolio)
         latest_valuation = portfolio.valuations.first()
         comparison_rows = [{'valuation': valuation} for valuation in portfolio.valuations.all()[:6]]
         summary = build_valuation_report_summary(
@@ -711,7 +747,7 @@ class PortfolioValuationPreviewView(ManagerOrAdminRequiredMixin, View):
                 })
                 previous = valuation
 
-        preview = build_rule_based_valuation(portfolio)
+        preview = _decorate_preview(build_rule_based_valuation(portfolio), portfolio)
         return render(
             request,
             'valuation/preview.html',

@@ -20,9 +20,9 @@
 
 <section class="kpi-grid">
   <div class="kpi-card"><div class="kpi-label">Expected Recovery</div><div class="kpi-value">{{ summary.preview.expected_recovery_rate }}%</div></div>
-  <div class="kpi-card"><div class="kpi-label">Expected Collections</div><div class="kpi-value kpi-value-wide">{{ summary.preview.expected_collections }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Expected Collections</div><div class="kpi-value kpi-value-wide">{{ summary.preview.expected_collections_display }}</div></div>
   <div class="kpi-card"><div class="kpi-label">Recommended Bid</div><div class="kpi-value">{{ summary.preview.recommended_bid_pct }}%</div></div>
-  <div class="kpi-card"><div class="kpi-label">Max Purchase Price</div><div class="kpi-value kpi-value-wide">{{ summary.preview.recommended_bid_amount }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Max Purchase Price</div><div class="kpi-value kpi-value-wide">{{ summary.preview.recommended_bid_amount_display }}</div></div>
   <div class="kpi-card"><div class="kpi-label">Projected ROI</div><div class="kpi-value">{{ summary.preview.projected_roi }}%</div></div>
   <div class="kpi-card"><div class="kpi-label">Confidence</div><div class="kpi-value">{{ summary.preview.confidence_score }}</div></div>
 </section>
@@ -35,7 +35,7 @@
       <div><span>Portfolio</span><strong>{{ portfolio.name }}</strong></div>
       <div><span>Source Company</span><strong>{{ portfolio.source_company|default:"N/A" }}</strong></div>
       <div><span>Currency</span><strong>{{ portfolio.currency }}</strong></div>
-      <div><span>Face Value</span><strong>{{ portfolio.face_value }}</strong></div>
+      <div><span>Face Value</span><strong>{{ summary.preview.face_value_display }}</strong></div>
       <div><span>Method</span><strong>{{ summary.preview.valuation_method|cut:"_"|title }}</strong></div>
       <div><span>Total Debtors</span><strong>{{ summary.preview.stats.total_debtors }}</strong></div>
       <div><span>Contactability Share</span><strong>{{ summary.preview.stats.contactability_share }}%</strong></div>
@@ -101,7 +101,7 @@
       <div class="valuation-stat-list">
         <div><span>Model Version</span><strong>{{ summary.preview.ml_baseline.model_version }}</strong></div>
         <div><span>Predicted Recovery</span><strong>{{ summary.preview.ml_baseline.predicted_recovery_rate }}%</strong></div>
-        <div><span>Predicted Collections</span><strong>{{ summary.preview.ml_baseline.predicted_collections }}</strong></div>
+        <div><span>Predicted Collections</span><strong>{{ summary.preview.ml_baseline.predicted_collections_display }}</strong></div>
         <div><span>Predicted Bid</span><strong>{{ summary.preview.ml_baseline.predicted_bid_pct }}%</strong></div>
         <div><span>Predicted ROI</span><strong>{{ summary.preview.ml_baseline.predicted_roi }}%</strong></div>
         <div><span>Baseline Confidence</span><strong>{{ summary.preview.ml_baseline.confidence }}</strong></div>

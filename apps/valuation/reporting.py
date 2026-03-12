@@ -5,11 +5,35 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
 
+def format_compact_money(value):
+    numeric = float(value or 0)
+    absolute = abs(numeric)
+    if absolute >= 1_000_000:
+        return f"{numeric / 1_000_000:.2f}M"
+    if absolute >= 1_000:
+        return f"{numeric / 1_000:.1f}K"
+    return f"{numeric:.2f}"
+
+
 def build_valuation_report_summary(portfolio, preview, latest_valuation=None, comparison_rows=None):
+    summary_preview = {
+        **preview,
+        'expected_collections_display': format_compact_money(preview['expected_collections']),
+        'recommended_bid_amount_display': format_compact_money(preview['recommended_bid_amount']),
+        'face_value_display': format_compact_money(portfolio.face_value),
+        'outstanding_total_display': format_compact_money(preview['stats']['outstanding_total']),
+    }
+    latest_saved = None
+    if latest_valuation:
+        latest_saved = {
+            'expected_collections_display': format_compact_money(latest_valuation.expected_collections),
+            'recommended_bid_amount_display': format_compact_money(latest_valuation.recommended_bid_amount),
+        }
     return {
         'portfolio': portfolio,
-        'preview': preview,
+        'preview': summary_preview,
         'latest_valuation': latest_valuation,
+        'latest_saved': latest_saved,
         'comparison_rows': comparison_rows or [],
         'top_factors': preview['factors'][:6],
         'top_scenarios': preview['scenarios'],
