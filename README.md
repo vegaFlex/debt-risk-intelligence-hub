@@ -11,8 +11,9 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
 - RBAC and CI
 
 ## Recruiter Snapshot
-- Business use case: debt portfolio operations and collections analytics
+- Business use case: debt portfolio operations, collections analytics, and acquisition review
 - End-to-end flow: `import -> validation -> scoring -> dashboard -> reports -> admin`
+- V2 branch adds: `valuation -> benchmark fallback -> scenario analysis -> comparison desk -> ML baseline scaffold`
 - Built with: Django, DRF, SQLite (demo/dev), openpyxl, reportlab
 - Includes: dynamic charts, API layer, role-based access, tests, CI
 - Reporting currency for demo data: `EUR`
@@ -30,7 +31,9 @@ Open the app locally and review it in this order:
 1. Dashboard: KPI cards, portfolio filters, charts, debtor preview
 2. Full Debtor List: sortable and paginated operational view
 3. Report Preview: Excel/PDF-ready management reporting
-4. Admin Panel: portfolio, debtor, report, and access management
+4. Valuation Workspace (V2 branch): portfolio ranking, recommendation actions, and benchmark-aware acquisition review
+5. Portfolio Comparison Desk (V2 branch): side-by-side acquisition comparison for multiple packages
+6. Admin Panel: portfolio, debtor, report, and access management
 
 ## Business Problem
 Debt operations teams often work with fragmented CSV/Excel exports, ad-hoc scoring logic, and delayed performance visibility.
@@ -53,6 +56,18 @@ This project centralizes those workflows into one system that supports:
 - GitHub Actions CI pipeline
 - Demo portfolios standardized to `EUR` as the reporting currency
 
+## V2 Acquisition Intelligence Layer
+Available on the `feature/valuation-v2` branch:
+- Portfolio valuation workspace with attractiveness ranking and recommendation actions (`Bid / Hold / Reject`)
+- Rule-based pricing engine with benchmark and similarity fallback
+- Scenario analysis for multiple bid levels (`6% / 8% / 10% / 12%`)
+- Acquisition import flow for new debtor packages
+- Historical benchmark management workspace
+- Valuation memo preview with Excel/PDF exports
+- ML-ready feature engineering layer
+- ML baseline forecast scaffold with prediction logging
+- Portfolio comparison desk for side-by-side acquisition review
+
 ## Why This Project Stands Out
 - Solves a real operations problem instead of acting like a generic CRUD demo
 - Combines backend workflows, analytics UI, reporting, and admin operations in one product
@@ -73,6 +88,7 @@ This project centralizes those workflows into one system that supports:
 - `apps/scoring` - baseline scoring service
 - `apps/dashboard` - management dashboard views/templates
 - `apps/reports` - report services, exports, scheduled command
+- `apps/valuation` - acquisition pricing, benchmarks, scenario analysis, comparison desk, ML baseline scaffold
 - `docs/` - demo/testing walkthrough
 
 ## Local Setup
@@ -93,7 +109,9 @@ If someone opens the repo and wants to understand the product quickly:
 4. Change the portfolio filter and review how KPI cards and charts update
 5. Open `Full Debtor List`
 6. Open `Report Preview`
-7. Log in as a private admin user and open `/admin/`
+7. Switch to the `feature/valuation-v2` branch and open `/valuation/`
+8. Review the ranking workspace, comparison desk, and valuation preview
+9. Log in as a private admin user and open `/admin/`
 
 ## Demo Accounts
 - Public demo accounts:
@@ -135,6 +153,8 @@ Allowed:
 - Data import: `http://127.0.0.1:8000/portfolio/import/`
 - Full debtor list: `http://127.0.0.1:8000/dashboard/debtors/`
 - Report preview: `http://127.0.0.1:8000/reports/management/`
+- Valuation workspace (V2 branch): `http://127.0.0.1:8000/valuation/`
+- Portfolio comparison desk (V2 branch): `http://127.0.0.1:8000/valuation/compare/`
 - API portfolios: `http://127.0.0.1:8000/api/portfolios/`
 - API debtors: `http://127.0.0.1:8000/api/debtors/`
 - API KPI overview: `http://127.0.0.1:8000/api/kpis/overview/`
@@ -162,6 +182,7 @@ Query examples:
   - `python manage.py test apps.dashboard.tests`
   - `python manage.py test apps.reports.tests`
   - `python manage.py test apps.scoring.tests`
+  - `python manage.py test apps.valuation.tests`
 
 ## CI
 GitHub Actions workflow:
@@ -176,7 +197,7 @@ Workflow file: `.github/workflows/ci.yml`
 See `docs/demo_checklist.md` for a step-by-step localhost QA flow.
 
 ## Current Status
-Implemented:
+Stable on `main`:
 - data import + validation + preview + persistence
 - risk scoring engine v1
 - API layer
@@ -185,9 +206,18 @@ Implemented:
 - RBAC
 - CI and tests
 
+In progress on `feature/valuation-v2`:
+- acquisition intelligence workspace
+- valuation ranking and recommendation actions
+- benchmark and similarity fallback
+- scenario analysis and valuation memo exports
+- ML baseline forecast scaffold
+- portfolio comparison desk
+
 Planned next:
-- deployment configuration (Render)
-- short product demo capture
+- V2 screenshots and demo polish
+- optional training dataset ingestion path
+- merge decision once V2 is presentation-ready
 - import column mapping and normalization layer for heterogeneous source files
 
 ## UI Preview
