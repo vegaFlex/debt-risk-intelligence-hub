@@ -491,6 +491,27 @@ class ValuationWorkspaceViewTests(TestCase):
         self.assertEqual(cards[0]['portfolio'].name, 'Third Workspace Portfolio')
         self.assertEqual(response.context['selected_sort'], 'face_value_desc')
 
+    def test_manager_can_open_comparison_desk(self):
+        self.client.login(username='manager_v2', password='DemoPass123!')
+        response = self.client.get(
+            reverse('valuation-compare'),
+            {'portfolio': [self.portfolio.id, self.second_portfolio.id, self.third_portfolio.id]},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Portfolio Comparison Desk')
+        self.assertContains(response, 'Side-by-Side Comparison')
+        self.assertContains(response, 'Lead vs Challenger Delta')
+        self.assertContains(response, 'Third Workspace Portfolio')
+
+    def test_analyst_receives_friendly_access_page_for_comparison_desk(self):
+        self.client.login(username='analyst_v2', password='DemoPass123!')
+        response = self.client.get(reverse('valuation-compare'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Access Restricted')
+        self.assertContains(response, 'Manager or Admin')
+
     def test_manager_can_open_preview_and_run_saved_valuation(self):
         self.client.login(username='manager_v2', password='DemoPass123!')
 
