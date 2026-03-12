@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Debt & Risk Intelligence Hub - Buyer One-Pager</title>
+  <style>
+    :root {
+      --bg: #edf3f1;
+      --card: #ffffff;
+      --ink: #1d2939;
+      --muted: #52606d;
+      --brand: #0f766e;
+      --brand-deep: #0b4d47;
+      --border: #d0d5dd;
+      --soft: #e7f4f1;
+      --accent: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(160deg, #eff6f4 0%, #dfeee8 100%);
+    }
+    .sheet {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    .panel {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 24px 60px rgba(15, 118, 110, 0.08);
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.4fr 0.9fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--brand);
+      margin-bottom: 10px;
+    }
+    h1 { font-size: 38px; margin: 0 0 10px; }
+    h2 { font-size: 22px; margin: 0 0 12px; }
+    p { margin: 0; line-height: 1.55; }
+    .sub { color: var(--muted); font-size: 17px; }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .kpi {
+      background: var(--soft);
+      border: 1px solid #c7e6df;
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .kpi .label {
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-size: 12px;
+      color: var(--brand-deep);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .kpi .value {
+      font-size: 28px;
+      font-weight: 800;
+    }
+    .box {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      background: #fcfdfd;
+    }
+    .stack { display: grid; gap: 16px; }
+    .badges { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--brand-deep);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .feature-title {
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    ul { margin: 10px 0 0 18px; padding: 0; }
+    .footer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .cta {
+      background: linear-gradient(135deg, #0f766e, #0b4d47);
+      color: white;
+      border: none;
+    }
+    .cta a { color: white; text-decoration: none; }
+    .small { color: var(--muted); font-size: 14px; }
+    .accent { color: var(--accent); font-weight: 800; }
+    @media (max-width: 920px) {
+      .hero, .footer { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      h1 { font-size: 32px; }
+    }
+    @media print {
+      body { background: white; }
+      .sheet { padding: 0; max-width: none; }
+      .panel { box-shadow: none; border-radius: 0; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <section class="panel">
+      <div class="hero">
+        <div class="box">
+          <div class="eyebrow">Buyer One-Pager</div>
+          <h1>Debt & Risk Intelligence Hub</h1>
+          <p class="sub">A portfolio analytics and acquisition review platform that turns debtor packages into operational insight, pricing discipline, and management-ready outputs.</p>
+          <div class="badges">
+            <span class="badge">Dashboard analytics</span>
+            <span class="badge">Valuation workspace</span>
+            <span class="badge">Comparison desk</span>
+            <span class="badge">Management reports</span>
+            <span class="badge">Benchmark-aware pricing</span>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="box">
+            <div class="eyebrow">What it solves</div>
+            <p>Teams often review debt packages in disconnected spreadsheets. This product centralizes import, scoring, monitoring, reporting, and acquisition review in one workflow.</p>
+          </div>
+          <div class="box cta">
+            <div class="eyebrow" style="color:#ccfbf1;">Review Access</div>
+            <p><strong>Live demo:</strong> debt-risk-intelligence-hub.onrender.com</p>
+            <p><strong>Public demo:</strong> visitor_demo / DemoPass123!</p>
+            <p class="small" style="color:#d1fae5;margin-top:10px;">The free Render instance may take a short time to wake up after inactivity.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="label">Core Layer 1</div>
+          <div class="value">Dashboard</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Core Layer 2</div>
+          <div class="value">Reporting</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Core Layer 3</div>
+          <div class="value">Valuation</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Core Layer 4</div>
+          <div class="value">API</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="box">
+          <div class="feature-title">Operational Control Center</div>
+          <p>Monitor debtor KPIs, risk mix, contact performance, exposure concentration, and debtor-level priorities from a single dashboard.</p>
+        </div>
+        <div class="box">
+          <div class="feature-title">Acquisition Intelligence</div>
+          <p>Rank debt packages, estimate recovery, test bid scenarios, compare packages side by side, and review recommendation signals.</p>
+        </div>
+        <div class="box">
+          <div class="feature-title">Management Outputs</div>
+          <p>Generate report previews plus Excel and PDF exports for operational review and executive communication.</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="box">
+          <div class="feature-title">Why it stands out</div>
+          <ul>
+            <li>Real business case, not a toy CRUD demo</li>
+            <li>Operational and acquisition workflows in one product</li>
+            <li>Benchmark and similarity fallback logic</li>
+            <li>ML-ready feature engineering and baseline forecast scaffold</li>
+          </ul>
+        </div>
+        <div class="box">
+          <div class="feature-title">Best buyer narrative</div>
+          <ul>
+            <li>Start with dashboard visibility</li>
+            <li>Show management reporting</li>
+            <li>Move to valuation workspace</li>
+            <li>Use comparison desk to show portfolio decisions</li>
+          </ul>
+        </div>
+        <div class="box">
+          <div class="feature-title">Recommended positioning</div>
+          <p><span class="accent">Not just a debt dashboard.</span><br>It is an analytics product for portfolio operations, acquisition review, and reporting discipline.</p>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="box">
+          <div class="feature-title">Short pitch</div>
+          <p>Debt & Risk Intelligence Hub helps teams move from fragmented debtor files to a structured analytics workflow covering KPI monitoring, management reporting, package valuation, and side-by-side acquisition review.</p>
+        </div>
+        <div class="box">
+          <div class="feature-title">What to send with it</div>
+          <ul>
+            <li>Buyer Presentation Guide</li>
+            <li>User Guide</li>
+            <li>Live demo link</li>
+            <li>GitHub repository and screenshots</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
