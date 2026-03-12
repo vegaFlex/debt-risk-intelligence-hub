@@ -73,6 +73,25 @@ body {
   list-style: none;
 }
 
+.nav-more summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-more summary::after {
+  content: "▾";
+  font-size: 11px;
+  line-height: 1;
+  color: #667085;
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.nav-more[open] summary::after {
+  transform: rotate(180deg);
+  color: #0b4d47;
+}
+
 .nav a:hover,
 .nav-more summary:hover,
 .nav-admin:hover {
