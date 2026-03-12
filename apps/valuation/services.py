@@ -5,7 +5,8 @@ from django.db.models.functions import Coalesce
 
 from apps.portfolio.models import Debtor, Payment
 from apps.valuation.features import build_feature_snapshot
-from apps.valuation.models import HistoricalBenchmark, PortfolioValuation, ValuationFactor
+from apps.valuation.ml import build_ml_baseline_forecast
+from apps.valuation.models import HistoricalBenchmark, ModelPredictionLog, PortfolioValuation, ValuationFactor
 
 ZERO_DECIMAL = Value(Decimal('0.00'), output_field=DecimalField(max_digits=14, decimal_places=2))
 SCENARIO_BID_PCTS = (
@@ -324,6 +325,26 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
                 'operating_signals': [],
                 'scenario_roi': [],
             },
+            'features': {
+                'vector': {},
+                'groups': [],
+                'dominant_region': 'All regions',
+            },
+            'ml_baseline': {
+                'model_name': 'Baseline Recovery Model',
+                'model_version': 'baseline_v1_proxy',
+                'predicted_recovery_rate': Decimal('0.00'),
+                'predicted_collections': Decimal('0.00'),
+                'predicted_bid_pct': Decimal('0.00'),
+                'predicted_bid_amount': Decimal('0.00'),
+                'predicted_roi': Decimal('0.00'),
+                'confidence': Decimal('0.00'),
+                'alignment': 'No data',
+                'delta_recovery': Decimal('0.00'),
+                'delta_bid': Decimal('0.00'),
+                'delta_roi': Decimal('0.00'),
+                'top_signals': [],
+            },
             'factors': [
                 _factor('empty_portfolio', Decimal('0.00'), '0 debtors', 'No debtors are available, so the portfolio cannot be valued yet.')
             ],
@@ -510,6 +531,14 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
         paying_share=paying_share,
         closed_share=closed_share,
     )
+    ml_baseline = build_ml_baseline_forecast(
+        portfolio=portfolio,
+        feature_vector=features['vector'],
+        expected_recovery_rate=_round_metric(bounded_recovery_rate * Decimal('100')),
+        recommended_bid_pct=_round_metric(recommended_bid_pct * Decimal('100')),
+        projected_roi=_round_metric(projected_roi),
+        confidence_score=_round_metric(confidence_score),
+    )
 
     return {
         'portfolio': portfolio,
@@ -527,6 +556,7 @@ def build_rule_based_valuation(portfolio, *, creditor=None):
         'scenarios': scenarios,
         'visuals': visuals,
         'features': features,
+        'ml_baseline': ml_baseline,
         'factors': factors,
         'stats': {
             'total_debtors': total_debtors,
@@ -571,6 +601,48 @@ def persist_rule_based_valuation(portfolio, *, creditor=None, upload_batch=None,
                 explanation=factor['explanation'],
             )
             for factor in valuation_data['factors']
+        ]
+    )
+
+    ml_baseline = valuation_data['ml_baseline']
+    ModelPredictionLog.objects.bulk_create(
+        [
+            ModelPredictionLog(
+                portfolio=portfolio,
+                valuation=valuation,
+                model_version=ml_baseline['model_version'],
+                prediction_type=ModelPredictionLog.PredictionType.RECOVERY_RATE,
+                prediction_value=ml_baseline['predicted_recovery_rate'],
+                confidence=ml_baseline['confidence'],
+                notes=ml_baseline['alignment'],
+            ),
+            ModelPredictionLog(
+                portfolio=portfolio,
+                valuation=valuation,
+                model_version=ml_baseline['model_version'],
+                prediction_type=ModelPredictionLog.PredictionType.EXPECTED_COLLECTIONS,
+                prediction_value=ml_baseline['predicted_collections'],
+                confidence=ml_baseline['confidence'],
+                notes=ml_baseline['alignment'],
+            ),
+            ModelPredictionLog(
+                portfolio=portfolio,
+                valuation=valuation,
+                model_version=ml_baseline['model_version'],
+                prediction_type=ModelPredictionLog.PredictionType.BID_PCT,
+                prediction_value=ml_baseline['predicted_bid_pct'],
+                confidence=ml_baseline['confidence'],
+                notes=ml_baseline['alignment'],
+            ),
+            ModelPredictionLog(
+                portfolio=portfolio,
+                valuation=valuation,
+                model_version=ml_baseline['model_version'],
+                prediction_type=ModelPredictionLog.PredictionType.ROI,
+                prediction_value=ml_baseline['predicted_roi'],
+                confidence=ml_baseline['confidence'],
+                notes=ml_baseline['alignment'],
+            ),
         ]
     )
 

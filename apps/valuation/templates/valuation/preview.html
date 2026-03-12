@@ -184,6 +184,43 @@
 </section>
 
 <section class="card">
+  <h3>ML Baseline Forecast</h3>
+  <p class="section-copy">This first predictive layer uses the engineered portfolio features to produce a model-style recovery, bid, and ROI baseline on top of the rule engine.</p>
+  <div class="valuation-preview-grid">
+    <article class="card card-muted">
+      <h4>{{ preview.ml_baseline.model_name }}</h4>
+      <div class="valuation-stat-list">
+        <div><span>Model Version</span><strong>{{ preview.ml_baseline.model_version }}</strong></div>
+        <div><span>Predicted Recovery</span><strong>{{ preview.ml_baseline.predicted_recovery_rate }}%</strong></div>
+        <div><span>Predicted Collections</span><strong>{{ preview.ml_baseline.predicted_collections }}</strong></div>
+        <div><span>Predicted Bid</span><strong>{{ preview.ml_baseline.predicted_bid_pct }}%</strong></div>
+        <div><span>Predicted Bid Amount</span><strong>{{ preview.ml_baseline.predicted_bid_amount }}</strong></div>
+        <div><span>Predicted ROI</span><strong>{{ preview.ml_baseline.predicted_roi }}%</strong></div>
+        <div><span>Baseline Confidence</span><strong>{{ preview.ml_baseline.confidence }}</strong></div>
+        <div><span>Alignment</span><strong>{{ preview.ml_baseline.alignment }}</strong></div>
+        <div><span>Recovery Delta</span><strong>{{ preview.ml_baseline.delta_recovery }}%</strong></div>
+        <div><span>Bid Delta</span><strong>{{ preview.ml_baseline.delta_bid }}%</strong></div>
+      </div>
+    </article>
+
+    <article class="card card-muted">
+      <h4>Top Predictive Signals</h4>
+      <div class="factor-list">
+        {% for signal in preview.ml_baseline.top_signals %}
+          <div class="factor-item">
+            <div class="factor-item-head">
+              <strong>{{ signal.label }}</strong>
+              <span>{{ signal.impact }}</span>
+            </div>
+            <p class="small">{{ signal.explanation }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="card">
   <h3>ML-Ready Feature Snapshot</h3>
   <p class="section-copy">These engineered features turn the portfolio into a reusable input layer for future recovery and pricing models.</p>
   <div class="valuation-preview-grid">
