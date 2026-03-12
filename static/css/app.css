@@ -124,6 +124,17 @@ body {
   color: #0b4d47;
 }
 
+.nav-more summary.active {
+  border-color: #99cbc2;
+  background: #e7f4f1;
+  color: #0b4d47;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.14);
+}
+
+.nav-valuation-menu {
+  min-width: 220px;
+}
+
 .nav-more-menu {
   position: absolute;
   right: 0;

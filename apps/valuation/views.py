@@ -25,11 +25,7 @@ VALUATION_IMPORT_SESSION_KEY = 'valuation_import_payload'
 
 def _workspace_nav(request):
     nav = {
-        'primary': [
-            {'label': 'Valuation Workspace', 'href': '/valuation/'},
-            {'label': 'Compare', 'href': '/valuation/compare/'},
-            {'label': 'Benchmarks', 'href': '/valuation/benchmarks/'},
-        ],
+        'primary': [],
         'secondary': [
             {'label': 'High Risk Cases', 'href': '/dashboard/?risk_band=high'},
             {'label': 'PTP Cases', 'href': '/dashboard/?status=promise_to_pay'},
@@ -43,7 +39,6 @@ def _workspace_nav(request):
     }
 
     if getattr(request.user, 'role', None) in {'manager', 'admin'}:
-        nav['primary'].insert(1, {'label': 'Valuation Import', 'href': '/valuation/import/'})
         nav['secondary'][4:4] = [
             {'label': 'Excel Report', 'href': '/reports/management/excel/'},
             {'label': 'PDF Report', 'href': '/reports/management/pdf/'},

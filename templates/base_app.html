@@ -36,6 +36,21 @@
         <a class="{% if request.path|slice:":11" == "/dashboard/" %}active{% endif %}" href="/dashboard/">Dashboard</a>
         {% if request.user.role != "visitor" %}<a class="{% if request.path == "/portfolio/import/" %}active{% endif %}" href="/portfolio/import/">Import</a>{% endif %}
         <a class="{% if request.path|slice:":9" == "/reports/" %}active{% endif %}" href="/reports/management/">Reports</a>
+        {% if request.user.is_authenticated %}
+          {% if request.user.role == 'visitor' or request.user.role == 'manager' or request.user.role == 'admin' %}
+        <details class="nav-more nav-valuation" id="nav-valuation-actions">
+          <summary class="{% if request.path|slice:":11" == "/valuation/" %}active{% endif %}">Valuation</summary>
+          <div class="nav-more-menu nav-valuation-menu">
+            <a href="/valuation/">Workspace</a>
+            <a href="/valuation/compare/">Comparison Desk</a>
+            <a href="/valuation/benchmarks/">Benchmarks</a>
+            {% if request.user.role != "visitor" %}
+              <a href="/valuation/import/">Valuation Import</a>
+            {% endif %}
+          </div>
+        </details>
+          {% endif %}
+        {% endif %}
         {% if nav_actions %}
           {% for action in nav_actions.primary %}
             <a href="{{ action.href }}">{{ action.label }}</a>
@@ -93,23 +108,28 @@
 
   <script>
     (function () {
-      const moreActions = document.getElementById('nav-more-actions');
-      if (!moreActions) {
+      const dropdowns = [
+        document.getElementById('nav-more-actions'),
+        document.getElementById('nav-valuation-actions')
+      ].filter(Boolean);
+
+      if (!dropdowns.length) {
         return;
       }
 
       document.addEventListener('click', (event) => {
-        if (!moreActions.open) {
-          return;
-        }
-        if (!moreActions.contains(event.target)) {
-          moreActions.open = false;
-        }
+        dropdowns.forEach((dropdown) => {
+          if (dropdown.open && !dropdown.contains(event.target)) {
+            dropdown.open = false;
+          }
+        });
       });
 
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
-          moreActions.open = false;
+          dropdowns.forEach((dropdown) => {
+            dropdown.open = false;
+          });
         }
       });
     })();
