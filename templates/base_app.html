@@ -36,12 +36,6 @@
         <a class="{% if request.path|slice:":11" == "/dashboard/" %}active{% endif %}" href="/dashboard/">Dashboard</a>
         {% if request.user.role != "visitor" %}<a class="{% if request.path == "/portfolio/import/" %}active{% endif %}" href="/portfolio/import/">Import</a>{% endif %}
         <a class="{% if request.path|slice:":9" == "/reports/" %}active{% endif %}" href="/reports/management/">Reports</a>
-        <details class="nav-more nav-docs" id="nav-docs-actions">
-          <summary class="{% if request.path|slice:":6" == "/docs/" %}active{% endif %}">Documentation</summary>
-          <div class="nav-more-menu nav-docs-menu">
-            <a href="/docs/user-guide/">User Guide</a>
-          </div>
-        </details>
         {% if request.user.is_authenticated %}
           {% if request.user.role == 'visitor' or request.user.role == 'manager' or request.user.role == 'admin' %}
         <details class="nav-more nav-valuation" id="nav-valuation-actions">
@@ -64,6 +58,12 @@
         {% endif %}
       </div>
       <div class="nav-side">
+        <details class="nav-more nav-docs" id="nav-docs-actions">
+          <summary class="{% if request.path|slice:":6" == "/docs/" %}active{% endif %}">Documentation</summary>
+          <div class="nav-more-menu nav-docs-menu">
+            <a href="/docs/user-guide/">User Guide</a>
+          </div>
+        </details>
         {% if nav_actions and nav_actions.admin_href %}
           <a class="nav-admin" href="{{ nav_actions.admin_href }}">Admin Panel</a>
         {% endif %}
