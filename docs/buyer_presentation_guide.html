@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Debt & Risk Intelligence Hub - Buyer Presentation Guide</title>
+  <style>
+    :root {
+      --bg: #edf3f1;
+      --card: #ffffff;
+      --ink: #1d2939;
+      --muted: #475467;
+      --brand: #0f766e;
+      --border: #d0d5dd;
+      --soft: #e7f4f1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at top right, #dbeee8 0, var(--bg) 35%);
+      line-height: 1.5;
+    }
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    .hero, .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 18px;
+    }
+    h1, h2, h3 { margin-top: 0; }
+    h1 { font-size: 34px; margin-bottom: 8px; }
+    h2 { font-size: 24px; margin-bottom: 10px; }
+    h3 { font-size: 18px; margin-bottom: 8px; }
+    .eyebrow {
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .sub { color: var(--muted); margin: 0; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fcfdfd;
+    }
+    .steps {
+      display: grid;
+      gap: 12px;
+      counter-reset: step;
+    }
+    .step {
+      border-left: 4px solid var(--brand);
+      padding: 12px 14px;
+      background: #fafdfc;
+      border-radius: 0 12px 12px 0;
+    }
+    .step strong { display: block; margin-bottom: 4px; }
+    ul { margin: 8px 0 0 18px; }
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: #0b4d47;
+      font-weight: 700;
+      font-size: 12px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .talk-track {
+      background: #f8fbfa;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      white-space: pre-line;
+    }
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+      .page { padding: 16px; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Buyer Presentation Guide</div>
+      <h1>Debt & Risk Intelligence Hub</h1>
+      <p class="sub">Use this guide when presenting the product to a buyer, stakeholder, or future user. It is designed to keep the demo structured, business-focused, and easy to follow.</p>
+    </section>
+
+    <section class="section">
+      <h2>1. What the Product Is</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Short version</h3>
+          <p>Debt & Risk Intelligence Hub is a debt portfolio analytics and acquisition review platform. It helps teams import debtor packages, monitor collection performance, generate reports, and evaluate whether a package is worth buying.</p>
+        </div>
+        <div class="card">
+          <h3>What makes it strong</h3>
+          <ul>
+            <li>Operational dashboard</li>
+            <li>Collection KPI tracking</li>
+            <li>Management reporting</li>
+            <li>Acquisition valuation layer</li>
+            <li>Role-based access</li>
+            <li>API and BI-ready structure</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>2. The Main Business Value</h2>
+      <span class="badge">Portfolio visibility</span>
+      <span class="badge">Risk prioritization</span>
+      <span class="badge">Collections monitoring</span>
+      <span class="badge">Acquisition pricing</span>
+      <span class="badge">Management reporting</span>
+      <p>The platform turns raw debtor package data into a structured decision workflow. Instead of working from disconnected spreadsheets, a team can monitor performance, compare packages, and review pricing signals in one place.</p>
+    </section>
+
+    <section class="section">
+      <h2>3. Best Demo Order</h2>
+      <div class="steps">
+        <div class="step">
+          <strong>Step 1 - Start with the Dashboard</strong>
+          Explain that this is the operational control center. Show KPI cards, filters, charts, and the debtor preview.
+        </div>
+        <div class="step">
+          <strong>Step 2 - Show the Report Preview</strong>
+          Position it as the management-facing output layer. Explain that it turns operations data into exportable reporting.
+        </div>
+        <div class="step">
+          <strong>Step 3 - Open the Valuation Workspace</strong>
+          Explain that this is the acquisition layer. Show how portfolios are ranked by attractiveness, recovery, ROI, and confidence.
+        </div>
+        <div class="step">
+          <strong>Step 4 - Open a Valuation Preview</strong>
+          Show recommendation, scenarios, benchmark context, ML baseline forecast, and saved run history.
+        </div>
+        <div class="step">
+          <strong>Step 5 - Open the Comparison Desk</strong>
+          Compare two or three packages side by side and explain how this supports buy-side review.
+        </div>
+        <div class="step">
+          <strong>Step 6 - Mention the Admin Layer</strong>
+          Keep this short. Position it as the maintenance and governance layer, not the main selling point.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>4. Suggested Talk Track</h2>
+      <div class="talk-track">This platform is built to support both debt operations and acquisition review.
+
+On the operational side, it lets teams import debtor portfolios, validate them, track KPI performance, and generate management-ready reports.
+
+On the acquisition side, it adds a valuation workflow that estimates recovery, recommends a bid range, compares packages side by side, and supports benchmark-aware review.
+
+The goal is to move from scattered spreadsheet review into a structured analytics product that supports both daily collections work and higher-level portfolio decisions.</div>
+    </section>
+
+    <section class="section">
+      <h2>5. What to Emphasize to a Buyer</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>For operations buyers</h3>
+          <ul>
+            <li>One place for KPI monitoring</li>
+            <li>Better visibility across portfolios</li>
+            <li>Cleaner reporting workflow</li>
+            <li>Role-based access and review control</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>For acquisition / strategy buyers</h3>
+          <ul>
+            <li>Attractiveness ranking across packages</li>
+            <li>Bid / Hold / Reject recommendation logic</li>
+            <li>Scenario-based pricing review</li>
+            <li>Benchmark and similarity fallback support</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>6. Questions You Should Expect</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>"Can this work with our files?"</h3>
+          <p>Yes, the current version supports validated structured imports. A future extension can add a richer mapping and normalization layer for heterogeneous source files.</p>
+        </div>
+        <div class="card">
+          <h3>"Is the valuation ML-driven?"</h3>
+          <p>The current version combines rule-based pricing, historical benchmark fallback, similarity logic, and an ML-ready baseline forecast scaffold. It is built to evolve into a fuller trained valuation model.</p>
+        </div>
+        <div class="card">
+          <h3>"Can different teams use different views?"</h3>
+          <p>Yes. The app already supports role-based access, including a public read-only visitor account and more capable manager/admin flows.</p>
+        </div>
+        <div class="card">
+          <h3>"Can this feed BI tools?"</h3>
+          <p>Yes. The platform already exposes a clean API layer and structured outputs that are suitable for BI consumption and future integrations.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>7. Recommended Demo Accounts</h2>
+      <div class="card">
+        <p><strong>Public review account:</strong> <code>visitor_demo / DemoPass123!</code></p>
+        <p><strong>Controlled demo accounts:</strong> manager/admin access should be used only when you want to show write/export/administrative flows.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>8. Best Presentation Style</h2>
+      <ul>
+        <li>Lead with business value, not code.</li>
+        <li>Show the dashboard first because it is immediately understandable.</li>
+        <li>Use valuation next to demonstrate product depth.</li>
+        <li>Only show admin briefly as a governance layer.</li>
+        <li>Keep the API as a technical strength, not the main story.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

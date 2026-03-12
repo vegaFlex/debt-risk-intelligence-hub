@@ -36,6 +36,11 @@ Open the app locally and review it in this order:
 5. Portfolio Comparison Desk: side-by-side acquisition comparison for multiple packages
 6. Admin Panel: portfolio, debtor, report, and access management
 
+## Documentation
+- [User Guide](docs/user_guide.md) - complete product manual covering roles, screens, workflows, and usage guidance
+- [Buyer Presentation Guide](docs/buyer_presentation_guide.html) - business-facing guide for presenting the product to a buyer or stakeholder
+- [Demo Checklist](docs/demo_checklist.md) - quick verification checklist for localhost or demo walkthroughs
+
 ## Business Problem
 Debt operations teams often work with fragmented CSV/Excel exports, ad-hoc scoring logic, and delayed performance visibility.
 
