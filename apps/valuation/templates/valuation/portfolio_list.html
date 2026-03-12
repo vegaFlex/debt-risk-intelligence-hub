@@ -15,11 +15,13 @@
 
 <section class="kpi-grid">
   <div class="kpi-card"><div class="kpi-label">Portfolios Ranked</div><div class="kpi-value">{{ summary.portfolio_count }}</div></div>
-  <div class="kpi-card"><div class="kpi-label">Top Attractiveness</div><div class="kpi-value">{{ summary.top_score }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Top Attractiveness Score</div><div class="kpi-value">{{ summary.top_score }}<span class="kpi-score-suffix">/100</span></div></div>
   <div class="kpi-card"><div class="kpi-label">Avg Recovery</div><div class="kpi-value">{{ summary.avg_recovery }}%</div></div>
-  <div class="kpi-card"><div class="kpi-label">Avg Confidence</div><div class="kpi-value">{{ summary.avg_confidence }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Avg Confidence Score</div><div class="kpi-value">{{ summary.avg_confidence }}<span class="kpi-score-suffix">/100</span></div></div>
   <div class="kpi-card kpi-card-wide-value"><div class="kpi-label">Total Face Value</div><div class="kpi-value kpi-value-wide">{{ summary.total_face_value_display }}</div></div>
 </section>
+
+<p class="valuation-score-note">Attractiveness and confidence are scored on a <strong>0-100 scale</strong>. Recovery and ROI remain percentages.</p>
 
 <section class="card card-compact">
   <form class="filter-toolbar filter-toolbar-valuation" method="get">
@@ -63,9 +65,14 @@
   <p class="section-copy valuation-filter-count">{{ summary.portfolio_count }} portfolios match the current review filters.</p>
 </section>
 
-<section class="card card-compact">
-  <div class="actions valuation-actions">
-    <a class="btn btn-secondary" href="{% url 'valuation-compare' %}">Open Comparison Desk</a>
+<section class="card card-compact valuation-callout">
+  <div>
+    <p class="eyebrow">Review Tool</p>
+    <h3>Portfolio Comparison Desk</h3>
+    <p class="section-copy">Open a side-by-side review for two or three packages when you need a faster acquisition decision.</p>
+  </div>
+  <div class="valuation-actions">
+    <a class="btn btn-primary" href="{% url 'valuation-compare' %}">Open Comparison Desk</a>
   </div>
 </section>
 
@@ -78,12 +85,12 @@
         <tr>
           <th>Rank</th>
           <th>Portfolio</th>
-          <th>Attractiveness</th>
+          <th>Attractiveness Score</th>
           <th>Signal</th>
           <th>Expected Recovery</th>
           <th>Recommended Bid</th>
           <th>Projected ROI</th>
-          <th>Confidence</th>
+          <th>Confidence Score</th>
           <th>Mode</th>
           <th>Recommendation</th>
           <th>Action</th>
@@ -97,12 +104,12 @@
               <strong>{{ item.portfolio.name }}</strong><br>
               <span class="small">{{ item.portfolio.source_company|default:"No source company" }} · {{ item.portfolio.currency }}</span>
             </td>
-            <td><strong>{{ item.attractiveness_score }}</strong></td>
+            <td><strong>{{ item.attractiveness_score }}<span class="mini-score-suffix">/100</span></strong></td>
             <td><span class="valuation-pill {% if item.attractiveness_score >= 45 %}valuation-pill-strong{% elif item.attractiveness_score >= 32 %}valuation-pill-review{% else %}valuation-pill-watch{% endif %}">{{ item.signal_label }}</span></td>
             <td>{{ item.preview.expected_recovery_rate }}%</td>
             <td>{{ item.preview.recommended_bid_pct }}%</td>
             <td>{{ item.preview.projected_roi }}%</td>
-            <td>{{ item.preview.confidence_score }}</td>
+            <td>{{ item.preview.confidence_score }}<span class="mini-score-suffix">/100</span></td>
             <td>{{ item.mode_label }}</td>
             <td>
               <span class="valuation-pill {% if item.recommended_action.tone == 'strong' %}valuation-pill-strong{% elif item.recommended_action.tone == 'danger' %}valuation-pill-danger{% else %}valuation-pill-review{% endif %}">{{ item.recommended_action.label }}</span>
@@ -128,8 +135,8 @@
 
       <div class="valuation-kpis">
         <div class="mini-kpi">
-          <span>Attractiveness</span>
-          <strong>{{ item.attractiveness_score }}</strong>
+          <span>Attractiveness Score</span>
+          <strong>{{ item.attractiveness_score }}<span class="mini-score-suffix">/100</span></strong>
         </div>
         <div class="mini-kpi">
           <span>Expected Recovery</span>

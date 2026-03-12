@@ -62,7 +62,7 @@
         <div><span>Recovery Gap</span><strong>{{ comparison_summary.recovery_gap }}%</strong></div>
         <div><span>Bid Gap</span><strong>{{ comparison_summary.bid_gap }}%</strong></div>
         <div><span>ROI Gap</span><strong>{{ comparison_summary.roi_gap }}%</strong></div>
-        <div><span>Confidence Gap</span><strong>{{ comparison_summary.confidence_gap }}</strong></div>
+        <div><span>Confidence Gap (score)</span><strong>{{ comparison_summary.confidence_gap }}</strong></div>
       </div>
     </section>
   {% endif %}
@@ -119,8 +119,8 @@
             <strong>{{ card.preview.projected_roi }}%</strong>
           </div>
           <div class="mini-kpi">
-            <span>Confidence</span>
-            <strong>{{ card.preview.confidence_score }}</strong>
+            <span>Confidence Score</span>
+            <strong>{{ card.preview.confidence_score }}<span class="mini-score-suffix">/100</span></strong>
           </div>
         </div>
 

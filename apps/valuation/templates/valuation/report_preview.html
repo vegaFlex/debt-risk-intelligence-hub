@@ -24,7 +24,7 @@
   <div class="kpi-card"><div class="kpi-label">Recommended Bid</div><div class="kpi-value">{{ summary.preview.recommended_bid_pct }}%</div></div>
   <div class="kpi-card"><div class="kpi-label">Max Purchase Price</div><div class="kpi-value kpi-value-wide">{{ summary.preview.recommended_bid_amount_display }}</div></div>
   <div class="kpi-card"><div class="kpi-label">Projected ROI</div><div class="kpi-value">{{ summary.preview.projected_roi }}%</div></div>
-  <div class="kpi-card"><div class="kpi-label">Confidence</div><div class="kpi-value">{{ summary.preview.confidence_score }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Confidence Score</div><div class="kpi-value">{{ summary.preview.confidence_score }}<span class="kpi-score-suffix">/100</span></div></div>
 </section>
 
 <section class="valuation-preview-grid">
@@ -104,7 +104,7 @@
         <div><span>Predicted Collections</span><strong>{{ summary.preview.ml_baseline.predicted_collections_display }}</strong></div>
         <div><span>Predicted Bid</span><strong>{{ summary.preview.ml_baseline.predicted_bid_pct }}%</strong></div>
         <div><span>Predicted ROI</span><strong>{{ summary.preview.ml_baseline.predicted_roi }}%</strong></div>
-        <div><span>Baseline Confidence</span><strong>{{ summary.preview.ml_baseline.confidence }}</strong></div>
+        <div><span>Baseline Confidence Score</span><strong>{{ summary.preview.ml_baseline.confidence }}<span class="mini-score-suffix">/100</span></strong></div>
         <div><span>Alignment</span><strong>{{ summary.preview.ml_baseline.alignment }}</strong></div>
       </div>
     </article>
@@ -172,7 +172,7 @@
           <th>Expected Recovery</th>
           <th>Recommended Bid</th>
           <th>Projected ROI</th>
-          <th>Confidence</th>
+          <th>Confidence Score</th>
         </tr>
       </thead>
       <tbody>
@@ -183,7 +183,7 @@
             <td>{{ row.valuation.expected_recovery_rate }}%</td>
             <td>{{ row.valuation.recommended_bid_pct }}%</td>
             <td>{{ row.valuation.projected_roi }}%</td>
-            <td>{{ row.valuation.confidence_score }}</td>
+            <td>{{ row.valuation.confidence_score }}<span class="mini-score-suffix">/100</span></td>
           </tr>
         {% endfor %}
       </tbody>

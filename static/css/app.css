@@ -1029,3 +1029,48 @@ select.auto-submit-filter {
 .comparison-card {
   min-height: 100%;
 }
+
+
+.kpi-score-suffix {
+  margin-left: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.mini-score-suffix {
+  margin-left: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #667085;
+}
+
+.valuation-score-note {
+  margin: -6px 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.valuation-callout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.valuation-callout h3 {
+  margin: 0;
+}
+
+.valuation-callout .section-copy {
+  margin-top: 6px;
+  max-width: 60ch;
+}
+
+@media (max-width: 820px) {
+  .valuation-callout {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
