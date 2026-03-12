@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 from decimal import Decimal
+import os
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -71,15 +72,19 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Demo data ready.'))
         self.stdout.write('Users:')
-        self.stdout.write('  manager_demo / DemoPass123! (Manager)')
-        self.stdout.write('  analyst_demo / DemoPass123! (Analyst)')
-        self.stdout.write('  admin_demo / DemoPass123! (Admin)')
+        self.stdout.write(f'  manager_demo / {self.manager_password} (Manager)')
+        self.stdout.write(f'  analyst_demo / {self.analyst_password} (Analyst)')
+        self.stdout.write('  admin_demo / private password (Admin)')
         self.stdout.write(f'Portfolio: {portfolio.name} ({portfolio.id})')
         self.stdout.write(f'Bulk packages: {len(bulk_portfolios)} portfolios x {DEBTORS_PER_PACKAGE} debtors each')
         for package in bulk_portfolios:
             self.stdout.write(f'  - {package.name}')
 
     def _seed_users(self):
+        self.manager_password = os.getenv('DEMO_MANAGER_PASSWORD', 'DemoPass123!')
+        self.analyst_password = os.getenv('DEMO_ANALYST_PASSWORD', 'DemoPass123!')
+        admin_password_override = os.getenv('DEMO_ADMIN_PASSWORD')
+
         manager, _ = AppUser.objects.get_or_create(
             username='manager_demo',
             defaults={
@@ -90,7 +95,7 @@ class Command(BaseCommand):
         )
         manager.role = UserRole.MANAGER
         manager.is_staff = True
-        manager.set_password('DemoPass123!')
+        manager.set_password(self.manager_password)
         manager.save()
 
         analyst, _ = AppUser.objects.get_or_create(
@@ -101,10 +106,10 @@ class Command(BaseCommand):
             },
         )
         analyst.role = UserRole.ANALYST
-        analyst.set_password('DemoPass123!')
+        analyst.set_password(self.analyst_password)
         analyst.save()
 
-        admin, _ = AppUser.objects.get_or_create(
+        admin, created = AppUser.objects.get_or_create(
             username='admin_demo',
             defaults={
                 'email': 'admin_demo@example.com',
@@ -116,7 +121,10 @@ class Command(BaseCommand):
         admin.role = UserRole.ADMIN
         admin.is_staff = True
         admin.is_superuser = True
-        admin.set_password('DemoPass123!')
+        if created:
+            admin.set_password(admin_password_override or self.manager_password)
+        elif admin_password_override:
+            admin.set_password(admin_password_override)
         admin.save()
 
         return {'manager': manager, 'analyst': analyst, 'admin': admin}
@@ -483,3 +491,4 @@ class Command(BaseCommand):
         first_name = FIRST_NAMES[(package_index + debtor_index) % len(FIRST_NAMES)]
         last_name = LAST_NAMES[(package_index * 3 + debtor_index) % len(LAST_NAMES)]
         return f'{first_name} {last_name}'
+

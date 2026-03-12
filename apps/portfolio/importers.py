@@ -123,3 +123,4 @@ def validate_rows(raw_rows):
             row_errors.append(str(exc))
 
     return cleaned_rows, row_errors
+
