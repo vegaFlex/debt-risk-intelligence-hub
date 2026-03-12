@@ -373,7 +373,11 @@ class ValuationComparisonView(ManagerOrAdminRequiredMixin, View):
         portfolio_cards = [_portfolio_card_payload(portfolio) for portfolio in portfolios]
         selected_cards = [
             item for item in portfolio_cards if str(item['portfolio'].id) in selected_ids
-        ][:3]
+        ]
+        selection_warning = None
+        if len(selected_cards) > 3:
+            selection_warning = 'Only the first three selected portfolios are compared at once. Narrow the selection for a cleaner side-by-side review.'
+            selected_cards = selected_cards[:3]
 
         comparison_rows = [
             {
@@ -437,6 +441,7 @@ class ValuationComparisonView(ManagerOrAdminRequiredMixin, View):
                 'selected_ids': [str(card['portfolio'].id) for card in selected_cards],
                 'comparison_rows': comparison_rows,
                 'comparison_summary': comparison_summary,
+                'selection_warning': selection_warning,
                 'nav_actions': _workspace_nav(request),
             },
         )
