@@ -36,6 +36,14 @@
         <a class="{% if request.path|slice:":11" == "/dashboard/" %}active{% endif %}" href="/dashboard/">Dashboard</a>
         {% if request.user.role != "visitor" %}<a class="{% if request.path == "/portfolio/import/" %}active{% endif %}" href="/portfolio/import/">Import</a>{% endif %}
         <a class="{% if request.path|slice:":9" == "/reports/" %}active{% endif %}" href="/reports/management/">Reports</a>
+        <details class="nav-more nav-docs" id="nav-docs-actions">
+          <summary class="{% if request.path|slice:":6" == "/docs/" %}active{% endif %}">Documentation</summary>
+          <div class="nav-more-menu nav-docs-menu">
+            <a href="/docs/user-guide/">User Guide</a>
+            <a href="/docs/buyer-guide/">Buyer Guide</a>
+            <a href="/docs/buyer-one-pager/">Buyer One-Pager</a>
+          </div>
+        </details>
         {% if request.user.is_authenticated %}
           {% if request.user.role == 'visitor' or request.user.role == 'manager' or request.user.role == 'admin' %}
         <details class="nav-more nav-valuation" id="nav-valuation-actions">
@@ -110,7 +118,8 @@
     (function () {
       const dropdowns = [
         document.getElementById('nav-more-actions'),
-        document.getElementById('nav-valuation-actions')
+        document.getElementById('nav-valuation-actions'),
+        document.getElementById('nav-docs-actions')
       ].filter(Boolean);
 
       if (!dropdowns.length) {
