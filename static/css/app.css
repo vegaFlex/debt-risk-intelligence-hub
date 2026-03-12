@@ -999,3 +999,33 @@ select.auto-submit-filter {
 .benchmark-filter-form label {
   margin-bottom: 4px;
 }
+
+.comparison-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.comparison-option {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid rgba(27, 55, 66, 0.1);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.comparison-option input {
+  width: auto;
+  margin-top: 4px;
+}
+
+.comparison-option p {
+  margin: 4px 0 0;
+}
+
+.comparison-card {
+  min-height: 100%;
+}

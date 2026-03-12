@@ -1,0 +1,138 @@
+{% extends "base_app.html" %}
+
+{% block title %}Portfolio Comparison | Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card card-compact">
+  <div class="section-head compact">
+    <div>
+      <p class="eyebrow">Acquisition Intelligence</p>
+      <h2>Portfolio Comparison Desk</h2>
+      <p class="section-copy">Compare up to three acquisition targets side by side before moving into bid approval or memo export.</p>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Select Portfolios</h3>
+  <p class="section-copy">Pick two or three portfolios to compare recovery profile, bid discipline, confidence, and recommendation quality.</p>
+  <form method="get" class="comparison-picker">
+    <div class="comparison-picker-grid">
+      {% for item in portfolio_cards %}
+        <label class="comparison-option">
+          <input type="checkbox" name="portfolio" value="{{ item.portfolio.id }}" {% if item.portfolio.id|stringformat:"s" in selected_ids %}checked{% endif %}>
+          <div>
+            <strong>{{ item.portfolio.name }}</strong>
+            <p class="small">{{ item.signal_label }} · {{ item.recommended_action.label }} · {{ item.mode_label }}</p>
+          </div>
+        </label>
+      {% endfor %}
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Compare Selected Portfolios</button>
+      <a href="{% url 'valuation-compare' %}" class="btn btn-secondary">Reset</a>
+    </div>
+  </form>
+</section>
+
+{% if selected_cards %}
+  <section class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Portfolios Compared</div><div class="kpi-value">{{ selected_cards|length }}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Lead Portfolio</div><div class="kpi-value kpi-value-wide">{{ selected_cards.0.portfolio.name }}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Lead Recommendation</div><div class="kpi-value">{{ selected_cards.0.recommended_action.label }}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Lead ROI</div><div class="kpi-value">{{ selected_cards.0.preview.projected_roi }}%</div></div>
+  </section>
+
+  {% if comparison_summary %}
+    <section class="card card-compact">
+      <h3>Lead vs Challenger Delta</h3>
+      <p class="section-copy">A quick gap check between the first and second selected portfolios to speed up acquisition discussion.</p>
+      <div class="valuation-stat-list">
+        <div><span>Recovery Gap</span><strong>{{ comparison_summary.recovery_gap }}%</strong></div>
+        <div><span>Bid Gap</span><strong>{{ comparison_summary.bid_gap }}%</strong></div>
+        <div><span>ROI Gap</span><strong>{{ comparison_summary.roi_gap }}%</strong></div>
+        <div><span>Confidence Gap</span><strong>{{ comparison_summary.confidence_gap }}</strong></div>
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="card">
+    <h3>Side-by-Side Comparison</h3>
+    <p class="section-copy">This table lets you compare the main acquisition metrics across the selected portfolios in one place.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            {% for card in selected_cards %}
+              <th>{{ card.portfolio.name }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in comparison_rows %}
+            <tr>
+              <td><strong>{{ row.label }}</strong></td>
+              {% for value in row.values %}
+                <td>{{ value }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="valuation-grid">
+    {% for card in selected_cards %}
+      <article class="card valuation-card comparison-card">
+        <div class="valuation-card-header">
+          <div>
+            <h3>{{ card.portfolio.name }}</h3>
+            <p class="section-copy">{{ card.portfolio.source_company|default:"No source company" }} · {{ card.portfolio.currency }}</p>
+          </div>
+          <span class="valuation-badge">{{ card.signal_label }}</span>
+        </div>
+
+        <div class="valuation-kpis">
+          <div class="mini-kpi">
+            <span>Recovery</span>
+            <strong>{{ card.preview.expected_recovery_rate }}%</strong>
+          </div>
+          <div class="mini-kpi">
+            <span>Bid</span>
+            <strong>{{ card.preview.recommended_bid_pct }}%</strong>
+          </div>
+          <div class="mini-kpi">
+            <span>ROI</span>
+            <strong>{{ card.preview.projected_roi }}%</strong>
+          </div>
+          <div class="mini-kpi">
+            <span>Confidence</span>
+            <strong>{{ card.preview.confidence_score }}</strong>
+          </div>
+        </div>
+
+        <div class="valuation-meta">
+          <p><strong>Recommendation:</strong> {{ card.recommended_action.label }}</p>
+          <p><strong>Reason:</strong> {{ card.recommended_action.reason }}</p>
+          <p><strong>Expected collections:</strong> {{ card.preview.expected_collections }}</p>
+          <p><strong>ML baseline:</strong> {{ card.preview.ml_baseline.predicted_recovery_rate }}% recovery / {{ card.preview.ml_baseline.predicted_roi }}% ROI</p>
+        </div>
+
+        <div class="valuation-actions">
+          <a class="btn btn-primary" href="{% url 'valuation-preview' card.portfolio.id %}">Open Valuation</a>
+          <a class="btn btn-secondary" href="{% url 'valuation-report-preview' card.portfolio.id %}">Open Memo</a>
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+{% else %}
+  <section class="card valuation-empty-state">
+    <h3>No portfolios selected yet</h3>
+    <p class="small">Pick at least two portfolios above to open the side-by-side comparison desk.</p>
+  </section>
+{% endif %}
+{% endblock %}
+
+{% block developer_api %}{% endblock %}

@@ -204,6 +204,25 @@ def _build_portfolio(form, user):
     )
 
 
+def _portfolio_card_payload(portfolio):
+    preview = build_rule_based_valuation(portfolio)
+    attractiveness_score = _attractiveness_score(preview)
+    signal_label = _portfolio_signal_label(attractiveness_score)
+    recommended_action = _recommended_action(preview, attractiveness_score)
+    mode_label = _portfolio_mode_label(preview)
+    return {
+        'portfolio': portfolio,
+        'latest_valuation': portfolio.valuations.first(),
+        'preview': preview,
+        'attractiveness_score': attractiveness_score,
+        'signal_label': signal_label,
+        'recommended_action': recommended_action,
+        'mode_label': mode_label,
+    }
+
+
+def _comparison_delta(left, right):
+    return _round_score(Decimal(left) - Decimal(right))
 
 
 class HistoricalBenchmarkListView(ManagerOrAdminRequiredMixin, View):
@@ -300,22 +319,7 @@ class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):
         portfolio_cards = []
 
         for portfolio in portfolios:
-            preview = build_rule_based_valuation(portfolio)
-            attractiveness_score = _attractiveness_score(preview)
-            signal_label = _portfolio_signal_label(attractiveness_score)
-            recommended_action = _recommended_action(preview, attractiveness_score)
-            mode_label = _portfolio_mode_label(preview)
-            portfolio_cards.append(
-                {
-                    'portfolio': portfolio,
-                    'latest_valuation': portfolio.valuations.first(),
-                    'preview': preview,
-                    'attractiveness_score': attractiveness_score,
-                    'signal_label': signal_label,
-                    'recommended_action': recommended_action,
-                    'mode_label': mode_label,
-                }
-            )
+            portfolio_cards.append(_portfolio_card_payload(portfolio))
 
         if selected_signal:
             portfolio_cards = [item for item in portfolio_cards if item['signal_label'] == selected_signal]
@@ -358,6 +362,82 @@ class ValuationWorkspaceView(ManagerOrAdminRequiredMixin, View):
                 'recommendation_options': FILTER_RECOMMENDATION_OPTIONS,
                 'mode_options': FILTER_MODE_OPTIONS,
                 'sort_options': VALUATION_SORT_OPTIONS,
+            },
+        )
+
+
+class ValuationComparisonView(ManagerOrAdminRequiredMixin, View):
+    def get(self, request):
+        selected_ids = request.GET.getlist('portfolio')
+        portfolios = Portfolio.objects.all().prefetch_related('valuations').order_by('-purchase_date', '-id')
+        portfolio_cards = [_portfolio_card_payload(portfolio) for portfolio in portfolios]
+        selected_cards = [
+            item for item in portfolio_cards if str(item['portfolio'].id) in selected_ids
+        ][:3]
+
+        comparison_rows = [
+            {
+                'label': 'Attractiveness',
+                'values': [card['attractiveness_score'] for card in selected_cards],
+            },
+            {
+                'label': 'Expected Recovery',
+                'values': [f"{card['preview']['expected_recovery_rate']}%" for card in selected_cards],
+            },
+            {
+                'label': 'Expected Collections',
+                'values': [card['preview']['expected_collections'] for card in selected_cards],
+            },
+            {
+                'label': 'Recommended Bid',
+                'values': [f"{card['preview']['recommended_bid_pct']}%" for card in selected_cards],
+            },
+            {
+                'label': 'Projected ROI',
+                'values': [f"{card['preview']['projected_roi']}%" for card in selected_cards],
+            },
+            {
+                'label': 'Confidence',
+                'values': [card['preview']['confidence_score'] for card in selected_cards],
+            },
+            {
+                'label': 'Recommendation',
+                'values': [card['recommended_action']['label'] for card in selected_cards],
+            },
+            {
+                'label': 'Mode',
+                'values': [card['mode_label'] for card in selected_cards],
+            },
+            {
+                'label': 'Benchmark Source',
+                'values': [
+                    card['preview']['benchmark_context']['source'].replace('_', ' ').title() if card['preview']['benchmark_context'] else 'Rule only'
+                    for card in selected_cards
+                ],
+            },
+        ] if selected_cards else []
+
+        lead_card = selected_cards[0] if selected_cards else None
+        challenger_card = selected_cards[1] if len(selected_cards) > 1 else None
+        comparison_summary = None
+        if lead_card and challenger_card:
+            comparison_summary = {
+                'recovery_gap': _comparison_delta(lead_card['preview']['expected_recovery_rate'], challenger_card['preview']['expected_recovery_rate']),
+                'bid_gap': _comparison_delta(lead_card['preview']['recommended_bid_pct'], challenger_card['preview']['recommended_bid_pct']),
+                'roi_gap': _comparison_delta(lead_card['preview']['projected_roi'], challenger_card['preview']['projected_roi']),
+                'confidence_gap': _comparison_delta(lead_card['preview']['confidence_score'], challenger_card['preview']['confidence_score']),
+            }
+
+        return render(
+            request,
+            'valuation/compare.html',
+            {
+                'portfolio_cards': portfolio_cards,
+                'selected_cards': selected_cards,
+                'selected_ids': [str(card['portfolio'].id) for card in selected_cards],
+                'comparison_rows': comparison_rows,
+                'comparison_summary': comparison_summary,
+                'nav_actions': _workspace_nav(request),
             },
         )
 
