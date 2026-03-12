@@ -8,7 +8,7 @@ from django.db.models.functions import Coalesce
 from django.shortcuts import render
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
-from apps.users.decorators import manager_or_admin_required
+from apps.users.decorators import viewer_or_manager_or_admin_required
 
 
 DEFAULT_STATUS_OPTIONS = [
@@ -359,12 +359,16 @@ def _navigation_actions(filters, user):
         debtors_link('PTP Cases', status='promise_to_pay'),
         debtors_link('Paying Cases', status='paying'),
         debtors_link('Open Cases', status='new'),
-        {'label': 'Excel Report', 'href': f"/reports/management/excel/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}"},
-        {'label': 'PDF Report', 'href': f"/reports/management/pdf/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}"},
         {'label': 'API Portfolios', 'href': '/api/portfolios/'},
         {'label': 'API Debtors', 'href': '/api/debtors/'},
         {'label': 'API KPIs', 'href': '/api/kpis/overview/'},
     ]
+
+    if getattr(user, 'role', '') in {'manager', 'admin'}:
+        secondary[4:4] = [
+            {'label': 'Excel Report', 'href': f"/reports/management/excel/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}"},
+            {'label': 'PDF Report', 'href': f"/reports/management/pdf/?{_build_query_string({'date_from': filters['date_from'], 'date_to': filters['date_to']})}"},
+        ]
 
     admin_href = ''
     if user.is_superuser or getattr(user, 'role', '') == 'admin':
@@ -374,7 +378,7 @@ def _navigation_actions(filters, user):
 
 
 @login_required
-@manager_or_admin_required
+@viewer_or_manager_or_admin_required
 def management_dashboard_view(request):
     status_options = _build_status_options()
     filters = _current_filters(request, status_options)
@@ -400,7 +404,7 @@ def management_dashboard_view(request):
 
 
 @login_required
-@manager_or_admin_required
+@viewer_or_manager_or_admin_required
 def debtor_results_view(request):
     status_options = _build_status_options()
     filters = _current_filters(request, status_options)

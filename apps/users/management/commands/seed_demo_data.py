@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 from decimal import Decimal
+import os
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -7,6 +8,7 @@ from django.utils import timezone
 
 from apps.portfolio.models import CallLog, Debtor, Payment, Portfolio, PromiseToPay
 from apps.users.models import AppUser, UserRole
+from apps.valuation.models import Creditor, HistoricalBenchmark, PortfolioUploadBatch
 
 
 PACKAGE_COUNT = 5
@@ -34,6 +36,25 @@ PACKAGE_DEFINITIONS = [
     ('Utilities Debt Pack Epsilon', 'National Utilities Recovery', date(2025, 10, 28), Decimal('193000.00'), Decimal('861000.00')),
 ]
 
+CREDITOR_DEFINITIONS = [
+    ('Ubb Demo Source', Creditor.Category.BANK, 'Bulgaria'),
+    ('DSK Retail Recovery', Creditor.Category.BANK, 'Bulgaria'),
+    ('Postbank Consumer Finance', Creditor.Category.FINTECH, 'Bulgaria'),
+    ('UniCredit Business Leasing', Creditor.Category.SME, 'Bulgaria'),
+    ('A1 Telecom Portfolio Sales', Creditor.Category.TELECOM, 'Bulgaria'),
+    ('National Utilities Recovery', Creditor.Category.UTILITIES, 'Bulgaria'),
+]
+
+BENCHMARK_DEFINITIONS = [
+    (Creditor.Category.BANK, '180+ days', '2000-4999', '', Decimal('27.50'), Decimal('58.00'), Decimal('14.00'), Decimal('11.00'), 320),
+    (Creditor.Category.BANK, '90-179 days', '1000-1999', '', Decimal('34.00'), Decimal('64.00'), Decimal('18.00'), Decimal('13.00'), 280),
+    (Creditor.Category.FINTECH, '90-179 days', '2000-4999', '', Decimal('44.00'), Decimal('68.00'), Decimal('21.00'), Decimal('15.00'), 240),
+    (Creditor.Category.SME, '180+ days', '5000+', '', Decimal('22.00'), Decimal('49.00'), Decimal('11.00'), Decimal('8.00'), 160),
+    (Creditor.Category.TELECOM, '180+ days', '1000-1999', '', Decimal('31.00'), Decimal('72.00'), Decimal('17.00'), Decimal('12.00'), 295),
+    (Creditor.Category.UTILITIES, '180+ days', '1000-1999', '', Decimal('29.50'), Decimal('70.00'), Decimal('16.00'), Decimal('11.50'), 310),
+    (Creditor.Category.OTHER, '30-89 days', 'under 1000', '', Decimal('48.00'), Decimal('74.00'), Decimal('23.00'), Decimal('18.00'), 145),
+]
+
 
 class Command(BaseCommand):
     help = 'Seed demo users and sample debt/risk data for local testing.'
@@ -41,22 +62,31 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         users = self._seed_users()
+        creditors = self._seed_creditors()
+        self._seed_historical_benchmarks()
         portfolio = self._seed_portfolio(users['manager'])
         debtors = self._seed_debtors(portfolio)
         self._seed_payments_and_calls(debtors, users['analyst'])
-        bulk_portfolios = self._seed_bulk_packages(users['manager'], users['analyst'])
+        self._seed_upload_batch(portfolio, creditors.get('Ubb Demo Source'), users['manager'])
+        bulk_portfolios = self._seed_bulk_packages(users['manager'], users['analyst'], creditors)
 
         self.stdout.write(self.style.SUCCESS('Demo data ready.'))
         self.stdout.write('Users:')
-        self.stdout.write('  manager_demo / DemoPass123! (Manager)')
-        self.stdout.write('  analyst_demo / DemoPass123! (Analyst)')
-        self.stdout.write('  admin_demo / DemoPass123! (Admin)')
+        self.stdout.write(f'  visitor_demo / {self.visitor_password} (Visitor)')
+        self.stdout.write(f'  manager_demo / {self.manager_password} (Manager)')
+        self.stdout.write(f'  analyst_demo / {self.analyst_password} (Analyst)')
+        self.stdout.write('  admin_demo / private password (Admin)')
         self.stdout.write(f'Portfolio: {portfolio.name} ({portfolio.id})')
         self.stdout.write(f'Bulk packages: {len(bulk_portfolios)} portfolios x {DEBTORS_PER_PACKAGE} debtors each')
         for package in bulk_portfolios:
             self.stdout.write(f'  - {package.name}')
 
     def _seed_users(self):
+        self.visitor_password = os.getenv('DEMO_VISITOR_PASSWORD', 'DemoPass123!')
+        self.manager_password = os.getenv('DEMO_MANAGER_PASSWORD', 'DemoPass123!')
+        self.analyst_password = os.getenv('DEMO_ANALYST_PASSWORD', 'DemoPass123!')
+        admin_password_override = os.getenv('DEMO_ADMIN_PASSWORD')
+
         manager, _ = AppUser.objects.get_or_create(
             username='manager_demo',
             defaults={
@@ -67,7 +97,7 @@ class Command(BaseCommand):
         )
         manager.role = UserRole.MANAGER
         manager.is_staff = True
-        manager.set_password('DemoPass123!')
+        manager.set_password(self.manager_password)
         manager.save()
 
         analyst, _ = AppUser.objects.get_or_create(
@@ -78,10 +108,10 @@ class Command(BaseCommand):
             },
         )
         analyst.role = UserRole.ANALYST
-        analyst.set_password('DemoPass123!')
+        analyst.set_password(self.analyst_password)
         analyst.save()
 
-        admin, _ = AppUser.objects.get_or_create(
+        admin, created = AppUser.objects.get_or_create(
             username='admin_demo',
             defaults={
                 'email': 'admin_demo@example.com',
@@ -93,10 +123,69 @@ class Command(BaseCommand):
         admin.role = UserRole.ADMIN
         admin.is_staff = True
         admin.is_superuser = True
-        admin.set_password('DemoPass123!')
+        if created:
+            admin.set_password(admin_password_override or self.manager_password)
+        elif admin_password_override:
+            admin.set_password(admin_password_override)
         admin.save()
 
-        return {'manager': manager, 'analyst': analyst, 'admin': admin}
+        visitor, _ = AppUser.objects.get_or_create(
+            username='visitor_demo',
+            defaults={
+                'email': 'visitor_demo@example.com',
+                'role': UserRole.VISITOR,
+            },
+        )
+        visitor.role = UserRole.VISITOR
+        visitor.is_staff = False
+        visitor.is_superuser = False
+        visitor.set_password(self.visitor_password)
+        visitor.save()
+
+        return {'visitor': visitor, 'manager': manager, 'analyst': analyst, 'admin': admin}
+
+    def _seed_creditors(self):
+        creditors = {}
+        for name, category, country in CREDITOR_DEFINITIONS:
+            creditor, _ = Creditor.objects.update_or_create(
+                name=name,
+                defaults={
+                    'category': category,
+                    'country': country,
+                    'notes': 'Seeded creditor profile for valuation demo flows.',
+                },
+            )
+            creditors[name] = creditor
+        return creditors
+
+    def _seed_historical_benchmarks(self):
+        HistoricalBenchmark.objects.all().delete()
+        for creditor_category, dpd_band, balance_band, region, recovery, contact, ptp, conversion, sample_size in BENCHMARK_DEFINITIONS:
+            HistoricalBenchmark.objects.create(
+                creditor_category=creditor_category,
+                product_type='General',
+                dpd_band=dpd_band,
+                balance_band=balance_band,
+                region=region,
+                avg_recovery_rate=recovery,
+                avg_contact_rate=contact,
+                avg_ptp_rate=ptp,
+                avg_conversion_rate=conversion,
+                sample_size=sample_size,
+            )
+
+    def _seed_upload_batch(self, portfolio, creditor, manager):
+        PortfolioUploadBatch.objects.update_or_create(
+            portfolio=portfolio,
+            defaults={
+                'name': f'{portfolio.name} Upload Batch',
+                'creditor': creditor,
+                'reporting_currency': portfolio.currency,
+                'source_file_name': f'{portfolio.name.lower().replace(" ", "_")}.csv',
+                'uploaded_by': manager,
+                'notes': 'Seeded upload batch for valuation preview context.',
+            },
+        )
 
     def _seed_portfolio(self, manager):
         portfolio, _ = Portfolio.objects.update_or_create(
@@ -203,7 +292,7 @@ class Command(BaseCommand):
             },
         )
 
-    def _seed_bulk_packages(self, manager, analyst):
+    def _seed_bulk_packages(self, manager, analyst, creditors):
         portfolios = []
         today = timezone.localdate()
 
@@ -223,6 +312,7 @@ class Command(BaseCommand):
             portfolio.debtors.all().delete()
             debtors = self._build_bulk_debtors(portfolio, package_index)
             Debtor.objects.bulk_create(debtors, batch_size=250)
+            self._seed_upload_batch(portfolio, creditors.get(source_company), manager)
             self._seed_bulk_activity(portfolio, analyst, today)
             portfolios.append(portfolio)
 
@@ -416,3 +506,4 @@ class Command(BaseCommand):
         first_name = FIRST_NAMES[(package_index + debtor_index) % len(FIRST_NAMES)]
         last_name = LAST_NAMES[(package_index * 3 + debtor_index) % len(LAST_NAMES)]
         return f'{first_name} {last_name}'
+

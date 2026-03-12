@@ -7,7 +7,7 @@ class IsAnalystManagerOrAdmin(BasePermission):
         return bool(
             user
             and user.is_authenticated
-            and getattr(user, 'role', None) in {'analyst', 'manager', 'admin'}
+            and getattr(user, 'role', None) in {'visitor', 'analyst', 'manager', 'admin'}
         )
 
 
@@ -18,6 +18,16 @@ class IsManagerOrAdmin(BasePermission):
             user
             and user.is_authenticated
             and getattr(user, 'role', None) in {'manager', 'admin'}
+        )
+
+
+class IsVisitorManagerOrAdmin(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and getattr(user, 'role', None) in {'visitor', 'manager', 'admin'}
         )
 
 

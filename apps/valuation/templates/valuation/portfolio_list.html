@@ -1,0 +1,191 @@
+{% extends "base_app.html" %}
+
+{% block title %}Valuation Workspace | Debt & Risk Hub{% endblock %}
+
+{% block content %}
+<section class="card card-compact">
+  <div class="section-head compact">
+    <div>
+      <p class="eyebrow">Acquisition Intelligence</p>
+      <h2>Valuation Workspace</h2>
+      <p class="section-copy">Rank portfolios by expected recovery quality, pricing discipline, and operational strength before saving a valuation run.</p>
+    </div>
+  </div>
+</section>
+
+<section class="kpi-grid">
+  <div class="kpi-card"><div class="kpi-label">Portfolios Ranked</div><div class="kpi-value">{{ summary.portfolio_count }}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Top Attractiveness Score</div><div class="kpi-value">{{ summary.top_score }}</div><div class="kpi-meta">Score out of 100</div></div>
+  <div class="kpi-card"><div class="kpi-label">Avg Recovery</div><div class="kpi-value">{{ summary.avg_recovery }}%</div></div>
+  <div class="kpi-card"><div class="kpi-label">Avg Confidence Score</div><div class="kpi-value">{{ summary.avg_confidence }}</div><div class="kpi-meta">Score out of 100</div></div>
+  <div class="kpi-card kpi-card-wide-value"><div class="kpi-label">Total Face Value</div><div class="kpi-value kpi-value-wide">{{ summary.total_face_value_display }}</div></div>
+</section>
+
+<p class="valuation-score-note">Attractiveness and confidence are scored on a <strong>0-100 scale</strong>. Recovery and ROI remain percentages.</p>
+
+<section class="card card-compact">
+  <form class="filter-toolbar filter-toolbar-valuation" method="get">
+    <div class="filter-item compact">
+      <label for="valuation-signal">Signal</label>
+      <select id="valuation-signal" name="signal">
+        {% for value, label in signal_options %}
+          <option value="{{ value }}" {% if selected_signal == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-item compact">
+      <label for="valuation-recommendation">Recommendation</label>
+      <select id="valuation-recommendation" name="recommendation">
+        {% for value, label in recommendation_options %}
+          <option value="{{ value }}" {% if selected_recommendation == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-item compact">
+      <label for="valuation-mode">Mode</label>
+      <select id="valuation-mode" name="mode">
+        {% for value, label in mode_options %}
+          <option value="{{ value }}" {% if selected_mode == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-item compact">
+      <label for="valuation-sort">Sort By</label>
+      <select id="valuation-sort" name="sort">
+        {% for value, label in sort_options %}
+          <option value="{{ value }}" {% if selected_sort == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="actions actions-toolbar">
+      <button class="btn btn-primary" type="submit">Apply Review Filters</button>
+      <a class="btn btn-secondary" href="{% url 'valuation-workspace' %}">Reset</a>
+    </div>
+  </form>
+  <p class="section-copy valuation-filter-count">{{ summary.portfolio_count }} portfolios match the current review filters.</p>
+</section>
+
+<section class="card card-compact valuation-callout">
+  <div class="valuation-callout-copy">
+    <p class="eyebrow">Review Tool</p>
+    <h3>Portfolio Comparison Desk</h3>
+    <p class="section-copy">Open a side-by-side review for two or three packages when you need a faster acquisition decision.</p>
+  </div>
+  <div class="valuation-callout-action">
+    <span class="valuation-callout-meta">Side-by-side package review</span>
+    <a class="btn btn-primary valuation-callout-button" href="{% url 'valuation-compare' %}">Open Comparison Desk</a>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Portfolio Ranking</h3>
+  <p class="section-copy">The table below surfaces the most attractive buying opportunities first, based on recovery strength, ROI, confidence, and risk drag.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Portfolio</th>
+          <th>Attractiveness Score</th>
+          <th>Signal</th>
+          <th>Expected Recovery</th>
+          <th>Recommended Bid</th>
+          <th>Projected ROI</th>
+          <th>Confidence Score</th>
+          <th>Mode</th>
+          <th>Recommendation</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in portfolio_cards %}
+          <tr>
+            <td><strong>#{{ forloop.counter }}</strong></td>
+            <td>
+              <strong>{{ item.portfolio.name }}</strong><br>
+              <span class="small">{{ item.portfolio.source_company|default:"No source company" }} · {{ item.portfolio.currency }}</span>
+            </td>
+            <td><strong>{{ item.attractiveness_score }}</strong><div class="mini-kpi-meta">Score out of 100</div></td>
+            <td><span class="valuation-pill {% if item.attractiveness_score >= 45 %}valuation-pill-strong{% elif item.attractiveness_score >= 32 %}valuation-pill-review{% else %}valuation-pill-watch{% endif %}">{{ item.signal_label }}</span></td>
+            <td>{{ item.preview.expected_recovery_rate }}%</td>
+            <td>{{ item.preview.recommended_bid_pct }}%</td>
+            <td>{{ item.preview.projected_roi }}%</td>
+            <td>{{ item.preview.confidence_score }}<div class="table-meta">Score out of 100</div></td>
+            <td>{{ item.mode_label }}</td>
+            <td>
+              <span class="valuation-pill {% if item.recommended_action.tone == 'strong' %}valuation-pill-strong{% elif item.recommended_action.tone == 'danger' %}valuation-pill-danger{% else %}valuation-pill-review{% endif %}">{{ item.recommended_action.label }}</span>
+            </td>
+            <td><a class="btn btn-secondary btn-compact" href="{% url 'valuation-preview' item.portfolio.id %}">Open</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="valuation-grid">
+  {% for item in portfolio_cards %}
+    <article class="card valuation-card">
+      <div class="valuation-card-header">
+        <div>
+          <h3>{{ item.portfolio.name }}</h3>
+          <p class="section-copy">{{ item.portfolio.source_company|default:"No source company" }} · {{ item.portfolio.currency }} · Face value {{ item.preview.face_value_display }}</p>
+        </div>
+        <span class="valuation-badge">{{ item.signal_label }}</span>
+      </div>
+
+      <div class="valuation-kpis">
+        <div class="mini-kpi">
+          <span>Attractiveness Score</span>
+          <strong>{{ item.attractiveness_score }}</strong><div class="mini-kpi-meta">Score out of 100</div>
+        </div>
+        <div class="mini-kpi">
+          <span>Expected Recovery</span>
+          <strong>{{ item.preview.expected_recovery_rate }}%</strong>
+        </div>
+        <div class="mini-kpi">
+          <span>Recommended Bid</span>
+          <strong>{{ item.preview.recommended_bid_pct }}%</strong>
+        </div>
+        <div class="mini-kpi">
+          <span>Projected ROI</span>
+          <strong>{{ item.preview.projected_roi }}%</strong>
+        </div>
+      </div>
+
+      <div class="valuation-meta">
+        <p><strong>Expected collections:</strong> {{ item.preview.expected_collections_display }}</p>
+        <p><strong>Max bid amount:</strong> {{ item.preview.recommended_bid_amount_display }}</p>
+        <p><strong>Debtors:</strong> {{ item.preview.stats.total_debtors }}</p>
+        <p><strong>Mode:</strong> {{ item.preview.valuation_method|title }}</p>
+        <p><strong>Recommendation:</strong> {{ item.recommended_action.label }}</p>
+        <p class="small">{{ item.recommended_action.reason }}</p>
+        {% if item.latest_valuation %}
+          <p><strong>Latest saved run:</strong> {{ item.latest_valuation.created_at|date:"M d, Y H:i" }}</p>
+        {% else %}
+          <p><strong>Latest saved run:</strong> No saved valuation yet</p>
+        {% endif %}
+      </div>
+
+      <div class="valuation-actions">
+        <a class="btn btn-primary" href="{% url 'valuation-preview' item.portfolio.id %}">Open Valuation</a>
+        <a class="btn btn-secondary" href="/dashboard/?portfolio={{ item.portfolio.id }}">Open Dashboard</a>
+      </div>
+    </article>
+  {% empty %}
+    <section class="card valuation-empty-state">
+      <h3>No portfolios match the current filters</h3>
+      <p class="small">Try resetting the review filters or import another acquisition portfolio to widen the ranking set.</p>
+      <div class="valuation-actions">
+        <a class="btn btn-secondary" href="{% url 'valuation-workspace' %}">Reset Filters</a>
+        <a class="btn btn-primary" href="{% url 'valuation-import' %}">Open Valuation Import</a>
+      </div>
+    </section>
+  {% endfor %}
+</section>
+{% endblock %}
+
+{% block developer_api %}{% endblock %}
+
+
+

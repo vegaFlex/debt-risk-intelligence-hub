@@ -19,9 +19,12 @@
     </div>
     <input type="hidden" name="next" value="{{ next }}">
   </form>
-  <p class="small">Demo: manager_demo / DemoPass123!</p>
+  {% if show_demo_login_hint %}
+    <p class="small">Demo: visitor_demo / DemoPass123!</p>
+  {% endif %}
 </section>
 {% endblock %}
 
 {% block developer_api %}{% endblock %}
+
 

@@ -11,12 +11,16 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DATABASE_URL = os.getenv('DATABASE_URL')
+ENVIRONMENT = os.getenv('DJANGO_ENV', 'production' if DATABASE_URL else 'development').lower()
+IS_PRODUCTION = ENVIRONMENT == 'production'
+
 SECRET_KEY = os.getenv(
     'DJANGO_SECRET_KEY',
     'django-insecure-o(2gcev=cirhclh405$#yi4wlnockcqa%y1=@k*fv=6s39hg(_',
 )
 
-DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
+DEBUG = os.getenv('DJANGO_DEBUG', 'true' if not IS_PRODUCTION else 'false').lower() == 'true'
 
 _default_hosts = '127.0.0.1,localhost'
 ALLOWED_HOSTS = [
@@ -72,14 +76,13 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.users.context_processors.demo_context',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
-DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(
@@ -120,6 +123,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = ('whitenoise.storage.CompressedManifestStaticFilesStorage' if not DEBUG else 'whitenoise.storage.CompressedStaticFilesStorage')
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -133,11 +138,19 @@ AUTH_USER_MODEL = 'users.AppUser'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 LOGIN_URL = '/accounts/login/'
+SHOW_DEMO_LOGIN_HINT = os.getenv('DJANGO_SHOW_DEMO_LOGIN_HINT', 'true' if not IS_PRODUCTION else 'false').lower() == 'true'
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
-SECURE_SSL_REDIRECT = os.getenv('DJANGO_SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SECURE_SSL_REDIRECT = os.getenv('DJANGO_SECURE_SSL_REDIRECT', 'true' if IS_PRODUCTION else 'false').lower() == 'true'
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_REFERRER_POLICY = 'same-origin'
+X_FRAME_OPTIONS = 'DENY'
+
