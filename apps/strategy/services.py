@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from decimal import Decimal, ROUND_HALF_UP
 
-from django.db.models import Count, Q, Sum
+from django.db.models import Sum
 
-from apps.portfolio.models import Debtor
+from apps.portfolio.models import CallLog, Debtor
 from apps.strategy.models import ActionType
 
 
@@ -46,6 +46,43 @@ def _recent_ptp_count(debtor) -> int:
     return debtor.promises_to_pay.filter(status='pending').count()
 
 
+def _contact_history_signals(debtor) -> dict:
+    calls = list(debtor.call_logs.order_by('-call_datetime'))
+    call_attempt_count = len(calls)
+    last_call = calls[0] if calls else None
+    last_outcome = last_call.outcome if last_call else ''
+    last_outcome_label = last_call.get_outcome_display() if last_call else 'No calls yet'
+    no_answer_streak = 0
+    refusal_count = 0
+    notes_count = 0
+
+    for call in calls:
+        if call.outcome == CallLog.Outcome.REFUSED:
+            refusal_count += 1
+        if (call.notes or '').strip():
+            notes_count += 1
+        if call.outcome == CallLog.Outcome.NO_ANSWER:
+            no_answer_streak += 1
+        else:
+            break
+
+    wrong_contact_count = sum(1 for call in calls if call.outcome == CallLog.Outcome.WRONG_CONTACT)
+    paid_call_count = sum(1 for call in calls if call.outcome == CallLog.Outcome.PAID)
+    has_recent_notes = notes_count > 0
+
+    return {
+        'call_attempt_count': call_attempt_count,
+        'last_call_outcome': last_outcome,
+        'last_call_outcome_label': last_outcome_label,
+        'no_answer_streak': no_answer_streak,
+        'refusal_count': refusal_count,
+        'wrong_contact_count': wrong_contact_count,
+        'paid_call_count': paid_call_count,
+        'notes_count': notes_count,
+        'has_recent_notes': has_recent_notes,
+    }
+
+
 def _contactability_score(debtor) -> Decimal:
     score = Decimal('0.00')
     if debtor.phone_number:
@@ -55,10 +92,16 @@ def _contactability_score(debtor) -> Decimal:
     return min(score, Decimal('1.00'))
 
 
-def _action_decision(debtor, *, contactability_score: Decimal, broken_promises: int, pending_promises: int) -> tuple[str, str, Decimal, str]:
+def _action_decision(debtor, *, contactability_score: Decimal, broken_promises: int, pending_promises: int, contact_history: dict) -> tuple[str, str, Decimal, str]:
     outstanding_total = Decimal(debtor.outstanding_total)
     status = (debtor.status or '').lower()
     dpd = debtor.days_past_due
+
+    call_attempt_count = contact_history['call_attempt_count']
+    no_answer_streak = contact_history['no_answer_streak']
+    refusal_count = contact_history['refusal_count']
+    wrong_contact_count = contact_history['wrong_contact_count']
+    last_outcome = contact_history['last_call_outcome']
 
     if status in {'closed', 'paying'}:
         return (
@@ -68,12 +111,44 @@ def _action_decision(debtor, *, contactability_score: Decimal, broken_promises: 
             'Account is already resolving, so monitoring is better than pushing a new action.',
         )
 
+    if wrong_contact_count >= 2:
+        return (
+            ActionType.MONITOR,
+            ActionType.MONITOR,
+            Decimal('0.60'),
+            'Repeated wrong-contact outcomes suggest the case should be monitored until better contact data is available.',
+        )
+
+    if no_answer_streak >= 3 and debtor.phone_number and debtor.email:
+        return (
+            ActionType.EMAIL,
+            ActionType.EMAIL,
+            Decimal('3.10'),
+            'Multiple unanswered calls suggest switching channels before spending another phone attempt.',
+        )
+
+    if refusal_count >= 2 and outstanding_total >= Decimal('2500'):
+        return (
+            ActionType.SETTLEMENT,
+            _contact_channel(debtor),
+            Decimal('6.90'),
+            'Repeated refusals indicate standard outreach is stalling, so a settlement-oriented move is more practical.',
+        )
+
     if broken_promises >= 1 and outstanding_total >= Decimal('3500'):
         return (
             ActionType.SETTLEMENT,
             _contact_channel(debtor),
             Decimal('8.50'),
             'Broken payment promises and higher balance make a settlement path more attractive than another generic contact attempt.',
+        )
+
+    if last_outcome == CallLog.Outcome.PROMISE_TO_PAY and pending_promises >= 1:
+        return (
+            ActionType.CALL,
+            ActionType.CALL if debtor.phone_number else _contact_channel(debtor),
+            Decimal('6.40'),
+            'The most recent contact created a payment promise, so the next best step is a focused follow-up call.',
         )
 
     if dpd >= 180 and contactability_score == Decimal('0.00'):
@@ -142,7 +217,7 @@ def _action_decision(debtor, *, contactability_score: Decimal, broken_promises: 
     )
 
 
-def _priority_score(debtor, *, contactability_score: Decimal, broken_promises: int, pending_promises: int, action_uplift_pct: Decimal) -> Decimal:
+def _priority_score(debtor, *, contactability_score: Decimal, broken_promises: int, pending_promises: int, action_uplift_pct: Decimal, contact_history: dict) -> Decimal:
     outstanding_total = Decimal(debtor.outstanding_total)
     balance_component = min(outstanding_total / Decimal('120'), Decimal('28.00'))
     dpd_component = min(Decimal(debtor.days_past_due) / Decimal('6'), Decimal('20.00'))
@@ -154,6 +229,14 @@ def _priority_score(debtor, *, contactability_score: Decimal, broken_promises: i
     contact_component = contactability_score * Decimal('18.00')
     promise_component = Decimal(broken_promises) * Decimal('5.50') + Decimal(pending_promises) * Decimal('4.00')
     uplift_component = min(action_uplift_pct * Decimal('1.90'), Decimal('18.00'))
+    contact_history_component = Decimal(contact_history['call_attempt_count']) * Decimal('1.25')
+    contact_history_component += Decimal(contact_history['broken_promises'] if 'broken_promises' in contact_history else 0)
+    if contact_history['no_answer_streak'] >= 3:
+        contact_history_component -= Decimal('4.00')
+    if contact_history['refusal_count'] >= 2:
+        contact_history_component += Decimal('3.50')
+    if contact_history['wrong_contact_count'] >= 1:
+        contact_history_component -= Decimal('5.00')
 
     if debtor.status == 'new':
         status_component = Decimal('8.00')
@@ -168,7 +251,7 @@ def _priority_score(debtor, *, contactability_score: Decimal, broken_promises: i
     else:
         status_component = Decimal('4.00')
 
-    score = balance_component + dpd_component + risk_component + contact_component + promise_component + uplift_component + status_component
+    score = balance_component + dpd_component + risk_component + contact_component + promise_component + uplift_component + status_component + contact_history_component
     return max(Decimal('0.00'), min(_round_metric(score), Decimal('100.00')))
 
 
@@ -176,11 +259,14 @@ def _recommendation_payload(debtor):
     contactability_score = _contactability_score(debtor)
     broken_promises = _broken_promise_count(debtor)
     pending_promises = _recent_ptp_count(debtor)
+    contact_history = _contact_history_signals(debtor)
+    contact_history['broken_promises'] = broken_promises
     action, channel, uplift_pct, reason = _action_decision(
         debtor,
         contactability_score=contactability_score,
         broken_promises=broken_promises,
         pending_promises=pending_promises,
+        contact_history=contact_history,
     )
     priority_score = _priority_score(
         debtor,
@@ -188,6 +274,7 @@ def _recommendation_payload(debtor):
         broken_promises=broken_promises,
         pending_promises=pending_promises,
         action_uplift_pct=uplift_pct,
+        contact_history=contact_history,
     )
     uplift_amount = _round_money(Decimal(debtor.outstanding_total) * (uplift_pct / Decimal('100')))
     payments_total = _payment_total(debtor)
@@ -211,13 +298,21 @@ def _recommendation_payload(debtor):
         'contactability_label': 'Reachable' if contactability_score > Decimal('0.00') else 'No live channel',
         'broken_promises': broken_promises,
         'pending_promises': pending_promises,
+        'call_attempt_count': contact_history['call_attempt_count'],
+        'last_call_outcome': contact_history['last_call_outcome'],
+        'last_call_outcome_label': contact_history['last_call_outcome_label'],
+        'no_answer_streak': contact_history['no_answer_streak'],
+        'refusal_count': contact_history['refusal_count'],
+        'wrong_contact_count': contact_history['wrong_contact_count'],
+        'notes_count': contact_history['notes_count'],
+        'has_recent_notes': contact_history['has_recent_notes'],
         'reason_summary': reason,
         'action_reason': reason,
     }
 
 
 def build_strategy_workspace(*, portfolio=None):
-    debtors = Debtor.objects.select_related('portfolio').prefetch_related('payments', 'promises_to_pay').all()
+    debtors = Debtor.objects.select_related('portfolio').prefetch_related('payments', 'promises_to_pay', 'call_logs').all()
     if portfolio is not None:
         debtors = debtors.filter(portfolio=portfolio)
 

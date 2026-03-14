@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.portfolio.models import Debtor, Portfolio, PromiseToPay
+from apps.portfolio.models import CallLog, Debtor, Portfolio, PromiseToPay
 from apps.strategy.models import ActionRule, ActionType
 from apps.strategy.services import build_collector_queue, build_strategy_simulator, build_strategy_workspace
 from apps.users.models import AppUser, UserRole
@@ -226,3 +226,101 @@ class StrategyServiceTests(TestCase):
         self.assertEqual(payload['strategy_rows'][0]['label'], payload['winner']['label'])
         self.assertGreaterEqual(payload['winner']['expected_roi'], payload['strategy_rows'][-1]['expected_roi'])
         self.assertGreaterEqual(payload['winner']['debtor_count'], 0)
+
+
+    def test_repeated_no_answer_calls_shift_action_away_from_call(self):
+        debtor = Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='D-008',
+            full_name='Unanswered Call Debtor',
+            status='contacted',
+            days_past_due=125,
+            outstanding_principal=Decimal('2400.00'),
+            outstanding_total=Decimal('2800.00'),
+            risk_score=72,
+            risk_band='high',
+            phone_number='+359666666',
+            email='unanswered@example.com',
+        )
+        for idx in range(3):
+            CallLog.objects.create(
+                debtor=debtor,
+                agent=self.user,
+                call_datetime=timezone.now(),
+                outcome=CallLog.Outcome.NO_ANSWER,
+                duration_seconds=0,
+                notes=f'No answer attempt {idx + 1}',
+            )
+
+        payload = build_strategy_workspace(portfolio=self.portfolio)
+
+        self.assertEqual(payload['recommendations'][0]['recommended_action'], ActionType.EMAIL)
+        self.assertEqual(payload['recommendations'][0]['no_answer_streak'], 3)
+        self.assertEqual(payload['recommendations'][0]['call_attempt_count'], 3)
+
+    def test_repeated_wrong_contact_moves_case_to_monitor(self):
+        debtor = Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='D-009',
+            full_name='Wrong Contact Debtor',
+            status='contacted',
+            days_past_due=210,
+            outstanding_principal=Decimal('1600.00'),
+            outstanding_total=Decimal('2100.00'),
+            risk_score=75,
+            risk_band='high',
+            phone_number='+359777777',
+        )
+        for idx in range(2):
+            CallLog.objects.create(
+                debtor=debtor,
+                agent=self.user,
+                call_datetime=timezone.now(),
+                outcome=CallLog.Outcome.WRONG_CONTACT,
+                duration_seconds=25,
+                notes=f'Wrong contact {idx + 1}',
+            )
+
+        payload = build_strategy_workspace(portfolio=self.portfolio)
+        recommendation = payload['recommendations'][0]
+
+        self.assertEqual(recommendation['recommended_action'], ActionType.MONITOR)
+        self.assertEqual(recommendation['wrong_contact_count'], 2)
+
+    def test_recent_promise_to_pay_call_keeps_follow_up_action(self):
+        debtor = Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='D-010',
+            full_name='Promise Follow Up Debtor',
+            status='contacted',
+            days_past_due=95,
+            outstanding_principal=Decimal('2200.00'),
+            outstanding_total=Decimal('2500.00'),
+            risk_score=67,
+            risk_band='medium',
+            phone_number='+359888888',
+        )
+        call = CallLog.objects.create(
+            debtor=debtor,
+            agent=self.user,
+            call_datetime=timezone.now(),
+            outcome=CallLog.Outcome.PROMISE_TO_PAY,
+            duration_seconds=180,
+            promised_amount=Decimal('300.00'),
+            notes='Debtor promised a partial payment next week.',
+        )
+        PromiseToPay.objects.create(
+            debtor=debtor,
+            call_log=call,
+            promised_amount=Decimal('300.00'),
+            due_date=timezone.localdate(),
+            status=PromiseToPay.PromiseStatus.PENDING,
+            notes='Needs follow-up call before due date.',
+        )
+
+        payload = build_strategy_workspace(portfolio=self.portfolio)
+        recommendation = payload['recommendations'][0]
+
+        self.assertEqual(recommendation['recommended_action'], ActionType.CALL)
+        self.assertEqual(recommendation['last_call_outcome'], CallLog.Outcome.PROMISE_TO_PAY)
+        self.assertEqual(recommendation['pending_promises'], 1)

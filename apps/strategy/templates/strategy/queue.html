@@ -83,6 +83,7 @@
           <th>Expected Uplift</th>
           <th>Outstanding</th>
           <th>Contactability</th>
+          <th>Call History</th>
           <th>Why</th>
         </tr>
       </thead>
@@ -115,11 +116,15 @@
               <strong>{{ item.contactability_label }}</strong><br>
               <span class="table-subtitle">{{ item.contactability_score }} / 100</span>
             </td>
+            <td>
+              <strong>{{ item.call_attempt_count }} calls</strong><br>
+              <span class="table-subtitle">Last: {{ item.last_call_outcome_label }}{% if item.no_answer_streak %} | No-answer streak {{ item.no_answer_streak }}{% endif %}</span>
+            </td>
             <td>{{ item.reason_summary }}</td>
           </tr>
         {% empty %}
           <tr>
-            <td colspan="9">No queue assignments are available yet.</td>
+            <td colspan="10">No queue assignments are available yet.</td>
           </tr>
         {% endfor %}
       </tbody>

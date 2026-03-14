@@ -79,6 +79,7 @@
           <th>Expected Uplift</th>
           <th>Outstanding</th>
           <th>Contactability</th>
+          <th>Call History</th>
           <th>Why</th>
         </tr>
       </thead>
@@ -106,11 +107,15 @@
               <strong>{{ item.contactability_label }}</strong><br>
               <span class="table-subtitle">{{ item.contactability_score }} / 100</span>
             </td>
+            <td>
+              <strong>{{ item.call_attempt_count }} calls</strong><br>
+              <span class="table-subtitle">Last: {{ item.last_call_outcome_label }}{% if item.no_answer_streak %} | No-answer streak {{ item.no_answer_streak }}{% endif %}{% if item.refusal_count %} | Refusals {{ item.refusal_count }}{% endif %}</span>
+            </td>
             <td>{{ item.action_reason }}</td>
           </tr>
         {% empty %}
           <tr>
-            <td colspan="10">No debtors are available yet for collections strategy analysis.</td>
+            <td colspan="11">No debtors are available yet for collections strategy analysis.</td>
           </tr>
         {% endfor %}
       </tbody>
