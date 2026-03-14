@@ -89,6 +89,13 @@ def _wrap_document(title: str, body: str) -> str:
       border: 1px solid #c7e6df;
     }}
     .sub {{ color: var(--muted); margin: 0; }}
+    @media print {{
+      body {{ background: #ffffff; }}
+      .shell {{ max-width: none; padding: 0; }}
+      .hero, .doc {{ box-shadow: none; border-radius: 0; border: 0; padding: 0; margin-bottom: 20px; }}
+      .nav {{ display: none; }}
+      a {{ color: inherit; text-decoration: none; }}
+    }}
     @media (max-width: 820px) {{
       .shell {{ padding: 16px; }}
       h1 {{ font-size: 28px; }}
@@ -103,9 +110,13 @@ def _wrap_document(title: str, body: str) -> str:
       <p class="sub">Browser-friendly product documentation and buyer-facing material for Debt & Risk Intelligence Hub.</p>
       <nav class="nav">
         <a href="/docs/user-guide/">User Guide</a>
+        <a href="/docs/manual-testing-guide/">Manual Testing Guide</a>
         <a href="/docs/buyer-guide/">Buyer Guide</a>
         <a href="/docs/buyer-one-pager/">Buyer One-Pager</a>
         <a href="/dashboard/">Open App</a>
+      </nav>
+      <nav class="nav">
+        <a href="javascript:window.print()">Print / Save PDF</a>
       </nav>
     </section>
     <section class="doc">{body}</section>
@@ -200,3 +211,15 @@ def buyer_guide(_request):
 
 def buyer_one_pager(_request):
     return _serve_html_doc('buyer_one_pager.html', 'Debt & Risk Intelligence Hub - Buyer One-Pager')
+
+
+def manual_testing_guide(_request):
+    path = DOCS_DIR / 'manual_testing_guide.md'
+    if not path.exists():
+        raise Http404('Manual testing guide not found.')
+    markdown_text = path.read_text(encoding='utf-8')
+    body = _render_markdown_like(markdown_text)
+    return HttpResponse(
+        _wrap_document('Debt & Risk Intelligence Hub - Manual Testing Guide', body),
+        content_type='text/html; charset=utf-8',
+    )
