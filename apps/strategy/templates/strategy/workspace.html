@@ -9,6 +9,28 @@
   <p class="muted-copy">Rank debtors by next-best action, priority, and expected recovery uplift before assigning them into a collector workflow.</p>
 </section>
 
+<section class="card card-compact">
+  <form method="get">
+    <div class="filter-toolbar">
+      <div class="filters-grid">
+        <div>
+          <label for="strategy-portfolio">Portfolio</label>
+          <select name="portfolio" id="strategy-portfolio">
+            <option value="">All portfolios</option>
+            {% for portfolio in portfolios %}
+              <option value="{{ portfolio.id }}" {% if selected_portfolio and selected_portfolio.id == portfolio.id %}selected{% endif %}>{{ portfolio.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="actions actions-toolbar">
+        <button type="submit" class="btn btn-primary">Apply Portfolio</button>
+        <a href="/strategy/" class="btn btn-secondary">Reset</a>
+      </div>
+    </div>
+  </form>
+</section>
+
 <section class="insight-grid">
   <article class="summary-card">
     <p class="eyebrow">Debtors Ranked</p>

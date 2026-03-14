@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.portfolio.models import CallLog, Debtor, Portfolio, PromiseToPay
-from apps.strategy.models import ActionRule, ActionType
+from apps.strategy.models import ActionRule, ActionType, ActionScenario, CollectorQueueAssignment, DebtorActionRecommendation, StrategyRun
 from apps.strategy.services import build_collector_queue, build_strategy_simulator, build_strategy_workspace
 from apps.users.models import AppUser, UserRole
 
@@ -36,6 +36,48 @@ class StrategyWorkspaceAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Strategy Simulator')
         self.assertContains(response, 'Collections Strategy Comparison')
+
+    def test_manager_can_save_strategy_run_for_selected_portfolio(self):
+        portfolio = Portfolio.objects.create(
+            name='Simulator Save Portfolio',
+            source_company='Save Creditor',
+            purchase_date=timezone.localdate(),
+            purchase_price=Decimal('10000.00'),
+            face_value=Decimal('50000.00'),
+            currency='EUR',
+            created_by=self.manager,
+        )
+        Debtor.objects.create(
+            portfolio=portfolio,
+            external_id='SIM-001',
+            full_name='Save Debtor',
+            status='contacted',
+            days_past_due=140,
+            outstanding_principal=Decimal('3500.00'),
+            outstanding_total=Decimal('4200.00'),
+            risk_score=81,
+            risk_band='high',
+            phone_number='+359999999',
+        )
+
+        self.client.force_login(self.manager)
+        response = self.client.post(
+            f"{reverse('strategy-simulator')}?portfolio={portfolio.id}",
+            {'strategy_key': 'call_first', 'notes': 'Save first strategy snapshot.'},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(StrategyRun.objects.filter(portfolio=portfolio, strategy_type='call_first').exists())
+        self.assertTrue(DebtorActionRecommendation.objects.filter(debtor__portfolio=portfolio).exists())
+        self.assertTrue(ActionScenario.objects.filter(debtor__portfolio=portfolio).exists())
+        self.assertTrue(CollectorQueueAssignment.objects.exists())
+
+    def test_visitor_cannot_save_strategy_run(self):
+        self.client.force_login(self.visitor)
+        response = self.client.post(reverse('strategy-simulator'), {'strategy_key': 'call_first'}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(StrategyRun.objects.exists())
 
     def test_visitor_can_open_rules_in_read_only_mode(self):
         self.client.force_login(self.visitor)
@@ -226,6 +268,7 @@ class StrategyServiceTests(TestCase):
         self.assertEqual(payload['strategy_rows'][0]['label'], payload['winner']['label'])
         self.assertGreaterEqual(payload['winner']['expected_roi'], payload['strategy_rows'][-1]['expected_roi'])
         self.assertGreaterEqual(payload['winner']['debtor_count'], 0)
+        self.assertIn('targeted_cases', payload['winner'])
 
 
     def test_repeated_no_answer_calls_shift_action_away_from_call(self):

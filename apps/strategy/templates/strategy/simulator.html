@@ -9,6 +9,28 @@
   <p class="muted-copy">Compare collections strategies by expected uplift, execution cost, projected ROI, and best-fit debtor segments.</p>
 </section>
 
+<section class="card card-compact">
+  <form method="get">
+    <div class="filter-toolbar">
+      <div class="filters-grid">
+        <div>
+          <label for="simulator-portfolio">Portfolio</label>
+          <select name="portfolio" id="simulator-portfolio">
+            <option value="">Select portfolio to compare and save</option>
+            {% for portfolio in portfolios %}
+              <option value="{{ portfolio.id }}" {% if selected_portfolio and selected_portfolio.id == portfolio.id %}selected{% endif %}>{{ portfolio.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="actions actions-toolbar">
+        <button type="submit" class="btn btn-primary">Apply Portfolio</button>
+        <a href="/strategy/simulator/" class="btn btn-secondary">Reset</a>
+      </div>
+    </div>
+  </form>
+</section>
+
 <section class="insight-grid">
   <article class="summary-card">
     <p class="eyebrow">Strategies Compared</p>
@@ -46,6 +68,26 @@
       <p class="muted-copy">{{ winner.description }}</p>
     </div>
   </div>
+  {% if can_save_runs %}
+    <form method="post" class="card strategy-save-card">
+      {% csrf_token %}
+      <input type="hidden" name="strategy_key" value="{{ winner.key }}">
+      <div class="filter-toolbar">
+        <div class="filters-grid">
+          <div>
+            <label for="strategy-notes">Run Notes</label>
+            <input type="text" id="strategy-notes" name="notes" placeholder="Optional note for why this run was saved">
+          </div>
+        </div>
+        <div class="actions actions-toolbar">
+          <button type="submit" class="btn btn-primary" {% if not selected_portfolio %}disabled{% endif %}>Save Winning Strategy Run</button>
+        </div>
+      </div>
+      {% if not selected_portfolio %}
+        <p class="filter-summary">Select a portfolio above before saving a strategy run.</p>
+      {% endif %}
+    </form>
+  {% endif %}
   <div class="mini-stat-grid">
     <article class="mini-stat-card">
       <p class="eyebrow">Debtors</p>
@@ -70,6 +112,50 @@
   </div>
 </section>
 {% endif %}
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Saved History</p>
+      <h2>Recent Strategy Runs</h2>
+      <p class="muted-copy">Saved simulator outputs let you compare how the recommended strategy evolves for the selected portfolio over time.</p>
+    </div>
+  </div>
+  <div class="table-shell">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Saved At</th>
+          <th>Portfolio</th>
+          <th>Strategy</th>
+          <th>Expected Recovery</th>
+          <th>Expected Uplift</th>
+          <th>Expected Cost</th>
+          <th>Projected ROI</th>
+          <th>Created By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in saved_runs %}
+          <tr>
+            <td>{{ run.created_at|date:"Y-m-d H:i" }}</td>
+            <td>{{ run.portfolio.name }}</td>
+            <td>{{ run.get_strategy_type_display }}</td>
+            <td>{{ run.result.expected_total_recovery }}</td>
+            <td>{{ run.result.expected_total_uplift }}</td>
+            <td>{{ run.result.expected_cost }}</td>
+            <td>{{ run.result.expected_roi }}%</td>
+            <td>{{ run.created_by.username|default:"system" }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8">No saved strategy runs yet. Choose a portfolio and save the winning strategy to start history tracking.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 
 <section class="card">
   <div class="section-heading">

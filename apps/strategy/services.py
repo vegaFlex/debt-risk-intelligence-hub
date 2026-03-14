@@ -2,10 +2,19 @@ from __future__ import annotations
 
 from decimal import Decimal, ROUND_HALF_UP
 
+from django.db import transaction
 from django.db.models import Sum
 
 from apps.portfolio.models import CallLog, Debtor
-from apps.strategy.models import ActionType
+from apps.strategy.models import (
+    ActionScenario,
+    ActionType,
+    CollectorQueueAssignment,
+    DebtorActionRecommendation,
+    QueueStatus,
+    StrategyRun,
+    StrategyRunResult,
+)
 
 
 def _round_metric(value: Decimal | int | float) -> Decimal:
@@ -311,6 +320,51 @@ def _recommendation_payload(debtor):
     }
 
 
+def _strategy_profiles():
+    return [
+        {
+            'key': 'call_first',
+            'label': 'Call-First Strategy',
+            'description': 'Push high-touch phone outreach on the most recoverable and urgent cases first.',
+            'target_actions': {'Call'},
+            'uplift_multiplier': Decimal('1.12'),
+            'cost_per_case': Decimal('4.00'),
+        },
+        {
+            'key': 'digital_first',
+            'label': 'Digital-First Strategy',
+            'description': 'Lean on lower-cost SMS and email actions before escalating to higher-touch channels.',
+            'target_actions': {'SMS', 'Email'},
+            'uplift_multiplier': Decimal('0.95'),
+            'cost_per_case': Decimal('1.50'),
+        },
+        {
+            'key': 'settlement_first',
+            'label': 'Settlement Strategy',
+            'description': 'Focus on higher-balance and broken-promise cases with settlement-led recovery moves.',
+            'target_actions': {'Settlement Offer'},
+            'uplift_multiplier': Decimal('1.28'),
+            'cost_per_case': Decimal('7.50'),
+        },
+        {
+            'key': 'legal_escalation',
+            'label': 'Legal Escalation Strategy',
+            'description': 'Escalate the hardest late-stage cases where standard contact channels have little traction.',
+            'target_actions': {'Legal Review'},
+            'uplift_multiplier': Decimal('1.20'),
+            'cost_per_case': Decimal('12.00'),
+        },
+        {
+            'key': 'balanced',
+            'label': 'Balanced Mixed Strategy',
+            'description': 'Blend direct outreach, digital recovery, and targeted settlement actions across the queue.',
+            'target_actions': {'Call', 'SMS', 'Email', 'Settlement Offer'},
+            'uplift_multiplier': Decimal('1.08'),
+            'cost_per_case': Decimal('3.80'),
+        },
+    ]
+
+
 def build_strategy_workspace(*, portfolio=None, debtors=None):
     if debtors is None:
         debtors = Debtor.objects.all()
@@ -409,56 +463,13 @@ def build_strategy_simulator(*, portfolio=None, debtors=None):
     workspace = build_strategy_workspace(portfolio=portfolio, debtors=debtors)
     recommendations = workspace['recommendations']
 
-    strategy_profiles = [
-        {
-            'key': 'call_first',
-            'label': 'Call-First Strategy',
-            'description': 'Push high-touch phone outreach on the most recoverable and urgent cases first.',
-            'target_actions': {'Call'},
-            'uplift_multiplier': Decimal('1.12'),
-            'cost_per_case': Decimal('4.00'),
-        },
-        {
-            'key': 'digital_first',
-            'label': 'Digital-First Strategy',
-            'description': 'Lean on lower-cost SMS and email actions before escalating to higher-touch channels.',
-            'target_actions': {'SMS', 'Email'},
-            'uplift_multiplier': Decimal('0.95'),
-            'cost_per_case': Decimal('1.50'),
-        },
-        {
-            'key': 'settlement_first',
-            'label': 'Settlement Strategy',
-            'description': 'Focus on higher-balance and broken-promise cases with settlement-led recovery moves.',
-            'target_actions': {'Settlement Offer'},
-            'uplift_multiplier': Decimal('1.28'),
-            'cost_per_case': Decimal('7.50'),
-        },
-        {
-            'key': 'legal_escalation',
-            'label': 'Legal Escalation Strategy',
-            'description': 'Escalate the hardest late-stage cases where standard contact channels have little traction.',
-            'target_actions': {'Legal Review'},
-            'uplift_multiplier': Decimal('1.20'),
-            'cost_per_case': Decimal('12.00'),
-        },
-        {
-            'key': 'balanced_mix',
-            'label': 'Balanced Mixed Strategy',
-            'description': 'Blend direct outreach, digital recovery, and targeted settlement actions across the queue.',
-            'target_actions': {'Call', 'SMS', 'Email', 'Settlement Offer'},
-            'uplift_multiplier': Decimal('1.08'),
-            'cost_per_case': Decimal('3.80'),
-        },
-    ]
-
     strategy_rows = []
-    for profile in strategy_profiles:
+    for profile in _strategy_profiles():
         targeted = [
             item for item in recommendations
             if item['recommended_action_label'] in profile['target_actions']
         ]
-        if not targeted and profile['key'] == 'balanced_mix':
+        if not targeted and profile['key'] == 'balanced':
             targeted = recommendations[: min(20, len(recommendations))]
 
         debtor_count = len(targeted)
@@ -494,6 +505,7 @@ def build_strategy_simulator(*, portfolio=None, debtors=None):
             'avg_priority_score': avg_priority,
             'best_fit_segments': best_fit or ['General queue'],
             'top_cases': targeted[:5],
+            'targeted_cases': targeted,
         })
 
     strategy_rows.sort(key=lambda item: (item['expected_roi'], item['expected_total_uplift']), reverse=True)
@@ -512,3 +524,78 @@ def build_strategy_simulator(*, portfolio=None, debtors=None):
         'strategy_rows': strategy_rows,
         'winner': winner,
     }
+
+
+def save_strategy_run(*, portfolio, created_by, strategy_key: str | None = None, notes: str = ''):
+    workspace = build_strategy_workspace(portfolio=portfolio)
+    simulator = build_strategy_simulator(portfolio=portfolio)
+    queue = build_collector_queue(portfolio=portfolio)
+
+    selected = None
+    if strategy_key:
+        selected = next((row for row in simulator['strategy_rows'] if row['key'] == strategy_key), None)
+    if selected is None:
+        selected = simulator['winner']
+    if selected is None:
+        return None
+
+    run_name = f"{selected['label']} - {portfolio.name}"
+    run_notes = notes.strip() or f"Saved from strategy simulator for {portfolio.name}."
+
+    with transaction.atomic():
+        strategy_run = StrategyRun.objects.create(
+            name=run_name,
+            portfolio=portfolio,
+            strategy_type=selected['key'],
+            created_by=created_by,
+            notes=run_notes,
+        )
+        StrategyRunResult.objects.create(
+            strategy_run=strategy_run,
+            debtor_count=selected['debtor_count'],
+            expected_total_recovery=selected['expected_total_recovery'],
+            expected_total_uplift=selected['expected_total_uplift'],
+            expected_cost=selected['expected_cost'],
+            expected_roi=selected['expected_roi'],
+            notes=selected['description'],
+        )
+
+        DebtorActionRecommendation.objects.bulk_create([
+            DebtorActionRecommendation(
+                debtor=item['debtor'],
+                recommended_action=item['recommended_action'],
+                recommended_channel=item['recommended_channel'],
+                priority_score=item['priority_score'],
+                expected_uplift_pct=item['expected_uplift_pct'],
+                expected_uplift_amount=item['expected_uplift_amount'],
+                reason_summary=item['reason_summary'],
+                model_version='strategy-rules-v2',
+            )
+            for item in workspace['recommendations']
+        ])
+
+        ActionScenario.objects.bulk_create([
+            ActionScenario(
+                debtor=item['debtor'],
+                action_type=item['recommended_action'],
+                expected_recovery_pct=item['expected_uplift_pct'],
+                expected_recovery_amount=item['payments_total'] + item['expected_uplift_amount'],
+                expected_uplift_pct=item['expected_uplift_pct'],
+                estimated_cost=selected['expected_cost'] / max(selected['debtor_count'], 1),
+                estimated_roi=selected['expected_roi'],
+            )
+            for item in selected['targeted_cases']
+        ])
+
+        for item in queue['queue_rows']:
+            CollectorQueueAssignment.objects.update_or_create(
+                collector_name=item['collector_name'],
+                priority_rank=item['queue_rank'],
+                defaults={
+                    'debtor': item['debtor'],
+                    'action_type': item['recommended_action'],
+                    'status': QueueStatus.QUEUED,
+                },
+            )
+
+    return strategy_run
