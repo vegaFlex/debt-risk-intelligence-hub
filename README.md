@@ -40,7 +40,8 @@ Open the app locally and review it in this order:
 - [User Guide](https://debt-risk-intelligence-hub.onrender.com/docs/user-guide/) - complete product manual covering roles, screens, workflows, and usage guidance
 - [Buyer Presentation Guide](https://debt-risk-intelligence-hub.onrender.com/docs/buyer-guide/) - business-facing guide for presenting the product to a buyer or stakeholder
 - [Buyer One-Pager](https://debt-risk-intelligence-hub.onrender.com/docs/buyer-one-pager/) - concise client-facing presentation sheet suitable for browser sharing or PDF export
-- [Demo Checklist](docs/demo_checklist.md) - quick verification checklist for localhost or demo walkthroughs
+
+- [Manual Testing Guide](docs/manual_testing_guide.md) - full role-by-role QA guide for manually testing the live application
 
 ## Business Problem
 Debt operations teams often work with fragmented CSV/Excel exports, ad-hoc scoring logic, and delayed performance visibility.
@@ -295,4 +296,5 @@ The benchmark workspace manages historical recovery assumptions that feed the hy
 
 ### KPI Overview Endpoint
 ![API KPIs](docs/images/api-kpis.jpg)
+
 
