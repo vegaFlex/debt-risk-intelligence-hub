@@ -1,0 +1,37 @@
+{% extends "base_app.html" %}
+
+{% block title %}Collections Intelligence{% endblock %}
+
+{% block content %}
+<section class="page-header card">
+  <p class="eyebrow">Collections Intelligence</p>
+  <h1>Collections Workspace</h1>
+  <p class="muted-copy">V3 foundation for next-best action recommendations, debtor prioritization, collector queueing, and strategy simulation.</p>
+</section>
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <h2>Coming Next</h2>
+      <p class="muted-copy">This workspace is now wired into the platform and ready for the strategy engine, queue ranking, and simulator layers.</p>
+    </div>
+  </div>
+  <div class="insight-grid">
+    <article class="insight-card">
+      <p class="eyebrow">Next-Best Action</p>
+      <h3>Action recommendations</h3>
+      <p class="muted-copy">Recommend `Call`, `SMS`, `Email`, `Settlement`, `Legal Review`, or `Monitor` based on risk, DPD, and contactability.</p>
+    </article>
+    <article class="insight-card">
+      <p class="eyebrow">Prioritization</p>
+      <h3>Collector queue</h3>
+      <p class="muted-copy">Rank debtors by urgency, recoverability, and expected uplift so teams know where to act first.</p>
+    </article>
+    <article class="insight-card">
+      <p class="eyebrow">Simulation</p>
+      <h3>Strategy comparison</h3>
+      <p class="muted-copy">Compare call-first, digital-first, settlement-first, legal escalation, and balanced collections strategies.</p>
+    </article>
+  </div>
+</section>
+{% endblock %}
