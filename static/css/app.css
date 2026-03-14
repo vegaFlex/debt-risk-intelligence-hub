@@ -154,6 +154,10 @@ body {
   min-width: 220px;
 }
 
+.nav-strategy-menu {
+  min-width: 220px;
+}
+
 .nav-more-menu {
   position: absolute;
   right: 0;

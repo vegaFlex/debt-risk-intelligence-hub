@@ -49,6 +49,15 @@
             {% endif %}
           </div>
         </details>
+        <details class="nav-more nav-strategy" id="nav-strategy-actions">
+          <summary class="{% if request.path|slice:":10" == "/strategy/" %}active{% endif %}">Strategy</summary>
+          <div class="nav-more-menu nav-strategy-menu">
+            <a href="/strategy/">Workspace</a>
+            <a href="/strategy/queue/">Collector Queue</a>
+            <a href="/strategy/simulator/">Simulator</a>
+            <a href="/strategy/rules/">Rules</a>
+          </div>
+        </details>
           {% endif %}
         {% endif %}
         {% if nav_actions %}
@@ -107,6 +116,18 @@
           <a href="/api/kpis/overview/">/api/kpis/overview/</a>
           <p>Aggregated KPI metrics for dashboard widgets and reporting automation.</p>
         </div>
+        <div class="api-item">
+          <a href="/api/strategy/recommendations/">/api/strategy/recommendations/</a>
+          <p>Collections intelligence recommendations for next-best-action review.</p>
+        </div>
+        <div class="api-item">
+          <a href="/api/strategy/queue/">/api/strategy/queue/</a>
+          <p>Collector queue assignments and priority buckets for operational worklists.</p>
+        </div>
+        <div class="api-item">
+          <a href="/api/strategy/simulator/">/api/strategy/simulator/</a>
+          <p>Strategy comparison payloads for scenario planning and uplift analysis.</p>
+        </div>
       </div>
     </section>
     {% endblock %}
@@ -117,6 +138,7 @@
       const dropdowns = [
         document.getElementById('nav-more-actions'),
         document.getElementById('nav-valuation-actions'),
+        document.getElementById('nav-strategy-actions'),
         document.getElementById('nav-docs-actions')
       ].filter(Boolean);
 
