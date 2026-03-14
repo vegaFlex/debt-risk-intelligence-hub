@@ -7,13 +7,15 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
 - scoring engine
 - dashboard analytics
 - reporting exports
+- collections strategy intelligence
 - REST APIs
 - RBAC and CI
 
 ## Recruiter Snapshot
-- Business use case: debt portfolio operations, collections analytics, and acquisition review
-- End-to-end flow: `import -> validation -> scoring -> dashboard -> reports -> admin`
+- Business use case: debt portfolio operations, collections analytics, acquisition review, and next-best-action strategy planning
+- End-to-end flow: `import -> validation -> scoring -> dashboard -> reports -> valuation -> strategy -> admin`
 - Acquisition layer includes: `valuation -> benchmark fallback -> scenario analysis -> comparison desk -> ML baseline scaffold`
+- Collections layer includes: `next-best-action -> collector queue -> simulator -> rules workspace -> strategy API`
 - Built with: Django, DRF, SQLite (demo/dev), openpyxl, reportlab
 - Includes: dynamic charts, API layer, role-based access, tests, CI
 - Reporting currency for demo data: `EUR`
@@ -34,18 +36,19 @@ Open the app locally and review it in this order:
 3. Report Preview: Excel/PDF-ready management reporting
 4. Valuation Workspace: portfolio ranking, recommendation actions, and benchmark-aware acquisition review
 5. Portfolio Comparison Desk: side-by-side acquisition comparison for multiple packages
-6. Admin Panel: portfolio, debtor, report, and access management
+6. Strategy Workspace: debtor action ranking, collector queue, simulator, and rules review
+7. Admin Panel: portfolio, debtor, report, valuation, strategy, and access management
 
 ## Documentation
 - [Documentation Hub](https://debt-risk-intelligence-hub.onrender.com/docs/) - central landing page for all product, QA, admin, and buyer-facing guides
 - [User Guide](https://debt-risk-intelligence-hub.onrender.com/docs/user-guide/) - complete product manual covering roles, screens, workflows, and usage guidance
+- [Manual Testing Guide (Browser)](https://debt-risk-intelligence-hub.onrender.com/docs/manual-testing-guide/) - browser-friendly and print-ready version for manual QA sessions
+- [Admin Panel Guide](https://debt-risk-intelligence-hub.onrender.com/docs/admin-panel-guide/) - explains how to navigate, inspect, and safely use the Django admin workspace
+- [Admin Cheat Sheet](https://debt-risk-intelligence-hub.onrender.com/docs/admin-cheat-sheet/) - ultra-short admin reference for quick review and demos
 - [Buyer Presentation Guide](https://debt-risk-intelligence-hub.onrender.com/docs/buyer-guide/) - business-facing guide for presenting the product to a buyer or stakeholder
 - [Buyer One-Pager](https://debt-risk-intelligence-hub.onrender.com/docs/buyer-one-pager/) - concise client-facing presentation sheet suitable for browser sharing or PDF export
 
 - [Manual Testing Guide](docs/manual_testing_guide.md) - full role-by-role QA guide for manually testing the live application
-- [Manual Testing Guide (Browser)](https://debt-risk-intelligence-hub.onrender.com/docs/manual-testing-guide/) - browser-friendly and print-ready version for manual QA sessions
-- [Admin Panel Guide](https://debt-risk-intelligence-hub.onrender.com/docs/admin-panel-guide/) - explains how to navigate, inspect, and safely use the Django admin workspace
-- [Admin Cheat Sheet](https://debt-risk-intelligence-hub.onrender.com/docs/admin-cheat-sheet/) - ultra-short admin reference for quick review and demos
 
 ## Business Problem
 Debt operations teams often work with fragmented CSV/Excel exports, ad-hoc scoring logic, and delayed performance visibility.
@@ -55,6 +58,8 @@ This project centralizes those workflows into one system that supports:
 - debtor prioritization
 - KPI monitoring
 - repeatable management reporting
+- package valuation and acquisition review
+- action strategy planning for collections teams
 
 ## Core Features
 - CSV/Excel import with required-column validation, row-level errors, preview before save
@@ -63,6 +68,8 @@ This project centralizes those workflows into one system that supports:
 - Management dashboard with filters, KPI cards, dynamic visual analytics, segment breakdowns, and one-click navigation to valuation flows
 - Performance module (`contact_rate`, `ptp_rate`, `conversion_rate`, `recovery_rate`)
 - Excel and PDF management report exports
+- Collections intelligence workspace with next-best-action recommendations, collector queue, and strategy simulator
+- Strategy rules workspace and read API endpoints for operational review
 - Weekly report generation command
 - Role-based access control (Analyst / Manager / Admin)
 - GitHub Actions CI pipeline
@@ -79,6 +86,15 @@ Available in the current main application:
 - ML-ready feature engineering layer
 - ML baseline forecast scaffold with prediction logging
 - Portfolio comparison desk for side-by-side acquisition review
+
+## Collections Intelligence Layer
+Available on the active `feature/strategy` branch:
+- Collections workspace with debtor-level next-best-action ranking
+- Contact-history-aware strategy engine with call outcomes, no-answer streaks, refusal patterns, and promise tracking
+- Collector queue workspace with priority buckets and team lanes
+- Strategy simulator comparing `Call-First`, `Digital-First`, `Settlement`, `Legal Escalation`, and `Balanced Mixed` strategies
+- Strategy rules workspace for manager/admin tuning
+- Strategy API endpoints for recommendations, queue payloads, and simulator output
 
 ## Why This Project Stands Out
 - Solves a real operations problem instead of acting like a generic CRUD demo
@@ -101,6 +117,7 @@ Available in the current main application:
 - `apps/dashboard` - management dashboard views/templates
 - `apps/reports` - report services, exports, scheduled command
 - `apps/valuation` - acquisition pricing, benchmarks, scenario analysis, comparison desk, ML baseline scaffold
+- `apps/strategy` - next-best-action engine, collector queue, simulator, rules workspace, strategy APIs
 - `docs/` - demo/testing walkthrough
 
 ## Local Setup
@@ -123,7 +140,8 @@ If someone opens the repo and wants to understand the product quickly:
 6. Open `Report Preview`
 7. Open `/valuation/`
 8. Review the ranking workspace, comparison desk, valuation preview, and benchmark library
-9. Log in as a private admin user and open `/admin/`
+9. If testing the active strategy branch, open `/strategy/`, `/strategy/queue/`, and `/strategy/simulator/`
+10. Log in as a private admin user and open `/admin/`
 
 ## Demo Accounts
 - Public demo accounts:
@@ -151,6 +169,10 @@ Allowed:
 - `/valuation/`
 - `/valuation/compare/`
 - `/valuation/benchmarks/` (read-only)
+- `/strategy/`
+- `/strategy/queue/`
+- `/strategy/simulator/`
+- `/strategy/rules/` (read-only)
 - `/api/portfolios/`
 - `/api/debtors/`
 
@@ -179,9 +201,16 @@ Allowed:
 - Valuation comparison desk: `http://127.0.0.1:8000/valuation/compare/`
 - Benchmark library: `http://127.0.0.1:8000/valuation/benchmarks/`
 - Valuation import (manager/admin): `http://127.0.0.1:8000/valuation/import/`
+- Strategy workspace: `http://127.0.0.1:8000/strategy/`
+- Collector queue: `http://127.0.0.1:8000/strategy/queue/`
+- Strategy simulator: `http://127.0.0.1:8000/strategy/simulator/`
+- Strategy rules: `http://127.0.0.1:8000/strategy/rules/`
 - API portfolios: `http://127.0.0.1:8000/api/portfolios/`
 - API debtors: `http://127.0.0.1:8000/api/debtors/`
 - API KPI overview: `http://127.0.0.1:8000/api/kpis/overview/`
+- API strategy recommendations: `http://127.0.0.1:8000/api/strategy/recommendations/`
+- API strategy queue: `http://127.0.0.1:8000/api/strategy/queue/`
+- API strategy simulator: `http://127.0.0.1:8000/api/strategy/simulator/`
 - Django admin: `http://127.0.0.1:8000/admin/`
 
 ## Reports
@@ -194,6 +223,9 @@ Allowed:
 - `GET /api/debtors/`
 - `GET /api/debtors/<id>/score/`
 - `GET /api/kpis/overview/`
+- `GET /api/strategy/recommendations/`
+- `GET /api/strategy/queue/`
+- `GET /api/strategy/simulator/`
 
 Query examples:
 - `/api/debtors/?risk_band=high&ordering=-outstanding_total`
@@ -207,6 +239,7 @@ Query examples:
   - `python manage.py test apps.reports.tests`
   - `python manage.py test apps.scoring.tests`
   - `python manage.py test apps.valuation.tests`
+  - `python manage.py test apps.strategy.tests apps.strategy.tests_api`
 
 ## CI
 GitHub Actions workflow:
@@ -235,6 +268,14 @@ Current `main` application includes:
 - ML baseline forecast scaffold
 - portfolio comparison desk
 - CI and tests
+
+Active `feature/strategy` branch adds:
+- collections intelligence workspace
+- contact-history-aware next-best-action engine
+- collector queue
+- strategy simulator
+- strategy rules workspace
+- strategy API layer
 
 Planned next:
 - optional training dataset ingestion path

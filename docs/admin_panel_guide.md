@@ -22,6 +22,7 @@ Use it to:
 - manage user roles and access
 - review generated report history
 - inspect valuation outputs, benchmarks, and prediction logs
+- inspect strategy recommendations, queue assignments, simulator outputs, and action rules
 
 In this project, the admin panel acts as:
 - an operations workspace
@@ -69,6 +70,14 @@ The admin panel currently includes these core sections.
 - `Portfolio valuations`
 - `Historical benchmarks`
 - `Model prediction logs`
+
+### Strategy domain
+- `Action rules`
+- `Debtor action recommendations`
+- `Action scenarios`
+- `Strategy runs`
+- `Strategy run results`
+- `Collector queue assignments`
 
 ---
 
@@ -401,9 +410,91 @@ When to use it:
 - after valuation save actions
 - when explaining ML baseline output in the product
 
+## 8. Strategy Domain
+
+### 8.1 Action Rules
+
+Purpose:
+- store the rules used by the collections strategy engine
+
+Use it for:
+- reviewing which debtor conditions map to which actions
+- validating recommended action, channel, uplift, and priority weights
+- checking whether a recent rule change explains strategy output differences
+
+What to look at:
+- rule name
+- risk band
+- debtor status
+- DPD range
+- required contact fields
+- recommended action
+- recommended channel
+- base uplift
+- priority weight
+- active flag
+
+### 8.2 Debtor Action Recommendations
+
+Purpose:
+- stored recommendation output for debtor-level next-best-action review
+
+Use it for:
+- checking what action was recommended
+- reviewing priority score and expected uplift
+- validating reason summaries against debtor context
+
+What to look at:
+- debtor
+- recommended action
+- recommended channel
+- priority score
+- expected uplift percent
+- expected uplift amount
+- reason summary
+- created timestamp
+
+### 8.3 Action Scenarios
+
+Purpose:
+- scenario-level comparison records for debtor actions
+
+Use it for:
+- checking the expected recovery and uplift for different actions
+- validating estimated cost and ROI assumptions
+
+### 8.4 Strategy Runs
+
+Purpose:
+- parent records for saved strategy simulations
+
+Use it for:
+- reviewing when a strategy comparison was executed
+- tracing which portfolio and strategy set was evaluated
+
+### 8.5 Strategy Run Results
+
+Purpose:
+- stored summary outcomes for each strategy run
+
+Use it for:
+- comparing expected total recovery
+- reviewing expected uplift, cost, and ROI
+- validating the winning strategy narrative
+
+### 8.6 Collector Queue Assignments
+
+Purpose:
+- operational queue records for prioritized debtor assignments
+
+Use it for:
+- checking who or which lane owns a case
+- validating queue rank and recommended action
+- confirming whether queue grouping looks sensible
+
 ---
 
-## 8. How to Work in the Admin Panel Safely
+## 9. How to Work in the Admin Panel Safely
 
 Use this sequence.
 
@@ -415,6 +506,7 @@ Use this sequence.
 5. Check `Payments`, `Call logs`, and `Promises to pay` if KPI explanations are needed
 6. Check `Generated reports` if a report/export was recently created
 7. Check `Portfolio valuations` and `Historical benchmarks` for acquisition review logic
+8. Check `Action rules`, `Debtor action recommendations`, and `Collector queue assignments` for collections strategy logic
 
 ### When editing data
 Before editing anything, ask:
@@ -429,23 +521,23 @@ Best practice:
 
 ---
 
-## 9. Step-by-Step Admin Testing Checklist
+## 10. Step-by-Step Admin Testing Checklist
 
-### 9.1 Admin login
+### 10.1 Admin login
 1. Open `/admin/`
 2. Sign in with private admin credentials
 3. Expected result:
 - branded admin loads
 - only authorized admin can enter
 
-### 9.2 Portfolio review
+### 10.2 Portfolio review
 1. Open `Portfolios`
 2. Search for a known portfolio
 3. Open the record
 4. Expected result:
 - key commercial fields are visible and correct
 
-### 9.3 Debtor review
+### 10.3 Debtor review
 1. Open `Debtors`
 2. Filter by `risk_band`
 3. Search for a debtor by name
@@ -453,47 +545,65 @@ Best practice:
 5. Expected result:
 - status, DPD, outstanding total, risk score, and risk band are visible
 
-### 9.4 Import audit trail
+### 10.4 Import audit trail
 1. Open `Data import logs`
 2. Review the latest import row
 3. Expected result:
 - file name, status, and row counts look correct
 
-### 9.5 Report log review
+### 10.5 Report log review
 1. Open `Generated reports`
 2. Review recent records
 3. Expected result:
 - generated outputs are logged with type, format, status, and file name
 
-### 9.6 User role review
+### 10.6 User role review
 1. Open `Users`
 2. Inspect `visitor_demo`
 3. Inspect `analyst_demo`
 4. Expected result:
 - each account has the correct role and flags
 
-### 9.7 Valuation history review
+### 10.7 Valuation history review
 1. Open `Portfolio valuations`
 2. Open a stored valuation
 3. Review inline `Valuation factors`
 4. Expected result:
 - saved pricing output and explanatory factors are visible
 
-### 9.8 Benchmark review
+### 10.8 Benchmark review
 1. Open `Historical benchmarks`
 2. Filter by category or region
 3. Expected result:
 - benchmark rows are searchable and understandable
 
-### 9.9 Prediction log review
+### 10.9 Prediction log review
 1. Open `Model prediction logs`
 2. Review recent prediction entries
 3. Expected result:
 - prediction type, value, confidence, and model version are visible
 
+### 10.10 Strategy rule review
+1. Open `Action rules`
+2. Review an existing rule
+3. Expected result:
+- DPD range, action, channel, uplift, and active state are visible
+
+### 10.11 Strategy recommendation review
+1. Open `Debtor action recommendations`
+2. Review a recent recommendation
+3. Expected result:
+- debtor, action, channel, priority score, and reason summary are visible
+
+### 10.12 Queue assignment review
+1. Open `Collector queue assignments`
+2. Review top-ranked records
+3. Expected result:
+- queue rank, action type, and collector assignment are visible
+
 ---
 
-## 10. What You Can Do from Admin
+## 11. What You Can Do from Admin
 
 You can use admin to:
 - inspect portfolios and debtors in detail
@@ -501,6 +611,7 @@ You can use admin to:
 - review imports and generated reports
 - validate role assignments
 - inspect valuation history and model logs
+- inspect strategy rules, recommendations, scenario outputs, and queue assignments
 - manage benchmark assumptions
 - make controlled corrections to live demo data
 
@@ -512,7 +623,7 @@ What admin is especially good for:
 
 ---
 
-## 11. What You Should Avoid in Live Admin
+## 12. What You Should Avoid in Live Admin
 
 Avoid:
 - random deletion of portfolios or debtors
@@ -526,14 +637,15 @@ Reason:
 
 ---
 
-## 12. Best Demo Flow with Admin
+## 13. Best Demo Flow with Admin
 
 If you present the product to someone and want to use admin as part of the story, the best order is:
 
 1. show dashboard
 2. show report preview
 3. show valuation workspace
-4. then show admin panel as the controlled back-office layer
+4. show strategy workspace or collector queue
+5. then show admin panel as the controlled back-office layer
 
 This works well because:
 - first you show business-facing output
@@ -541,7 +653,7 @@ This works well because:
 
 ---
 
-## 13. Quick Reference
+## 14. Quick Reference
 
 ### Best sections for business review
 - `Portfolios`
@@ -549,6 +661,8 @@ This works well because:
 - `Generated reports`
 - `Portfolio valuations`
 - `Historical benchmarks`
+- `Action rules`
+- `Collector queue assignments`
 
 ### Best sections for access control testing
 - `Users`
@@ -560,7 +674,7 @@ This works well because:
 
 ---
 
-## 14. Admin Testing Notes Template
+## 15. Admin Testing Notes Template
 
 ```text
 Admin Section:
@@ -573,7 +687,7 @@ Notes:
 
 ---
 
-## 15. Final Guidance
+## 16. Final Guidance
 
 Think of the admin panel as:
 - the product's control room
