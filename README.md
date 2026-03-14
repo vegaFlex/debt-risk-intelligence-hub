@@ -44,6 +44,7 @@ Open the app locally and review it in this order:
 - [Manual Testing Guide](docs/manual_testing_guide.md) - full role-by-role QA guide for manually testing the live application
 - [Manual Testing Guide (Browser)](https://debt-risk-intelligence-hub.onrender.com/docs/manual-testing-guide/) - browser-friendly and print-ready version for manual QA sessions
 - [Admin Panel Guide](https://debt-risk-intelligence-hub.onrender.com/docs/admin-panel-guide/) - explains how to navigate, inspect, and safely use the Django admin workspace
+- [Admin Cheat Sheet](https://debt-risk-intelligence-hub.onrender.com/docs/admin-cheat-sheet/) - ultra-short admin reference for quick review and demos
 
 ## Business Problem
 Debt operations teams often work with fragmented CSV/Excel exports, ad-hoc scoring logic, and delayed performance visibility.

@@ -17,6 +17,7 @@ urlpatterns = [
     path('docs/user-guide/', docs_views.user_guide, name='docs-user-guide'),
     path('docs/manual-testing-guide/', docs_views.manual_testing_guide, name='docs-manual-testing-guide'),
     path('docs/admin-panel-guide/', docs_views.admin_panel_guide, name='docs-admin-panel-guide'),
+    path('docs/admin-cheat-sheet/', docs_views.admin_cheat_sheet, name='docs-admin-cheat-sheet'),
     path('docs/buyer-guide/', docs_views.buyer_guide, name='docs-buyer-guide'),
     path('docs/buyer-one-pager/', docs_views.buyer_one_pager, name='docs-buyer-one-pager'),
     path('', root_redirect, name='root-redirect'),
