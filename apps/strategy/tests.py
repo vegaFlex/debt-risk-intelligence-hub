@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.portfolio.models import Debtor, Portfolio, PromiseToPay
-from apps.strategy.models import ActionType
+from apps.strategy.models import ActionRule, ActionType
 from apps.strategy.services import build_collector_queue, build_strategy_simulator, build_strategy_workspace
 from apps.users.models import AppUser, UserRole
 
@@ -14,6 +14,7 @@ class StrategyWorkspaceAccessTests(TestCase):
     def setUp(self):
         self.visitor = AppUser.objects.create_user(username='strategy_visitor', password='DemoPass123!', role=UserRole.VISITOR)
         self.analyst = AppUser.objects.create_user(username='strategy_analyst', password='DemoPass123!', role=UserRole.ANALYST)
+        self.manager = AppUser.objects.create_user(username='strategy_manager', password='DemoPass123!', role=UserRole.MANAGER)
 
     def test_visitor_can_open_strategy_workspace(self):
         self.client.force_login(self.visitor)
@@ -35,6 +36,36 @@ class StrategyWorkspaceAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Strategy Simulator')
         self.assertContains(response, 'Collections Strategy Comparison')
+
+    def test_visitor_can_open_rules_in_read_only_mode(self):
+        self.client.force_login(self.visitor)
+        response = self.client.get(reverse('strategy-rules'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Read-Only Rule Review')
+
+    def test_manager_can_create_action_rule(self):
+        self.client.force_login(self.manager)
+        response = self.client.post(
+            reverse('strategy-rules'),
+            {
+                'name': 'Broken Promise Settlement Rule',
+                'risk_band': 'high',
+                'debtor_status': 'contacted',
+                'dpd_min': 120,
+                'dpd_max': 999,
+                'requires_phone': True,
+                'requires_email': False,
+                'recommended_action': ActionType.SETTLEMENT,
+                'recommended_channel': ActionType.CALL,
+                'base_uplift_pct': '8.50',
+                'priority_weight': 82,
+                'active': True,
+                'notes': 'Escalate broken promise high-balance debtors into settlement review.',
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(ActionRule.objects.filter(name='Broken Promise Settlement Rule').exists())
 
     def test_analyst_gets_friendly_denial_for_strategy_workspace(self):
         self.client.force_login(self.analyst)
