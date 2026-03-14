@@ -281,6 +281,7 @@ def build_collector_queue(*, portfolio=None):
         'queued_cases': len(queue_rows),
         'act_now_cases': sum(1 for item in queue_rows if item['priority_bucket'] == 'Act Now'),
         'avg_priority_score': workspace['summary']['avg_priority_score'],
+        'expected_total_uplift': workspace['summary']['expected_total_uplift'],
         'expected_uplift_display': workspace['summary']['expected_total_uplift_display'],
         'top_action': workspace['summary']['highest_value_action'],
     }
