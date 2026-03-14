@@ -111,6 +111,7 @@ def _wrap_document(title: str, body: str) -> str:
       <nav class="nav">
         <a href="/docs/user-guide/">User Guide</a>
         <a href="/docs/manual-testing-guide/">Manual Testing Guide</a>
+        <a href="/docs/admin-panel-guide/">Admin Panel Guide</a>
         <a href="/docs/buyer-guide/">Buyer Guide</a>
         <a href="/docs/buyer-one-pager/">Buyer One-Pager</a>
         <a href="/dashboard/">Open App</a>
@@ -221,5 +222,17 @@ def manual_testing_guide(_request):
     body = _render_markdown_like(markdown_text)
     return HttpResponse(
         _wrap_document('Debt & Risk Intelligence Hub - Manual Testing Guide', body),
+        content_type='text/html; charset=utf-8',
+    )
+
+
+def admin_panel_guide(_request):
+    path = DOCS_DIR / 'admin_panel_guide.md'
+    if not path.exists():
+        raise Http404('Admin panel guide not found.')
+    markdown_text = path.read_text(encoding='utf-8')
+    body = _render_markdown_like(markdown_text)
+    return HttpResponse(
+        _wrap_document('Debt & Risk Intelligence Hub - Admin Panel Guide', body),
         content_type='text/html; charset=utf-8',
     )
