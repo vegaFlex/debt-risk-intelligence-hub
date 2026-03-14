@@ -37,6 +37,7 @@ Open the app locally and review it in this order:
 6. Admin Panel: portfolio, debtor, report, and access management
 
 ## Documentation
+- [Documentation Hub](https://debt-risk-intelligence-hub.onrender.com/docs/) - central landing page for all product, QA, admin, and buyer-facing guides
 - [User Guide](https://debt-risk-intelligence-hub.onrender.com/docs/user-guide/) - complete product manual covering roles, screens, workflows, and usage guidance
 - [Buyer Presentation Guide](https://debt-risk-intelligence-hub.onrender.com/docs/buyer-guide/) - business-facing guide for presenting the product to a buyer or stakeholder
 - [Buyer One-Pager](https://debt-risk-intelligence-hub.onrender.com/docs/buyer-one-pager/) - concise client-facing presentation sheet suitable for browser sharing or PDF export

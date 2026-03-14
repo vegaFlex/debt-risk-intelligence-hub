@@ -14,6 +14,7 @@ def root_redirect(_request):
 
 
 urlpatterns = [
+    path('docs/', docs_views.documentation_hub, name='docs-home'),
     path('docs/user-guide/', docs_views.user_guide, name='docs-user-guide'),
     path('docs/manual-testing-guide/', docs_views.manual_testing_guide, name='docs-manual-testing-guide'),
     path('docs/admin-panel-guide/', docs_views.admin_panel_guide, name='docs-admin-panel-guide'),

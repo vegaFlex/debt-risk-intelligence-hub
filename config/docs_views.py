@@ -249,3 +249,7 @@ def admin_cheat_sheet(_request):
         _wrap_document('Debt & Risk Intelligence Hub - Admin Cheat Sheet', body),
         content_type='text/html; charset=utf-8',
     )
+
+
+def documentation_hub(_request):
+    return _serve_html_doc('documentation_hub.html', 'Debt & Risk Intelligence Hub - Documentation Hub')

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Debt & Risk Intelligence Hub - Documentation Hub</title>
+  <style>
+    :root {
+      --bg: #edf3f1;
+      --card: #ffffff;
+      --ink: #1d2939;
+      --muted: #475467;
+      --brand: #0f766e;
+      --border: #d0d5dd;
+      --soft: #e7f4f1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: radial-gradient(circle at top right, #dbeee8 0, var(--bg) 35%);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+    .shell {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    .hero, .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 18px 40px rgba(15, 118, 110, 0.08);
+    }
+    .eyebrow {
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    h1 { font-size: 34px; margin: 0 0 10px; }
+    h2 { font-size: 24px; margin: 0 0 12px; }
+    p { margin: 10px 0; }
+    .sub { color: var(--muted); margin: 0; }
+    .nav, .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .nav a, .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: #0b4d47;
+      font-weight: 700;
+      text-decoration: none;
+      border: 1px solid #c7e6df;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      background: linear-gradient(180deg, #ffffff, #f9fbfb);
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+    .meta {
+      color: var(--brand);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    ul {
+      margin: 10px 0 0 20px;
+      padding: 0;
+    }
+    li { margin: 6px 0; }
+    .footer-note {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    @media (max-width: 820px) {
+      .shell { padding: 16px; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">Documentation</div>
+      <h1>Debt & Risk Intelligence Hub Documentation Hub</h1>
+      <p class="sub">One place for product usage, testing, admin workflows, buyer-facing material, and quick review references.</p>
+      <nav class="nav">
+        <a href="/dashboard/">Open App</a>
+        <a href="/docs/user-guide/">User Guide</a>
+        <a href="/docs/manual-testing-guide/">Manual Testing Guide</a>
+        <a href="/docs/admin-panel-guide/">Admin Panel Guide</a>
+      </nav>
+    </section>
+
+    <section class="section">
+      <h2>Core Product Documentation</h2>
+      <div class="grid">
+        <article class="card">
+          <div class="meta">Product Manual</div>
+          <h3>User Guide</h3>
+          <p>Complete application manual covering roles, screens, workflows, key modules, and how the product is used in practice.</p>
+          <div class="cta-row">
+            <a class="cta" href="/docs/user-guide/">Open User Guide</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="meta">Manual QA</div>
+          <h3>Manual Testing Guide</h3>
+          <p>Step-by-step QA guide for anonymous access, visitor review, analyst restrictions, admin checks, API testing, and regression testing.</p>
+          <div class="cta-row">
+            <a class="cta" href="/docs/manual-testing-guide/">Open Testing Guide</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="meta">Back Office</div>
+          <h3>Admin Panel Guide</h3>
+          <p>Explains the Django admin workspace, what each admin section does, and how to use it safely without breaking demo data.</p>
+          <div class="cta-row">
+            <a class="cta" href="/docs/admin-panel-guide/">Open Admin Guide</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="meta">Quick Reference</div>
+          <h3>Admin Cheat Sheet</h3>
+          <p>Ultra-short admin reference for fast demos, role checks, and the most important inspection screens.</p>
+          <div class="cta-row">
+            <a class="cta" href="/docs/admin-cheat-sheet/">Open Cheat Sheet</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Buyer-Facing Material</h2>
+      <div class="grid">
+        <article class="card">
+          <div class="meta">Presentation</div>
+          <h3>Buyer Presentation Guide</h3>
+          <p>Business-facing guide for presenting the product to a buyer, stakeholder, or client, including a suggested talk track.</p>
+          <div class="cta-row">
+            <a class="cta" href="/docs/buyer-guide/">Open Buyer Guide</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="meta">One-Pager</div>
+          <h3>Buyer One-Pager</h3>
+          <p>Concise client-facing overview suitable for fast review, browser sharing, or PDF export.</p>
+          <div class="cta-row">
+            <a class="cta" href="/docs/buyer-one-pager/">Open One-Pager</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Suggested Usage Order</h2>
+      <ul>
+        <li>Use <strong>User Guide</strong> when someone needs to understand the product.</li>
+        <li>Use <strong>Manual Testing Guide</strong> when you want to verify all live functionality step by step.</li>
+        <li>Use <strong>Admin Panel Guide</strong> when reviewing the controlled back-office workspace.</li>
+        <li>Use <strong>Admin Cheat Sheet</strong> when you need the fastest admin summary.</li>
+        <li>Use <strong>Buyer Guide</strong> and <strong>Buyer One-Pager</strong> for clients, stakeholders, and sales-style presentation.</li>
+      </ul>
+      <p class="footer-note">Tip: all browser guides can be opened directly and saved as PDF with <code>Ctrl+P</code> where appropriate.</p>
+    </section>
+  </main>
+</body>
+</html>
