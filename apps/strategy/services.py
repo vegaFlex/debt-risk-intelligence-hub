@@ -303,3 +303,113 @@ def build_collector_queue(*, portfolio=None):
         'queue_rows': queue_rows,
         'collector_cards': collector_cards,
     }
+
+
+
+def build_strategy_simulator(*, portfolio=None):
+    workspace = build_strategy_workspace(portfolio=portfolio)
+    recommendations = workspace['recommendations']
+
+    strategy_profiles = [
+        {
+            'key': 'call_first',
+            'label': 'Call-First Strategy',
+            'description': 'Push high-touch phone outreach on the most recoverable and urgent cases first.',
+            'target_actions': {'Call'},
+            'uplift_multiplier': Decimal('1.12'),
+            'cost_per_case': Decimal('4.00'),
+        },
+        {
+            'key': 'digital_first',
+            'label': 'Digital-First Strategy',
+            'description': 'Lean on lower-cost SMS and email actions before escalating to higher-touch channels.',
+            'target_actions': {'SMS', 'Email'},
+            'uplift_multiplier': Decimal('0.95'),
+            'cost_per_case': Decimal('1.50'),
+        },
+        {
+            'key': 'settlement_first',
+            'label': 'Settlement Strategy',
+            'description': 'Focus on higher-balance and broken-promise cases with settlement-led recovery moves.',
+            'target_actions': {'Settlement Offer'},
+            'uplift_multiplier': Decimal('1.28'),
+            'cost_per_case': Decimal('7.50'),
+        },
+        {
+            'key': 'legal_escalation',
+            'label': 'Legal Escalation Strategy',
+            'description': 'Escalate the hardest late-stage cases where standard contact channels have little traction.',
+            'target_actions': {'Legal Review'},
+            'uplift_multiplier': Decimal('1.20'),
+            'cost_per_case': Decimal('12.00'),
+        },
+        {
+            'key': 'balanced_mix',
+            'label': 'Balanced Mixed Strategy',
+            'description': 'Blend direct outreach, digital recovery, and targeted settlement actions across the queue.',
+            'target_actions': {'Call', 'SMS', 'Email', 'Settlement Offer'},
+            'uplift_multiplier': Decimal('1.08'),
+            'cost_per_case': Decimal('3.80'),
+        },
+    ]
+
+    strategy_rows = []
+    for profile in strategy_profiles:
+        targeted = [
+            item for item in recommendations
+            if item['recommended_action_label'] in profile['target_actions']
+        ]
+        if not targeted and profile['key'] == 'balanced_mix':
+            targeted = recommendations[: min(20, len(recommendations))]
+
+        debtor_count = len(targeted)
+        base_uplift = sum((item['expected_uplift_amount'] for item in targeted), Decimal('0.00'))
+        expected_total_uplift = _round_money(base_uplift * profile['uplift_multiplier'])
+        expected_cost = _round_money(Decimal(debtor_count) * profile['cost_per_case'])
+        expected_total_recovery = _round_money(sum((item['payments_total'] + item['expected_uplift_amount'] for item in targeted), Decimal('0.00')) + expected_total_uplift)
+
+        expected_roi = Decimal('0.00')
+        if expected_cost > 0:
+            expected_roi = _round_metric(((expected_total_uplift - expected_cost) / expected_cost) * Decimal('100'))
+
+        avg_priority = _round_metric(sum((item['priority_score'] for item in targeted), Decimal('0.00')) / debtor_count) if debtor_count else Decimal('0.00')
+
+        best_fit = []
+        for action_label in profile['target_actions']:
+            action_count = sum(1 for item in targeted if item['recommended_action_label'] == action_label)
+            if action_count:
+                best_fit.append(f'{action_label} ({action_count})')
+
+        strategy_rows.append({
+            'key': profile['key'],
+            'label': profile['label'],
+            'description': profile['description'],
+            'debtor_count': debtor_count,
+            'expected_total_recovery': expected_total_recovery,
+            'expected_total_recovery_display': _format_compact_money(expected_total_recovery),
+            'expected_total_uplift': expected_total_uplift,
+            'expected_total_uplift_display': _format_compact_money(expected_total_uplift),
+            'expected_cost': expected_cost,
+            'expected_cost_display': _format_compact_money(expected_cost),
+            'expected_roi': expected_roi,
+            'avg_priority_score': avg_priority,
+            'best_fit_segments': best_fit or ['General queue'],
+            'top_cases': targeted[:5],
+        })
+
+    strategy_rows.sort(key=lambda item: (item['expected_roi'], item['expected_total_uplift']), reverse=True)
+
+    winner = strategy_rows[0] if strategy_rows else None
+    simulator_summary = {
+        'strategy_count': len(strategy_rows),
+        'best_strategy': winner['label'] if winner else 'No strategy',
+        'best_roi': winner['expected_roi'] if winner else Decimal('0.00'),
+        'best_uplift_display': winner['expected_total_uplift_display'] if winner else '0.00',
+        'targeted_cases': winner['debtor_count'] if winner else 0,
+    }
+
+    return {
+        'simulator_summary': simulator_summary,
+        'strategy_rows': strategy_rows,
+        'winner': winner,
+    }

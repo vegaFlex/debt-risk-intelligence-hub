@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from apps.portfolio.models import Debtor, Portfolio, PromiseToPay
 from apps.strategy.models import ActionType
-from apps.strategy.services import build_collector_queue, build_strategy_workspace
+from apps.strategy.services import build_collector_queue, build_strategy_simulator, build_strategy_workspace
 from apps.users.models import AppUser, UserRole
 
 
@@ -28,6 +28,13 @@ class StrategyWorkspaceAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Collector Queue')
         self.assertContains(response, 'Prioritized Assignments')
+
+    def test_visitor_can_open_strategy_simulator(self):
+        self.client.force_login(self.visitor)
+        response = self.client.get(reverse('strategy-simulator'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Strategy Simulator')
+        self.assertContains(response, 'Collections Strategy Comparison')
 
     def test_analyst_gets_friendly_denial_for_strategy_workspace(self):
         self.client.force_login(self.analyst)
@@ -148,3 +155,43 @@ class StrategyServiceTests(TestCase):
         self.assertEqual(queue['queue_rows'][0]['debtor'], first)
         self.assertEqual(queue['queue_rows'][0]['queue_rank'], 1)
         self.assertIn(queue['queue_rows'][0]['priority_bucket'], {'Act Now', 'Review Today', 'Monitor Queue'})
+
+    def test_strategy_simulator_ranks_scenarios_and_returns_winner(self):
+        first = Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='D-006',
+            full_name='Settlement Debtor',
+            status='contacted',
+            days_past_due=170,
+            outstanding_principal=Decimal('5800.00'),
+            outstanding_total=Decimal('6900.00'),
+            risk_score=87,
+            risk_band='high',
+            phone_number='+359444444',
+        )
+        PromiseToPay.objects.create(
+            debtor=first,
+            promised_amount=Decimal('450.00'),
+            due_date=timezone.localdate(),
+            status=PromiseToPay.PromiseStatus.BROKEN,
+        )
+        Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='D-007',
+            full_name='Digital Debtor',
+            status='new',
+            days_past_due=95,
+            outstanding_principal=Decimal('1500.00'),
+            outstanding_total=Decimal('1900.00'),
+            risk_score=60,
+            risk_band='medium',
+            email='digital@example.com',
+        )
+
+        payload = build_strategy_simulator(portfolio=self.portfolio)
+
+        self.assertEqual(payload['simulator_summary']['strategy_count'], 5)
+        self.assertIsNotNone(payload['winner'])
+        self.assertEqual(payload['strategy_rows'][0]['label'], payload['winner']['label'])
+        self.assertGreaterEqual(payload['winner']['expected_roi'], payload['strategy_rows'][-1]['expected_roi'])
+        self.assertGreaterEqual(payload['winner']['debtor_count'], 0)

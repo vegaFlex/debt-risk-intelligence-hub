@@ -6,6 +6,156 @@
 <section class="page-header card">
   <p class="eyebrow">Collections Intelligence</p>
   <h1>Strategy Simulator</h1>
-  <p class="muted-copy">This V3 screen will compare strategy mixes by expected collections, uplift, execution cost, and projected ROI.</p>
+  <p class="muted-copy">Compare collections strategies by expected uplift, execution cost, projected ROI, and best-fit debtor segments.</p>
+</section>
+
+<section class="insight-grid">
+  <article class="summary-card">
+    <p class="eyebrow">Strategies Compared</p>
+    <h2>{{ simulator_summary.strategy_count }}</h2>
+    <p class="metric-subtitle">Active strategy profiles</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Best Strategy</p>
+    <h2>{{ simulator_summary.best_strategy }}</h2>
+    <p class="metric-subtitle">Current top scenario</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Best ROI</p>
+    <h2>{{ simulator_summary.best_roi }}%</h2>
+    <p class="metric-subtitle">Projected execution ROI</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Best Uplift</p>
+    <h2>{{ simulator_summary.best_uplift_display }}</h2>
+    <p class="metric-subtitle">Expected strategy upside</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Targeted Cases</p>
+    <h2>{{ simulator_summary.targeted_cases }}</h2>
+    <p class="metric-subtitle">Cases covered by the winner</p>
+  </article>
+</section>
+
+{% if winner %}
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Winning Scenario</p>
+      <h2>{{ winner.label }}</h2>
+      <p class="muted-copy">{{ winner.description }}</p>
+    </div>
+  </div>
+  <div class="mini-stat-grid">
+    <article class="mini-stat-card">
+      <p class="eyebrow">Debtors</p>
+      <h3>{{ winner.debtor_count }}</h3>
+      <p class="metric-subtitle">Targeted queue size</p>
+    </article>
+    <article class="mini-stat-card">
+      <p class="eyebrow">Expected Recovery</p>
+      <h3>{{ winner.expected_total_recovery_display }}</h3>
+      <p class="metric-subtitle">Projected collections</p>
+    </article>
+    <article class="mini-stat-card">
+      <p class="eyebrow">Expected Uplift</p>
+      <h3>{{ winner.expected_total_uplift_display }}</h3>
+      <p class="metric-subtitle">Recovery upside</p>
+    </article>
+    <article class="mini-stat-card">
+      <p class="eyebrow">Execution Cost</p>
+      <h3>{{ winner.expected_cost_display }}</h3>
+      <p class="metric-subtitle">Estimated delivery cost</p>
+    </article>
+  </div>
+</section>
+{% endif %}
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Scenario Grid</p>
+      <h2>Collections Strategy Comparison</h2>
+      <p class="muted-copy">Use this comparison to decide whether the queue should lean toward calls, digital recovery, settlements, legal escalation, or a balanced mix.</p>
+    </div>
+  </div>
+  <div class="table-shell">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Strategy</th>
+          <th>Debtor Count</th>
+          <th>Expected Recovery</th>
+          <th>Expected Uplift</th>
+          <th>Expected Cost</th>
+          <th>Projected ROI</th>
+          <th>Avg Priority</th>
+          <th>Best Fit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in strategy_rows %}
+          <tr>
+            <td>
+              <strong>{{ row.label }}</strong><br>
+              <span class="table-subtitle">{{ row.description }}</span>
+            </td>
+            <td>{{ row.debtor_count }}</td>
+            <td>{{ row.expected_total_recovery_display }}</td>
+            <td>{{ row.expected_total_uplift_display }}</td>
+            <td>{{ row.expected_cost_display }}</td>
+            <td><strong>{{ row.expected_roi }}%</strong></td>
+            <td>
+              <strong>{{ row.avg_priority_score }}</strong><br>
+              <span class="table-subtitle">Score out of 100</span>
+            </td>
+            <td>{{ row.best_fit_segments|join:', ' }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8">No strategy scenarios are available yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Top Cases In Winning Strategy</p>
+      <h2>Lead Action List</h2>
+      <p class="muted-copy">A quick look at the debtors most directly affected by the current winning strategy.</p>
+    </div>
+  </div>
+  <div class="table-shell">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Debtor</th>
+          <th>Action</th>
+          <th>Priority</th>
+          <th>Expected Uplift</th>
+          <th>Outstanding</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in winner.top_cases %}
+          <tr>
+            <td>{{ item.debtor.full_name }}</td>
+            <td>{{ item.recommended_action_label }}</td>
+            <td>{{ item.priority_score }}</td>
+            <td>{{ item.expected_uplift_amount_display }}</td>
+            <td>{{ item.outstanding_total_display }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5">No cases are currently attached to the winning strategy.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 {% endblock %}
