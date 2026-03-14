@@ -6,6 +6,124 @@
 <section class="page-header card">
   <p class="eyebrow">Collections Intelligence</p>
   <h1>Collector Queue</h1>
-  <p class="muted-copy">This V3 screen will rank debtors by priority and assign the highest-value cases to the right collector workflow.</p>
+  <p class="muted-copy">Operational queue for assigning the highest-value debtors to collectors based on action priority and expected uplift.</p>
+</section>
+
+<section class="insight-grid">
+  <article class="summary-card">
+    <p class="eyebrow">Queued Cases</p>
+    <h2>{{ queue_summary.queued_cases }}</h2>
+    <p class="metric-subtitle">Live ranked queue size</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Act Now Cases</p>
+    <h2>{{ queue_summary.act_now_cases }}</h2>
+    <p class="metric-subtitle">Immediate high-priority workload</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Avg Priority Score</p>
+    <h2>{{ queue_summary.avg_priority_score }}</h2>
+    <p class="metric-subtitle">Score out of 100</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Expected Uplift</p>
+    <h2>{{ queue_summary.expected_uplift_display }}</h2>
+    <p class="metric-subtitle">Queue-level recovery upside</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Top Action</p>
+    <h2>{{ queue_summary.top_action }}</h2>
+    <p class="metric-subtitle">Most common queued move</p>
+  </article>
+</section>
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Collector Lanes</p>
+      <h2>Assigned Workload</h2>
+      <p class="muted-copy">The first V3 queue distributes the top recommended cases across collector lanes for easier operational review.</p>
+    </div>
+  </div>
+  <div class="insight-grid">
+    {% for collector in collector_cards %}
+      <article class="insight-card">
+        <p class="eyebrow">{{ collector.collector_name }}</p>
+        <h3>{{ collector.case_count }} cases</h3>
+        <p class="muted-copy">Top priority: {{ collector.top_priority }} / 100 | Expected uplift: {{ collector.expected_uplift_display }}</p>
+        <ul class="tight-list">
+          {% for action in collector.actions %}
+            <li>#{{ action.queue_rank }} - {{ action.debtor.full_name }} ({{ action.recommended_action_label }})</li>
+          {% endfor %}
+        </ul>
+      </article>
+    {% empty %}
+      <p class="muted-copy">No collector queue items are available yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Operational Queue</p>
+      <h2>Prioritized Assignments</h2>
+      <p class="muted-copy">Use this table to review which debtor should be worked first, by whom, and why the engine has surfaced the case.</p>
+    </div>
+  </div>
+  <div class="table-shell">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Collector</th>
+          <th>Debtor</th>
+          <th>Priority Bucket</th>
+          <th>Action</th>
+          <th>Expected Uplift</th>
+          <th>Outstanding</th>
+          <th>Contactability</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in queue_rows %}
+          <tr>
+            <td>
+              <strong>#{{ item.queue_rank }}</strong><br>
+              <span class="table-subtitle">Lane {{ item.lane_position }}</span>
+            </td>
+            <td>{{ item.collector_name }}</td>
+            <td>
+              <strong>{{ item.debtor.full_name }}</strong><br>
+              <span class="table-subtitle">{{ item.portfolio.name }}</span>
+            </td>
+            <td>
+              <strong>{{ item.priority_bucket }}</strong><br>
+              <span class="table-subtitle">{{ item.priority_score }} / 100</span>
+            </td>
+            <td>
+              <strong>{{ item.recommended_action_label }}</strong><br>
+              <span class="table-subtitle">{{ item.recommended_channel_label }}</span>
+            </td>
+            <td>
+              <strong>{{ item.expected_uplift_pct }}%</strong><br>
+              <span class="table-subtitle">{{ item.expected_uplift_amount_display }}</span>
+            </td>
+            <td>{{ item.outstanding_total_display }}</td>
+            <td>
+              <strong>{{ item.contactability_label }}</strong><br>
+              <span class="table-subtitle">{{ item.contactability_score }} / 100</span>
+            </td>
+            <td>{{ item.reason_summary }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="9">No queue assignments are available yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 {% endblock %}

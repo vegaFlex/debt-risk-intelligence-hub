@@ -249,3 +249,57 @@ def build_strategy_workspace(*, portfolio=None):
         'recommendations': recommendations,
         'action_mix': action_mix,
     }
+
+
+
+def build_collector_queue(*, portfolio=None):
+    workspace = build_strategy_workspace(portfolio=portfolio)
+    recommendations = workspace['recommendations']
+
+    collectors = ('Team Alpha', 'Team Bravo', 'Team Charlie')
+    queue_rows = []
+    collector_load = {name: [] for name in collectors}
+
+    for index, item in enumerate(recommendations[:30], start=1):
+        collector_name = collectors[(index - 1) % len(collectors)]
+        lane_position = len(collector_load[collector_name]) + 1
+        queue_item = {
+            **item,
+            'queue_rank': index,
+            'collector_name': collector_name,
+            'lane_position': lane_position,
+            'priority_bucket': (
+                'Act Now' if item['priority_score'] >= Decimal('75.00')
+                else 'Review Today' if item['priority_score'] >= Decimal('55.00')
+                else 'Monitor Queue'
+            ),
+        }
+        collector_load[collector_name].append(queue_item)
+        queue_rows.append(queue_item)
+
+    queue_summary = {
+        'queued_cases': len(queue_rows),
+        'act_now_cases': sum(1 for item in queue_rows if item['priority_bucket'] == 'Act Now'),
+        'avg_priority_score': workspace['summary']['avg_priority_score'],
+        'expected_uplift_display': workspace['summary']['expected_total_uplift_display'],
+        'top_action': workspace['summary']['highest_value_action'],
+    }
+
+    collector_cards = []
+    for collector_name, items in collector_load.items():
+        if not items:
+            continue
+        total_uplift = sum((entry['expected_uplift_amount'] for entry in items), Decimal('0.00'))
+        collector_cards.append({
+            'collector_name': collector_name,
+            'case_count': len(items),
+            'top_priority': items[0]['priority_score'],
+            'expected_uplift_display': _format_compact_money(total_uplift),
+            'actions': items[:5],
+        })
+
+    return {
+        'queue_summary': queue_summary,
+        'queue_rows': queue_rows,
+        'collector_cards': collector_cards,
+    }

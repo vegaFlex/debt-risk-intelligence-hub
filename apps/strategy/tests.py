@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from apps.portfolio.models import Debtor, Portfolio, PromiseToPay
 from apps.strategy.models import ActionType
-from apps.strategy.services import build_strategy_workspace
+from apps.strategy.services import build_collector_queue, build_strategy_workspace
 from apps.users.models import AppUser, UserRole
 
 
@@ -21,6 +21,13 @@ class StrategyWorkspaceAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Collections Intelligence')
         self.assertContains(response, 'Next-Best Action Ranking')
+
+    def test_visitor_can_open_collector_queue(self):
+        self.client.force_login(self.visitor)
+        response = self.client.get(reverse('strategy-queue'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Collector Queue')
+        self.assertContains(response, 'Prioritized Assignments')
 
     def test_analyst_gets_friendly_denial_for_strategy_workspace(self):
         self.client.force_login(self.analyst)
@@ -101,3 +108,43 @@ class StrategyServiceTests(TestCase):
 
         self.assertEqual(payload['recommendations'][0]['recommended_action'], ActionType.MONITOR)
         self.assertEqual(payload['recommendations'][0]['recommended_channel'], ActionType.MONITOR)
+
+    def test_collector_queue_assigns_ranked_cases_into_lanes(self):
+        first = Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='D-004',
+            full_name='Priority One Debtor',
+            status='contacted',
+            days_past_due=180,
+            outstanding_principal=Decimal('6000.00'),
+            outstanding_total=Decimal('7600.00'),
+            risk_score=89,
+            risk_band='high',
+            phone_number='+359333333',
+        )
+        PromiseToPay.objects.create(
+            debtor=first,
+            promised_amount=Decimal('500.00'),
+            due_date=timezone.localdate(),
+            status=PromiseToPay.PromiseStatus.BROKEN,
+        )
+        Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='D-005',
+            full_name='Priority Two Debtor',
+            status='new',
+            days_past_due=70,
+            outstanding_principal=Decimal('1200.00'),
+            outstanding_total=Decimal('1500.00'),
+            risk_score=58,
+            risk_band='medium',
+            email='priority2@example.com',
+        )
+
+        queue = build_collector_queue(portfolio=self.portfolio)
+
+        self.assertEqual(queue['queue_summary']['queued_cases'], 2)
+        self.assertGreaterEqual(len(queue['collector_cards']), 2)
+        self.assertEqual(queue['queue_rows'][0]['debtor'], first)
+        self.assertEqual(queue['queue_rows'][0]['queue_rank'], 1)
+        self.assertIn(queue['queue_rows'][0]['priority_bucket'], {'Act Now', 'Review Today', 'Monitor Queue'})
