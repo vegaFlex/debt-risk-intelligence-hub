@@ -34,7 +34,7 @@ Purpose:
 
 Expected behavior:
 - can view dashboards, reports preview, valuation workspace, comparison desk, benchmark library, strategy screens, and docs
-- cannot import data, export reports, save valuations, edit benchmarks, or access admin
+- cannot import data, export reports, save valuations, save strategy runs, edit benchmarks, or access admin
 
 ### Restricted API account
 - Username: `analyst_demo`
@@ -93,6 +93,7 @@ Recommended browser setup:
 - Collector Queue: `https://debt-risk-intelligence-hub.onrender.com/strategy/queue/`
 - Strategy Simulator: `https://debt-risk-intelligence-hub.onrender.com/strategy/simulator/`
 - Strategy Rules: `https://debt-risk-intelligence-hub.onrender.com/strategy/rules/`
+- Debtor Strategy Detail pattern: `https://debt-risk-intelligence-hub.onrender.com/strategy/debtors/<id>/`
 
 ### Documentation
 - User Guide: `https://debt-risk-intelligence-hub.onrender.com/docs/user-guide/`
@@ -297,11 +298,13 @@ The goal here is to confirm that the public review account can see the important
 
 ### 6.19 Strategy workspace
 1. Open `/strategy/`
-2. Expected result:
+2. Change the portfolio filter if available
+3. Expected result:
 - summary KPI cards load
 - `Next-Best Action Ranking` is visible
 - recommended action, channel, priority, and uplift are readable
 - contact history signals appear for ranked debtors
+- portfolio filtering refreshes the ranked set cleanly
 
 ### 6.20 Collector queue
 1. Open `/strategy/queue/`
@@ -310,6 +313,7 @@ The goal here is to confirm that the public review account can see the important
 - collector lanes render
 - prioritized assignments table is readable
 - rows show sensible queue buckets
+- queue rows expose a path to debtor detail review
 
 ### 6.21 Strategy simulator
 1. Open `/strategy/simulator/`
@@ -317,15 +321,32 @@ The goal here is to confirm that the public review account can see the important
 - five compared strategies are visible
 - winner section is visible
 - recovery, uplift, cost, and ROI are readable
+- recent strategy run history is visible when records exist
 
-### 6.22 Strategy rules
+### 6.22 Debtor strategy detail
+1. From `/strategy/`, `/strategy/queue/`, or the dashboard strategy table, open one debtor detail link
+2. Expected result:
+- recommended action is clear
+- priority score and expected uplift are visible
+- recent calls are shown
+- promise history is shown
+- alternative actions are shown with comparable logic
+
+### 6.23 Visitor must not save strategy runs
+1. Open `/strategy/simulator/`
+2. Look for a save action for the winning strategy
+3. Expected result:
+- visitor should not be allowed to save strategy runs
+- any direct save attempt should be denied safely
+
+### 6.24 Strategy rules
 1. Open `/strategy/rules/`
 2. Expected result:
 - visitor can review rules in read-only mode
 - page indicates review-only behavior clearly
 - no create/edit workflow should be usable
 
-### 6.23 Strategy API links
+### 6.25 Strategy API links
 1. Open `/api/strategy/recommendations/`
 2. Open `/api/strategy/queue/`
 3. Open `/api/strategy/simulator/`
@@ -453,9 +474,11 @@ Run these only when you have private admin credentials.
 ### 8.9 Strategy workspace verification
 1. Open `/strategy/`
 2. Review top recommended actions
-3. Expected result:
+3. Open one debtor detail row
+4. Expected result:
 - recommendations load
 - reason summaries reflect debtor condition and contact history
+- debtor detail explains recent calls, promises, and alternative actions
 
 ### 8.10 Collector queue verification
 1. Open `/strategy/queue/`
@@ -467,9 +490,11 @@ Run these only when you have private admin credentials.
 ### 8.11 Strategy simulator verification
 1. Open `/strategy/simulator/`
 2. Compare strategy outputs
-3. Expected result:
+3. Save the winning strategy run
+4. Expected result:
 - winning strategy appears
 - ROI and uplift differ meaningfully between strategies
+- recent strategy history updates
 
 ---
 
@@ -640,4 +665,5 @@ The application is in a good testing state if:
 - Buyer Guide: `/docs/buyer-guide/`
 - Buyer One-Pager: `/docs/buyer-one-pager/`
 - Demo Checklist: `docs/demo_checklist.md`
+
 

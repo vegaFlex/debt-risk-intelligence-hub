@@ -41,6 +41,7 @@ Can:
 Cannot:
 - import data
 - save valuation runs
+- save strategy runs
 - export reports
 - edit benchmarks
 - access the admin panel
@@ -67,6 +68,7 @@ Can:
 - manage benchmark assumptions through the app UI
 - review next-best-action recommendations
 - use the collector queue and strategy simulator
+- save winning strategy runs
 - manage strategy rules through the app UI
 
 ### Admin
@@ -130,6 +132,8 @@ Includes:
 - Collector Queue
 - Simulator
 - Rules
+
+Strategy rows and dashboard strategy tables can also open a debtor-level detail review screen.
 
 Use it for:
 - reviewing next-best-action recommendations for debtors
@@ -511,6 +515,22 @@ Main ranked debtor table showing:
 
 Use it to see which accounts deserve immediate attention.
 
+#### Portfolio Filter
+The workspace can be narrowed to a specific portfolio.
+
+Use it when:
+- you want to review one package instead of the whole debtor universe
+- you want simulator and queue outputs to stay aligned to one acquisition or operational package
+
+#### Debtor Strategy Detail
+Rows link into a debtor-level strategy detail screen.
+
+Use it to review:
+- why a specific action was recommended
+- recent calls and promise history
+- contactability signals
+- alternative action scenarios
+
 #### Contact History Signals
 The strategy engine also considers:
 - call attempts
@@ -539,6 +559,7 @@ Turns ranked strategy recommendations into an operational work queue.
 - top action
 - collector lanes
 - prioritized assignment table
+- direct links into debtor strategy detail screens
 
 Use it when:
 - a team lead wants to distribute work
@@ -567,6 +588,8 @@ Compares multiple collections strategies side by side.
 - projected ROI
 - best-fit segments
 - winning strategy
+- save action for the winning strategy (manager/admin)
+- recent strategy run history for the selected portfolio
 
 Use it to compare operational approaches before committing the team to one playbook.
 
@@ -632,12 +655,13 @@ Low-level maintenance and full administrative control.
 ### Collections strategy workflow
 1. Log in as manager/admin
 2. Open `Strategy -> Workspace`
-3. Review next-best-action ranking and top priorities
-4. Open `Collector Queue`
-5. Review lane allocation and `Act Now` cases
-6. Open `Simulator`
-7. Compare collection strategies and review the winning option
-8. Open `Rules` if a tuning change is needed
+3. Apply a portfolio filter if you want one-package review
+4. Review next-best-action ranking and open at least one debtor detail screen
+5. Open `Collector Queue`
+6. Review lane allocation and `Act Now` cases
+7. Open `Simulator`
+8. Compare collection strategies, save the winning run, and review recent history
+9. Open `Rules` if a tuning change is needed
 
 ## 21. Troubleshooting
 
@@ -672,3 +696,5 @@ For public review:
 - `visitor_demo / DemoPass123!`
 
 This account is the safest way to show the app without exposing write operations or admin control.
+
+

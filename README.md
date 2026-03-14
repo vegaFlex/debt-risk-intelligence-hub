@@ -15,7 +15,7 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
 - Business use case: debt portfolio operations, collections analytics, acquisition review, and next-best-action strategy planning
 - End-to-end flow: `import -> validation -> scoring -> dashboard -> reports -> valuation -> strategy -> admin`
 - Acquisition layer includes: `valuation -> benchmark fallback -> scenario analysis -> comparison desk -> ML baseline scaffold`
-- Collections layer includes: `next-best-action -> collector queue -> simulator -> rules workspace -> strategy API`
+- Collections layer includes: `next-best-action -> collector queue -> simulator -> debtor detail -> saved run history -> rules workspace -> strategy API`
 - Built with: Django, DRF, SQLite (demo/dev), openpyxl, reportlab
 - Includes: dynamic charts, API layer, role-based access, tests, CI
 - Reporting currency for demo data: `EUR`
@@ -36,7 +36,7 @@ Open the app locally and review it in this order:
 3. Report Preview: Excel/PDF-ready management reporting
 4. Valuation Workspace: portfolio ranking, recommendation actions, and benchmark-aware acquisition review
 5. Portfolio Comparison Desk: side-by-side acquisition comparison for multiple packages
-6. Strategy Workspace: debtor action ranking, collector queue, simulator, and rules review
+6. Strategy Workspace: debtor action ranking, collector queue, simulator, debtor detail review, and rules workspace
 7. Admin Panel: portfolio, debtor, report, valuation, strategy, and access management
 
 ## Documentation
@@ -89,10 +89,11 @@ Available in the current main application:
 
 ## Collections Intelligence Layer
 Available on the active `feature/strategy` branch:
-- Collections workspace with debtor-level next-best-action ranking
-- Contact-history-aware strategy engine with call outcomes, no-answer streaks, refusal patterns, and promise tracking
-- Collector queue workspace with priority buckets and team lanes
+- Collections workspace with debtor-level next-best-action ranking, portfolio filtering, and direct debtor drill-down
+- Contact-history-aware strategy engine with call outcomes, no-answer streaks, refusal patterns, wrong-contact signals, and promise tracking
+- Collector queue workspace with priority buckets, team lanes, and debtor detail links
 - Strategy simulator comparing `Call-First`, `Digital-First`, `Settlement`, `Legal Escalation`, and `Balanced Mixed` strategies
+- Saved strategy run history with stored recommendations, scenarios, and queue snapshots
 - Strategy rules workspace for manager/admin tuning
 - Strategy API endpoints for recommendations, queue payloads, and simulator output
 
@@ -173,6 +174,7 @@ Allowed:
 - `/strategy/queue/`
 - `/strategy/simulator/`
 - `/strategy/rules/` (read-only)
+- debtor-level strategy detail pages opened from strategy and dashboard tables
 - `/api/portfolios/`
 - `/api/debtors/`
 
@@ -180,6 +182,7 @@ Restricted (friendly access message shown):
 - report Excel/PDF downloads
 - valuation import
 - run and save valuation
+- save strategy runs
 - benchmark editing
 - `/admin/`
 
@@ -205,6 +208,7 @@ Allowed:
 - Collector queue: `http://127.0.0.1:8000/strategy/queue/`
 - Strategy simulator: `http://127.0.0.1:8000/strategy/simulator/`
 - Strategy rules: `http://127.0.0.1:8000/strategy/rules/`
+- Debtor strategy detail: `http://127.0.0.1:8000/strategy/debtors/<id>/`
 - API portfolios: `http://127.0.0.1:8000/api/portfolios/`
 - API debtors: `http://127.0.0.1:8000/api/debtors/`
 - API KPI overview: `http://127.0.0.1:8000/api/kpis/overview/`
@@ -274,6 +278,8 @@ Active `feature/strategy` branch adds:
 - contact-history-aware next-best-action engine
 - collector queue
 - strategy simulator
+- portfolio filtering and saved strategy run history
+- debtor strategy detail screen
 - strategy rules workspace
 - strategy API layer
 
@@ -341,5 +347,6 @@ The benchmark workspace manages historical recovery assumptions that feed the hy
 
 ### KPI Overview Endpoint
 ![API KPIs](docs/images/api-kpis.jpg)
+
 
 

@@ -79,6 +79,8 @@ The admin panel currently includes these core sections.
 - `Strategy run results`
 - `Collector queue assignments`
 
+These records together let you inspect recommendation logic, compare alternative actions, and trace saved strategy runs back to portfolio-level simulations.
+
 ---
 
 ## 4. Portfolio Domain - What Each Section Does
@@ -471,6 +473,14 @@ Purpose:
 Use it for:
 - reviewing when a strategy comparison was executed
 - tracing which portfolio and strategy set was evaluated
+- confirming who saved the run and when
+
+What to look at:
+- strategy name
+- portfolio
+- strategy type
+- created by
+- created timestamp
 
 ### 8.5 Strategy Run Results
 
@@ -481,6 +491,15 @@ Use it for:
 - comparing expected total recovery
 - reviewing expected uplift, cost, and ROI
 - validating the winning strategy narrative
+
+What to look at:
+- linked strategy run
+- debtor count
+- expected total recovery
+- expected total uplift
+- expected cost
+- expected ROI
+- notes
 
 ### 8.6 Collector Queue Assignments
 
@@ -506,7 +525,7 @@ Use this sequence.
 5. Check `Payments`, `Call logs`, and `Promises to pay` if KPI explanations are needed
 6. Check `Generated reports` if a report/export was recently created
 7. Check `Portfolio valuations` and `Historical benchmarks` for acquisition review logic
-8. Check `Action rules`, `Debtor action recommendations`, and `Collector queue assignments` for collections strategy logic
+8. Check `Action rules`, `Debtor action recommendations`, `Strategy runs`, `Strategy run results`, and `Collector queue assignments` for collections strategy logic
 
 ### When editing data
 Before editing anything, ask:
@@ -601,6 +620,14 @@ Best practice:
 3. Expected result:
 - queue rank, action type, and collector assignment are visible
 
+### 10.13 Strategy run history review
+1. Open `Strategy runs`
+2. Open a recent saved run
+3. Open `Strategy run results`
+4. Expected result:
+- saved run points to the correct portfolio and strategy type
+- run results show recovery, uplift, cost, and ROI summaries
+
 ---
 
 ## 11. What You Can Do from Admin
@@ -611,7 +638,7 @@ You can use admin to:
 - review imports and generated reports
 - validate role assignments
 - inspect valuation history and model logs
-- inspect strategy rules, recommendations, scenario outputs, and queue assignments
+- inspect strategy rules, recommendations, scenario outputs, saved run history, and queue assignments
 - manage benchmark assumptions
 - make controlled corrections to live demo data
 
