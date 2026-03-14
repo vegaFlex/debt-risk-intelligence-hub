@@ -8,6 +8,7 @@ from django.db.models.functions import Coalesce
 from django.shortcuts import render
 
 from apps.portfolio.models import Debtor, Payment, Portfolio
+from apps.strategy.services import build_strategy_workspace
 from apps.users.decorators import viewer_or_manager_or_admin_required
 
 
@@ -377,6 +378,26 @@ def _navigation_actions(filters, user):
     return {'primary': primary, 'secondary': secondary, 'admin_href': admin_href}
 
 
+def _strategy_snapshot(filtered_debtors):
+    strategy_payload = build_strategy_workspace(debtors=filtered_debtors)
+    summary = strategy_payload['summary']
+    recommendations = strategy_payload['recommendations'][:5]
+    action_mix = strategy_payload['action_mix'][:3]
+
+    return {
+        'summary': {
+            'debtor_count': summary['debtor_count'],
+            'top_priority_score': summary['top_priority_score'],
+            'avg_priority_score': summary['avg_priority_score'],
+            'expected_total_uplift_display': summary['expected_total_uplift_display'],
+            'highest_value_action': summary['highest_value_action'],
+            'act_now_cases': sum(1 for item in strategy_payload['recommendations'] if item['priority_score'] >= Decimal('75.00')),
+        },
+        'recommendations': recommendations,
+        'action_mix': action_mix,
+    }
+
+
 @login_required
 @viewer_or_manager_or_admin_required
 def management_dashboard_view(request):
@@ -389,6 +410,7 @@ def management_dashboard_view(request):
     context['chart_data'] = _chart_context(filtered_debtors, status_options, filters)
     context.update({
         'top_risk_debtors': filtered_debtors.order_by('-risk_score', '-outstanding_total', 'id')[:15],
+        'strategy_snapshot': _strategy_snapshot(filtered_debtors),
         'full_list_query': _build_query_string({
             'portfolio': filters['portfolio'],
             'risk_band': filters['risk_band'],

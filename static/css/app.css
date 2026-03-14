@@ -1123,6 +1123,37 @@ select.auto-submit-filter {
   text-align: center;
 }
 
+.strategy-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.strategy-dashboard-card {
+  border: 1px solid rgba(27, 55, 66, 0.1);
+  border-radius: 16px;
+  padding: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfa 100%);
+}
+
+.strategy-table-wrap {
+  margin-bottom: 0;
+  margin-top: 16px;
+}
+
+.strategy-table-wrap table {
+  min-width: 0;
+}
+
+.strategy-action-bars {
+  margin-top: 18px;
+}
+
+.strategy-dashboard-footer {
+  margin-top: 16px;
+}
+
 @media (max-width: 820px) {
   .valuation-callout {
     grid-template-columns: 1fr;
@@ -1136,6 +1167,10 @@ select.auto-submit-filter {
   .valuation-callout-button {
     min-width: 0;
     width: 100%;
+  }
+
+  .strategy-dashboard-grid {
+    grid-template-columns: 1fr;
   }
 }
 

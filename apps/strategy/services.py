@@ -311,10 +311,13 @@ def _recommendation_payload(debtor):
     }
 
 
-def build_strategy_workspace(*, portfolio=None):
-    debtors = Debtor.objects.select_related('portfolio').prefetch_related('payments', 'promises_to_pay', 'call_logs').all()
-    if portfolio is not None:
-        debtors = debtors.filter(portfolio=portfolio)
+def build_strategy_workspace(*, portfolio=None, debtors=None):
+    if debtors is None:
+        debtors = Debtor.objects.all()
+        if portfolio is not None:
+            debtors = debtors.filter(portfolio=portfolio)
+
+    debtors = debtors.select_related('portfolio').prefetch_related('payments', 'promises_to_pay', 'call_logs')
 
     recommendations = [_recommendation_payload(debtor) for debtor in debtors]
     recommendations.sort(key=lambda item: (item['priority_score'], item['expected_uplift_amount']), reverse=True)
@@ -347,8 +350,8 @@ def build_strategy_workspace(*, portfolio=None):
 
 
 
-def build_collector_queue(*, portfolio=None):
-    workspace = build_strategy_workspace(portfolio=portfolio)
+def build_collector_queue(*, portfolio=None, debtors=None):
+    workspace = build_strategy_workspace(portfolio=portfolio, debtors=debtors)
     recommendations = workspace['recommendations']
 
     collectors = ('Team Alpha', 'Team Bravo', 'Team Charlie')
@@ -402,8 +405,8 @@ def build_collector_queue(*, portfolio=None):
 
 
 
-def build_strategy_simulator(*, portfolio=None):
-    workspace = build_strategy_workspace(portfolio=portfolio)
+def build_strategy_simulator(*, portfolio=None, debtors=None):
+    workspace = build_strategy_workspace(portfolio=portfolio, debtors=debtors)
     recommendations = workspace['recommendations']
 
     strategy_profiles = [
