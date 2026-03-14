@@ -4,10 +4,11 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import TemplateView
 
-from apps.portfolio.models import Portfolio
+from apps.portfolio.models import Debtor, Portfolio
 from apps.strategy.forms import ActionRuleForm
 from apps.strategy.models import ActionRule, StrategyRun
 from apps.strategy.services import (
+    build_debtor_strategy_detail,
     build_collector_queue,
     build_strategy_simulator,
     build_strategy_workspace,
@@ -97,6 +98,17 @@ class CollectionsSimulatorView(View):
         else:
             messages.success(request, f'Strategy run saved: {saved_run.name}.')
         return redirect(f"/strategy/simulator/?portfolio={selected_portfolio.id}")
+
+
+@method_decorator(viewer_or_manager_or_admin_required, name='dispatch')
+class DebtorStrategyDetailView(TemplateView):
+    template_name = 'strategy/debtor_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        debtor = get_object_or_404(Debtor, id=kwargs['debtor_id'])
+        context.update(build_debtor_strategy_detail(debtor))
+        return context
 
 
 class ActionRuleListView(View):

@@ -6,10 +6,12 @@ from apps.strategy.views import (
     CollectionsQueueView,
     CollectionsSimulatorView,
     CollectionsWorkspaceView,
+    DebtorStrategyDetailView,
 )
 
 urlpatterns = [
     path('', CollectionsWorkspaceView.as_view(), name='strategy-workspace'),
+    path('debtors/<int:debtor_id>/', DebtorStrategyDetailView.as_view(), name='strategy-debtor-detail'),
     path('queue/', CollectionsQueueView.as_view(), name='strategy-queue'),
     path('simulator/', CollectionsSimulatorView.as_view(), name='strategy-simulator'),
     path('rules/', ActionRuleListView.as_view(), name='strategy-rules'),

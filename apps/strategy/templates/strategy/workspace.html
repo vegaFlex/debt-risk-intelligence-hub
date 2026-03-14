@@ -103,6 +103,7 @@
           <th>Contactability</th>
           <th>Call History</th>
           <th>Why</th>
+          <th>Detail</th>
         </tr>
       </thead>
       <tbody>
@@ -134,10 +135,11 @@
               <span class="table-subtitle">Last: {{ item.last_call_outcome_label }}{% if item.no_answer_streak %} | No-answer streak {{ item.no_answer_streak }}{% endif %}{% if item.refusal_count %} | Refusals {{ item.refusal_count }}{% endif %}</span>
             </td>
             <td>{{ item.action_reason }}</td>
+            <td><a class="btn btn-secondary btn-compact" href="/strategy/debtors/{{ item.debtor.id }}/">Open</a></td>
           </tr>
         {% empty %}
           <tr>
-            <td colspan="11">No debtors are available yet for collections strategy analysis.</td>
+            <td colspan="12">No debtors are available yet for collections strategy analysis.</td>
           </tr>
         {% endfor %}
       </tbody>

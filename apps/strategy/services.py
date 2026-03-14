@@ -365,6 +365,141 @@ def _strategy_profiles():
     ]
 
 
+def _scenario_options(recommendation: dict) -> list[dict]:
+    outstanding = recommendation['outstanding_total']
+    base_uplift_pct = recommendation['expected_uplift_pct']
+    contactability_score = recommendation['contactability_score']
+    broken_promises = recommendation['broken_promises']
+    pending_promises = recommendation['pending_promises']
+
+    scenarios = [
+        {
+            'action_type': ActionType.CALL,
+            'label': ActionType.CALL.label,
+            'channel': 'Phone outreach',
+            'uplift_multiplier': Decimal('1.00'),
+            'cost': Decimal('4.00'),
+            'rationale': 'Best when direct phone reach is available and a fast human follow-up is needed.',
+        },
+        {
+            'action_type': ActionType.SMS,
+            'label': ActionType.SMS.label,
+            'channel': 'Digital outreach',
+            'uplift_multiplier': Decimal('0.62'),
+            'cost': Decimal('1.20'),
+            'rationale': 'Lower-cost option for lighter-touch nudges or lower-balance accounts.',
+        },
+        {
+            'action_type': ActionType.EMAIL,
+            'label': ActionType.EMAIL.label,
+            'channel': 'Email outreach',
+            'uplift_multiplier': Decimal('0.74'),
+            'cost': Decimal('1.60'),
+            'rationale': 'Useful when phone attempts are saturated or email is the strongest live channel.',
+        },
+        {
+            'action_type': ActionType.SETTLEMENT,
+            'label': ActionType.SETTLEMENT.label,
+            'channel': 'Negotiated recovery',
+            'uplift_multiplier': Decimal('1.28'),
+            'cost': Decimal('7.50'),
+            'rationale': 'Higher-touch option for larger balances, repeated refusals, or broken promises.',
+        },
+        {
+            'action_type': ActionType.LEGAL_REVIEW,
+            'label': ActionType.LEGAL_REVIEW.label,
+            'channel': 'Escalation review',
+            'uplift_multiplier': Decimal('0.88'),
+            'cost': Decimal('12.00'),
+            'rationale': 'Escalation path for aged cases with weak contactability or exhausted outreach.',
+        },
+        {
+            'action_type': ActionType.MONITOR,
+            'label': ActionType.MONITOR.label,
+            'channel': 'No active outreach',
+            'uplift_multiplier': Decimal('0.20'),
+            'cost': Decimal('0.50'),
+            'rationale': 'Hold position when the account is already resolving or contact data is unreliable.',
+        },
+    ]
+
+    rows = []
+    for scenario in scenarios:
+        adjusted_uplift_pct = _round_metric(base_uplift_pct * scenario['uplift_multiplier'])
+        if scenario['action_type'] == ActionType.SETTLEMENT and broken_promises >= 1:
+            adjusted_uplift_pct = _round_metric(adjusted_uplift_pct + Decimal('1.40'))
+        if scenario['action_type'] == ActionType.CALL and pending_promises >= 1:
+            adjusted_uplift_pct = _round_metric(adjusted_uplift_pct + Decimal('0.90'))
+        if scenario['action_type'] in {ActionType.SMS, ActionType.EMAIL} and contactability_score < Decimal('40.00'):
+            adjusted_uplift_pct = _round_metric(max(Decimal('0.40'), adjusted_uplift_pct - Decimal('0.80')))
+        if scenario['action_type'] == ActionType.LEGAL_REVIEW and recommendation['wrong_contact_count'] >= 2:
+            adjusted_uplift_pct = _round_metric(adjusted_uplift_pct + Decimal('0.60'))
+
+        expected_uplift_amount = _round_money(outstanding * (adjusted_uplift_pct / Decimal('100')))
+        projected_recovery = _round_money(recommendation['payments_total'] + expected_uplift_amount)
+        cost = scenario['cost']
+        projected_roi = Decimal('0.00')
+        if cost > 0:
+            projected_roi = _round_metric(((expected_uplift_amount - cost) / cost) * Decimal('100'))
+
+        rows.append({
+            'action_type': scenario['action_type'],
+            'label': scenario['label'],
+            'channel': scenario['channel'],
+            'expected_uplift_pct': adjusted_uplift_pct,
+            'expected_uplift_amount': expected_uplift_amount,
+            'expected_uplift_amount_display': _format_compact_money(expected_uplift_amount),
+            'projected_recovery': projected_recovery,
+            'projected_recovery_display': _format_compact_money(projected_recovery),
+            'estimated_cost': cost,
+            'estimated_cost_display': _format_compact_money(cost),
+            'projected_roi': projected_roi,
+            'rationale': scenario['rationale'],
+            'is_recommended': scenario['action_type'] == recommendation['recommended_action'],
+        })
+
+    rows.sort(key=lambda item: (item['is_recommended'], item['projected_roi'], item['expected_uplift_amount']), reverse=True)
+    return rows
+
+
+def build_debtor_strategy_detail(debtor: Debtor) -> dict:
+    debtor = Debtor.objects.select_related('portfolio').prefetch_related('payments', 'promises_to_pay', 'call_logs').get(id=debtor.id)
+    recommendation = _recommendation_payload(debtor)
+    call_logs = list(debtor.call_logs.select_related('agent')[:8])
+    promises = list(debtor.promises_to_pay.select_related('fulfilled_payment', 'call_log')[:6])
+    scenarios = _scenario_options(recommendation)
+
+    overview = {
+        'status': debtor.status.replace('_', ' ').title(),
+        'risk_band': debtor.get_risk_band_display(),
+        'days_past_due': debtor.days_past_due,
+        'outstanding_total_display': recommendation['outstanding_total_display'],
+        'payments_total_display': recommendation['payments_total_display'],
+        'contactability_label': recommendation['contactability_label'],
+        'contactability_score': recommendation['contactability_score'],
+    }
+
+    signals = [
+        {'label': 'Call Attempts', 'value': recommendation['call_attempt_count'], 'meta': 'Recent contact volume'},
+        {'label': 'Last Outcome', 'value': recommendation['last_call_outcome_label'], 'meta': 'Most recent call result'},
+        {'label': 'No-Answer Streak', 'value': recommendation['no_answer_streak'], 'meta': 'Consecutive unanswered calls'},
+        {'label': 'Refusals', 'value': recommendation['refusal_count'], 'meta': 'Refusal outcomes logged'},
+        {'label': 'Broken Promises', 'value': recommendation['broken_promises'], 'meta': 'Promises not kept'},
+        {'label': 'Pending Promises', 'value': recommendation['pending_promises'], 'meta': 'Open promise-to-pay items'},
+    ]
+
+    return {
+        'debtor': debtor,
+        'portfolio': debtor.portfolio,
+        'recommendation': recommendation,
+        'overview': overview,
+        'signals': signals,
+        'call_logs': call_logs,
+        'promises': promises,
+        'scenarios': scenarios,
+    }
+
+
 def build_strategy_workspace(*, portfolio=None, debtors=None):
     if debtors is None:
         debtors = Debtor.objects.all()

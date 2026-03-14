@@ -37,6 +37,36 @@ class StrategyWorkspaceAccessTests(TestCase):
         self.assertContains(response, 'Strategy Simulator')
         self.assertContains(response, 'Collections Strategy Comparison')
 
+    def test_visitor_can_open_debtor_strategy_detail(self):
+        portfolio = Portfolio.objects.create(
+            name='Detail Portfolio',
+            source_company='Detail Creditor',
+            purchase_date=timezone.localdate(),
+            purchase_price=Decimal('9000.00'),
+            face_value=Decimal('45000.00'),
+            currency='EUR',
+            created_by=self.manager,
+        )
+        debtor = Debtor.objects.create(
+            portfolio=portfolio,
+            external_id='DET-001',
+            full_name='Detail Debtor',
+            status='contacted',
+            days_past_due=110,
+            outstanding_principal=Decimal('2600.00'),
+            outstanding_total=Decimal('3100.00'),
+            risk_score=74,
+            risk_band='high',
+            phone_number='+359123123',
+        )
+
+        self.client.force_login(self.visitor)
+        response = self.client.get(reverse('strategy-debtor-detail', args=[debtor.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Detail Debtor')
+        self.assertContains(response, 'Alternative Actions')
+        self.assertContains(response, 'Contact History')
+
     def test_manager_can_save_strategy_run_for_selected_portfolio(self):
         portfolio = Portfolio.objects.create(
             name='Simulator Save Portfolio',

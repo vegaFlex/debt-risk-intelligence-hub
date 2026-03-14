@@ -151,7 +151,7 @@
         <table>
           <thead>
             <tr>
-              <th>Debtor</th><th>Action</th><th>Channel</th><th>Priority</th><th>Uplift</th><th>Reason</th>
+              <th>Debtor</th><th>Action</th><th>Channel</th><th>Priority</th><th>Uplift</th><th>Reason</th><th>Detail</th>
             </tr>
           </thead>
           <tbody>
@@ -163,9 +163,10 @@
                 <td>{{ item.priority_score }}</td>
                 <td>{{ item.expected_uplift_amount_display }}</td>
                 <td>{{ item.reason_summary }}</td>
+                <td><a class="btn btn-secondary btn-compact" href="/strategy/debtors/{{ item.debtor.id }}/">Open</a></td>
               </tr>
             {% empty %}
-              <tr><td colspan="6">No strategy recommendations are available for the current filters.</td></tr>
+              <tr><td colspan="7">No strategy recommendations are available for the current filters.</td></tr>
             {% endfor %}
           </tbody>
         </table>

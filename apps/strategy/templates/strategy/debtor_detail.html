@@ -1,0 +1,186 @@
+{% extends "base_app.html" %}
+
+{% block title %}Debtor Strategy Detail{% endblock %}
+
+{% block content %}
+<section class="page-header card">
+  <p class="eyebrow">Collections Intelligence</p>
+  <h1>{{ debtor.full_name }}</h1>
+  <p class="muted-copy">Detailed next-best-action review for one debtor, including recommendation logic, contact history, promises, and alternative action scenarios.</p>
+</section>
+
+<section class="card">
+  <div class="section-head compact">
+    <div>
+      <p class="eyebrow">Debtor Context</p>
+      <h2>{{ portfolio.name }}</h2>
+      <p class="section-copy">{{ overview.status }} | {{ overview.risk_band }} risk | {{ overview.days_past_due }} DPD</p>
+    </div>
+    <div class="valuation-actions">
+      <a class="btn btn-secondary" href="/strategy/">Back to Workspace</a>
+      <a class="btn btn-secondary" href="/strategy/queue/">Open Queue</a>
+    </div>
+  </div>
+
+  <div class="mini-stat-grid">
+    <article class="mini-stat-card">
+      <p class="eyebrow">Recommended Action</p>
+      <h3>{{ recommendation.recommended_action_label }}</h3>
+      <p class="metric-subtitle">{{ recommendation.recommended_channel_label }}</p>
+    </article>
+    <article class="mini-stat-card">
+      <p class="eyebrow">Priority Score</p>
+      <h3>{{ recommendation.priority_score }}</h3>
+      <p class="metric-subtitle">Score out of 100</p>
+    </article>
+    <article class="mini-stat-card">
+      <p class="eyebrow">Expected Uplift</p>
+      <h3>{{ recommendation.expected_uplift_amount_display }}</h3>
+      <p class="metric-subtitle">{{ recommendation.expected_uplift_pct }}%</p>
+    </article>
+    <article class="mini-stat-card">
+      <p class="eyebrow">Outstanding</p>
+      <h3>{{ overview.outstanding_total_display }}</h3>
+      <p class="metric-subtitle">Current total exposure</p>
+    </article>
+    <article class="mini-stat-card">
+      <p class="eyebrow">Collected So Far</p>
+      <h3>{{ overview.payments_total_display }}</h3>
+      <p class="metric-subtitle">Confirmed payments</p>
+    </article>
+    <article class="mini-stat-card">
+      <p class="eyebrow">Contactability</p>
+      <h3>{{ overview.contactability_label }}</h3>
+      <p class="metric-subtitle">{{ overview.contactability_score }} / 100</p>
+    </article>
+  </div>
+</section>
+
+<section class="strategy-dashboard-grid">
+  <article class="strategy-dashboard-card">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Recommendation Logic</p>
+        <h2>Why This Action</h2>
+        <p class="muted-copy">{{ recommendation.reason_summary }}</p>
+      </div>
+    </div>
+    <div class="mini-stat-grid">
+      {% for signal in signals %}
+        <article class="mini-stat-card">
+          <p class="eyebrow">{{ signal.label }}</p>
+          <h3>{{ signal.value }}</h3>
+          <p class="metric-subtitle">{{ signal.meta }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="strategy-dashboard-card">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Alternative Actions</p>
+        <h2>Scenario Ladder</h2>
+        <p class="muted-copy">Compare the recommended action against alternative channels and escalation paths.</p>
+      </div>
+    </div>
+    <div class="table-shell">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Uplift</th>
+            <th>Recovery</th>
+            <th>Cost</th>
+            <th>ROI</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for scenario in scenarios %}
+            <tr>
+              <td>
+                <strong>{{ scenario.label }}</strong>{% if scenario.is_recommended %} <span class="valuation-pill valuation-pill-strong">Recommended</span>{% endif %}<br>
+                <span class="table-subtitle">{{ scenario.channel }}</span>
+              </td>
+              <td>{{ scenario.expected_uplift_amount_display }}<br><span class="table-subtitle">{{ scenario.expected_uplift_pct }}%</span></td>
+              <td>{{ scenario.projected_recovery_display }}</td>
+              <td>{{ scenario.estimated_cost_display }}</td>
+              <td>{{ scenario.projected_roi }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+
+<section class="strategy-dashboard-grid">
+  <article class="strategy-dashboard-card">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Recent Calls</p>
+        <h2>Contact History</h2>
+        <p class="muted-copy">The latest interaction records that shaped the current recommendation.</p>
+      </div>
+    </div>
+    <div class="table-shell">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Outcome</th>
+            <th>Duration</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for call in call_logs %}
+            <tr>
+              <td>{{ call.call_datetime|date:"Y-m-d H:i" }}</td>
+              <td>{{ call.get_outcome_display }}</td>
+              <td>{{ call.duration_seconds }}s</td>
+              <td>{{ call.notes|default:"No notes recorded." }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4">No call history is recorded for this debtor yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="strategy-dashboard-card">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Promise History</p>
+        <h2>PTP Signals</h2>
+        <p class="muted-copy">Open, kept, and broken promise-to-pay records for this debtor.</p>
+      </div>
+    </div>
+    <div class="table-shell">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Promised Amount</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for promise in promises %}
+            <tr>
+              <td>{{ promise.due_date }}</td>
+              <td>{{ promise.get_status_display }}</td>
+              <td>{{ promise.promised_amount }}</td>
+              <td>{{ promise.notes|default:"No notes recorded." }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4">No promise-to-pay history is recorded for this debtor yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+{% endblock %}
