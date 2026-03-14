@@ -1,6 +1,12 @@
+from decimal import Decimal
+
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
+from apps.portfolio.models import Debtor, Portfolio, PromiseToPay
+from apps.strategy.models import ActionType
+from apps.strategy.services import build_strategy_workspace
 from apps.users.models import AppUser, UserRole
 
 
@@ -14,9 +20,84 @@ class StrategyWorkspaceAccessTests(TestCase):
         response = self.client.get(reverse('strategy-workspace'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Collections Intelligence')
+        self.assertContains(response, 'Next-Best Action Ranking')
 
     def test_analyst_gets_friendly_denial_for_strategy_workspace(self):
         self.client.force_login(self.analyst)
         response = self.client.get(reverse('strategy-workspace'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'You do not have permission to access this page.')
+
+
+class StrategyServiceTests(TestCase):
+    def setUp(self):
+        self.user = AppUser.objects.create_user(username='manager_strategy', password='DemoPass123!', role=UserRole.MANAGER)
+        self.portfolio = Portfolio.objects.create(
+            name='Strategy Test Portfolio',
+            source_company='Test Creditor',
+            purchase_date=timezone.localdate(),
+            purchase_price=Decimal('120000.00'),
+            face_value=Decimal('450000.00'),
+            currency='EUR',
+            created_by=self.user,
+        )
+
+    def test_strategy_workspace_ranks_debtors_and_builds_summary(self):
+        high_balance = Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='D-001',
+            full_name='High Balance Broken Promise',
+            status='contacted',
+            days_past_due=150,
+            outstanding_principal=Decimal('5000.00'),
+            outstanding_total=Decimal('6200.00'),
+            risk_score=84,
+            risk_band='high',
+            phone_number='+359111111',
+        )
+        PromiseToPay.objects.create(
+            debtor=high_balance,
+            promised_amount=Decimal('400.00'),
+            due_date=timezone.localdate(),
+            status=PromiseToPay.PromiseStatus.BROKEN,
+        )
+
+        Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='D-002',
+            full_name='Low Balance Reachable',
+            status='new',
+            days_past_due=35,
+            outstanding_principal=Decimal('450.00'),
+            outstanding_total=Decimal('700.00'),
+            risk_score=41,
+            risk_band='medium',
+            phone_number='+359222222',
+        )
+
+        payload = build_strategy_workspace(portfolio=self.portfolio)
+
+        self.assertEqual(payload['summary']['debtor_count'], 2)
+        self.assertEqual(payload['recommendations'][0]['recommended_action'], ActionType.SETTLEMENT)
+        self.assertEqual(payload['recommendations'][0]['recommended_channel'], ActionType.CALL)
+        self.assertGreater(payload['recommendations'][0]['priority_score'], payload['recommendations'][1]['priority_score'])
+        self.assertEqual(payload['summary']['highest_value_action'], 'Settlement Offer')
+
+    def test_paying_account_is_recommended_for_monitoring(self):
+        Debtor.objects.create(
+            portfolio=self.portfolio,
+            external_id='D-003',
+            full_name='Already Paying Debtor',
+            status='paying',
+            days_past_due=20,
+            outstanding_principal=Decimal('1200.00'),
+            outstanding_total=Decimal('1300.00'),
+            risk_score=28,
+            risk_band='low',
+            email='paying@example.com',
+        )
+
+        payload = build_strategy_workspace(portfolio=self.portfolio)
+
+        self.assertEqual(payload['recommendations'][0]['recommended_action'], ActionType.MONITOR)
+        self.assertEqual(payload['recommendations'][0]['recommended_channel'], ActionType.MONITOR)
