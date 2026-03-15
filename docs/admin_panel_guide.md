@@ -507,9 +507,14 @@ Purpose:
 - operational queue records for prioritized debtor assignments
 
 Use it for:
-- checking who or which lane owns a case
+- checking which lane owns a case inside the current queue snapshot
 - validating queue rank and recommended action
-- confirming whether queue grouping looks sensible
+- confirming whether queue grouping and lane balance look sensible
+
+Important interpretation:
+- these records represent a queue snapshot and lane assignment view
+- they should be read as workload lanes for supervisor review
+- they are not a full daily staffing or shift-capacity model
 
 ---
 
@@ -627,6 +632,7 @@ Best practice:
 4. Expected result:
 - saved run points to the correct portfolio and strategy type
 - run results show recovery, uplift, cost, and ROI summaries
+- deleted simulator runs should no longer appear in the retained history set
 
 ---
 

@@ -76,6 +76,7 @@ Use for:
 - saved simulator history
 - portfolio-level strategy review
 - checking who saved a run and when
+- confirming which runs were retained vs deleted from simulator history
 
 ### Strategy run results
 Use for:
@@ -85,8 +86,9 @@ Use for:
 ### Collector queue assignments
 Use for:
 - queue rank review
-- collector/lane allocation
+- collector/lane allocation inside the current queue snapshot
 - action priority verification
+- quick supervisor review of workload balance
 
 ### Users
 Use for:

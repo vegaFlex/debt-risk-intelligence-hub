@@ -383,6 +383,11 @@ def _strategy_snapshot(filtered_debtors):
     summary = strategy_payload['summary']
     recommendations = strategy_payload['recommendations'][:5]
     action_mix = strategy_payload['action_mix'][:3]
+    recommendation_count = len(strategy_payload['recommendations'])
+    avg_uplift_pct = round(
+        sum(float(item['expected_uplift_pct']) for item in strategy_payload['recommendations']) / recommendation_count,
+        2,
+    ) if recommendation_count else 0
 
     return {
         'summary': {
@@ -391,7 +396,10 @@ def _strategy_snapshot(filtered_debtors):
             'avg_priority_score': summary['avg_priority_score'],
             'expected_total_uplift_display': summary['expected_total_uplift_display'],
             'highest_value_action': summary['highest_value_action'],
+            'secondary_action': action_mix[1]['label'] if len(action_mix) > 1 else 'No secondary action',
             'act_now_cases': sum(1 for item in strategy_payload['recommendations'] if item['priority_score'] >= Decimal('75.00')),
+            'mix_coverage_count': recommendation_count,
+            'avg_uplift_pct': avg_uplift_pct,
         },
         'recommendations': recommendations,
         'action_mix': action_mix,

@@ -15,7 +15,7 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
 - Business use case: debt portfolio operations, collections analytics, acquisition review, and next-best-action strategy planning
 - End-to-end flow: `import -> validation -> scoring -> dashboard -> reports -> valuation -> strategy -> admin`
 - Acquisition layer includes: `valuation -> benchmark fallback -> scenario analysis -> comparison desk -> ML baseline scaffold`
-- Collections layer includes: `next-best-action -> collector queue -> simulator -> debtor detail -> saved run history -> rules workspace -> strategy API`
+- Collections layer includes: `next-best-action -> collector queue -> queue snapshot sizing -> collector lanes -> simulator -> debtor detail -> saved run history -> rules workspace -> strategy API`
 - Built with: Django, DRF, SQLite (demo/dev), openpyxl, reportlab
 - Includes: dynamic charts, API layer, role-based access, tests, CI
 - Reporting currency for demo data: `EUR`
@@ -65,7 +65,7 @@ This project centralizes those workflows into one system that supports:
 - CSV/Excel import with required-column validation, row-level errors, preview before save
 - Baseline rule-based risk scoring (`risk_score`, `risk_band`, reason factors)
 - REST API for portfolios, debtors, risk details, and KPI overview
-- Management dashboard with filters, KPI cards, dynamic visual analytics, segment breakdowns, and one-click navigation to valuation flows
+- Management dashboard with filters, KPI cards, dynamic visual analytics, segment breakdowns, strategy action-mix stats, and one-click navigation to valuation flows
 - Performance module (`contact_rate`, `ptp_rate`, `conversion_rate`, `recovery_rate`)
 - Excel and PDF management report exports
 - Collections intelligence workspace with next-best-action recommendations, collector queue, and strategy simulator
@@ -91,9 +91,9 @@ Available in the current main application:
 Available on the active `feature/strategy` branch:
 - Collections workspace with debtor-level next-best-action ranking, portfolio filtering, and direct debtor drill-down
 - Contact-history-aware strategy engine with call outcomes, no-answer streaks, refusal patterns, wrong-contact signals, and promise tracking
-- Collector queue workspace with priority buckets, team lanes, and debtor detail links
-- Strategy simulator comparing `Call-First`, `Digital-First`, `Settlement`, `Legal Escalation`, and `Balanced Mixed` strategies
-- Saved strategy run history with stored recommendations, scenarios, and queue snapshots
+- Collector queue workspace with adjustable queue snapshot size, collector lanes, priority buckets, and debtor detail links
+- Strategy simulator comparing `Call-First`, `Digital-First`, `Settlement`, `Legal Escalation`, and `Balanced Mixed` strategies with execution ROI, run notes, save, and delete actions
+- Saved strategy run history with stored recommendations, scenarios, queue snapshots, and delete controls for saved simulator runs
 - Strategy rules workspace for manager/admin tuning
 - Strategy API endpoints for recommendations, queue payloads, and simulator output
 
@@ -276,8 +276,8 @@ Current `main` application includes:
 Active `feature/strategy` branch adds:
 - collections intelligence workspace
 - contact-history-aware next-best-action engine
-- collector queue
-- strategy simulator
+- collector queue with adjustable snapshot sizing and lane-based workload review
+- strategy simulator with save/delete run history
 - portfolio filtering and saved strategy run history
 - debtor strategy detail screen
 - strategy rules workspace

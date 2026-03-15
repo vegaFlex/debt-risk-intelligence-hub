@@ -29,6 +29,7 @@ class StrategyWorkspaceAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Collector Queue')
         self.assertContains(response, 'Prioritized Assignments')
+        self.assertContains(response, 'Queue Snapshot Size')
 
     def test_visitor_can_open_strategy_simulator(self):
         self.client.force_login(self.visitor)
@@ -308,6 +309,46 @@ class StrategyServiceTests(TestCase):
         self.assertEqual(queue['queue_rows'][0]['debtor'], first)
         self.assertEqual(queue['queue_rows'][0]['queue_rank'], 1)
         self.assertIn(queue['queue_rows'][0]['priority_bucket'], {'Act Now', 'Review Today', 'Monitor Queue'})
+        self.assertEqual(queue['queue_summary']['queue_limit'], 30)
+
+    def test_collector_queue_respects_snapshot_limit(self):
+        for index in range(40):
+            Debtor.objects.create(
+                portfolio=self.portfolio,
+                external_id=f'D-LIMIT-{index}',
+                full_name=f'Queue Debtor {index}',
+                status='contacted',
+                days_past_due=130,
+                outstanding_principal=Decimal('1800.00'),
+                outstanding_total=Decimal('2200.00'),
+                risk_score=70,
+                risk_band='high',
+                phone_number=f'+3599000{index:03d}',
+            )
+
+        queue = build_collector_queue(portfolio=self.portfolio, queue_limit=30)
+
+        self.assertEqual(queue['queue_summary']['queued_cases'], 30)
+        self.assertLessEqual(max(card['case_count'] for card in queue['collector_cards']), 10)
+
+    def test_collector_queue_accepts_custom_snapshot_limit_up_to_hundred(self):
+        for index in range(45):
+            Debtor.objects.create(
+                portfolio=self.portfolio,
+                external_id=f'D-CUSTOM-{index}',
+                full_name=f'Custom Queue Debtor {index}',
+                status='contacted',
+                days_past_due=130,
+                outstanding_principal=Decimal('1800.00'),
+                outstanding_total=Decimal('2200.00'),
+                risk_score=70,
+                risk_band='high',
+                phone_number=f'+3597000{index:03d}',
+            )
+
+        queue = build_collector_queue(portfolio=self.portfolio, queue_limit=45)
+
+        self.assertEqual(queue['queue_summary']['queued_cases'], 45)
 
     def test_strategy_simulator_ranks_scenarios_and_returns_winner(self):
         first = Debtor.objects.create(

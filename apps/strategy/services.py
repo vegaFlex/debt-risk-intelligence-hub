@@ -549,15 +549,18 @@ def build_strategy_workspace(*, portfolio=None, debtors=None):
 
 
 
-def build_collector_queue(*, portfolio=None, debtors=None):
+def build_collector_queue(*, portfolio=None, debtors=None, queue_limit: int = 30):
     workspace = build_strategy_workspace(portfolio=portfolio, debtors=debtors)
     recommendations = workspace['recommendations']
 
-    collectors = ('Team Alpha', 'Team Bravo', 'Team Charlie')
+    collectors = ('Lane Alpha', 'Lane Bravo', 'Lane Charlie')
     queue_rows = []
     collector_load = {name: [] for name in collectors}
 
-    for index, item in enumerate(recommendations[:30], start=1):
+    lane_preview_limit = 5
+    snapshot_items = recommendations[:queue_limit]
+
+    for index, item in enumerate(snapshot_items, start=1):
         collector_name = collectors[(index - 1) % len(collectors)]
         lane_position = len(collector_load[collector_name]) + 1
         queue_item = {
@@ -581,6 +584,8 @@ def build_collector_queue(*, portfolio=None, debtors=None):
         'expected_total_uplift': workspace['summary']['expected_total_uplift'],
         'expected_uplift_display': workspace['summary']['expected_total_uplift_display'],
         'top_action': workspace['summary']['highest_value_action'],
+        'queue_limit': queue_limit,
+        'lane_count': len(collectors),
     }
 
     collector_cards = []
@@ -588,12 +593,19 @@ def build_collector_queue(*, portfolio=None, debtors=None):
         if not items:
             continue
         total_uplift = sum((entry['expected_uplift_amount'] for entry in items), Decimal('0.00'))
+        action_mix = {}
+        for entry in items:
+            action_mix[entry['recommended_action_label']] = action_mix.get(entry['recommended_action_label'], 0) + 1
+        top_action_label, top_action_count = sorted(action_mix.items(), key=lambda pair: pair[1], reverse=True)[0]
         collector_cards.append({
             'collector_name': collector_name,
             'case_count': len(items),
             'top_priority': items[0]['priority_score'],
             'expected_uplift_display': _format_compact_money(total_uplift),
-            'actions': items[:5],
+            'top_action_label': top_action_label,
+            'top_action_count': top_action_count,
+            'actions': items[:lane_preview_limit],
+            'preview_count': min(len(items), lane_preview_limit),
         })
 
     return {

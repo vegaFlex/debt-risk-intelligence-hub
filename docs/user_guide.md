@@ -226,6 +226,15 @@ Aggregated table by:
 
 Use it to understand where volume and exposure are concentrated.
 
+#### Strategy Snapshot
+The dashboard also includes a compact strategy snapshot with:
+- Top Action
+- Secondary Action
+- Coverage
+- Avg Uplift
+
+Use it to connect dashboard review with the live action-planning layer before opening the full Strategy workspace.
+
 ## 6. Full Debtor List
 
 URL:
@@ -557,6 +566,7 @@ Turns ranked strategy recommendations into an operational work queue.
 - average priority score
 - expected uplift
 - top action
+- queue snapshot size input
 - collector lanes
 - prioritized assignment table
 - direct links into debtor strategy detail screens
@@ -564,6 +574,14 @@ Turns ranked strategy recommendations into an operational work queue.
 Use it when:
 - a team lead wants to distribute work
 - you want to see which cases should be worked first today
+
+### Queue snapshot logic
+The queue is designed as a prioritized operational snapshot, not a full daily staffing plan.
+
+- `Queue Snapshot Size` accepts custom values from `1` to `100`
+- the page then shows the top ranked cases inside that selected snapshot
+- `Lane Alpha`, `Lane Bravo`, and `Lane Charlie` are workload lanes for supervisor review
+- the lanes help compare balance, action mix, and case order quickly
 
 ## 17. Strategy Simulator
 
@@ -585,10 +603,11 @@ Compares multiple collections strategies side by side.
 - expected total recovery
 - expected uplift
 - expected cost
-- projected ROI
+- execution ROI multiple
 - best-fit segments
 - winning strategy
 - save action for the winning strategy (manager/admin)
+- delete action for saved runs (manager/admin)
 - recent strategy run history for the selected portfolio
 
 Use it to compare operational approaches before committing the team to one playbook.

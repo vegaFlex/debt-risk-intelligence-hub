@@ -19,6 +19,11 @@ from apps.strategy.services import (
 from apps.users.decorators import manager_or_admin_required, viewer_or_manager_or_admin_required
 
 
+DEFAULT_QUEUE_SIZE = 30
+MIN_QUEUE_SIZE = 1
+MAX_QUEUE_SIZE = 100
+
+
 def _selected_portfolio(request):
     portfolio_id = request.GET.get('portfolio', '').strip()
     if not portfolio_id:
@@ -52,11 +57,28 @@ class CollectionsWorkspaceView(TemplateView):
 class CollectionsQueueView(TemplateView):
     template_name = 'strategy/queue.html'
 
+    def _selected_queue_size(self):
+        raw_value = (self.request.GET.get('queue_size') or '').strip()
+        try:
+            queue_size = int(raw_value)
+        except (TypeError, ValueError):
+            queue_size = DEFAULT_QUEUE_SIZE
+        queue_size = max(MIN_QUEUE_SIZE, min(queue_size, MAX_QUEUE_SIZE))
+        return queue_size
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         filter_context = _strategy_filter_context(self.request)
+        selected_queue_size = self._selected_queue_size()
         context.update(filter_context)
-        context.update(build_collector_queue(portfolio=filter_context['selected_portfolio']))
+        context.update(
+            build_collector_queue(
+                portfolio=filter_context['selected_portfolio'],
+                queue_limit=selected_queue_size,
+            )
+        )
+        context['selected_queue_size'] = selected_queue_size
+        context['max_queue_size'] = MAX_QUEUE_SIZE
         return context
 
 

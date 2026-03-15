@@ -177,6 +177,7 @@ The goal here is to confirm that the public review account can see the important
 - filters are visible
 - charts render
 - numbers use compact formatting where appropriate, e.g. `1.36M`
+- strategy snapshot cards show `Top Action`, `Secondary Action`, `Coverage`, and `Avg Uplift`
 
 ### 6.3 Dashboard filtering
 1. Change `Portfolio`
@@ -310,7 +311,10 @@ The goal here is to confirm that the public review account can see the important
 1. Open `/strategy/queue/`
 2. Expected result:
 - queue summary cards load
+- `Queue Snapshot Size` accepts custom values
+- values from `1` to `100` behave cleanly
 - collector lanes render
+- lane wording reads as workload lanes or queue lanes, not employee headcount
 - prioritized assignments table is readable
 - rows show sensible queue buckets
 - queue rows expose a path to debtor detail review
@@ -322,6 +326,7 @@ The goal here is to confirm that the public review account can see the important
 - winner section is visible
 - recovery, uplift, cost, and ROI are readable
 - recent strategy run history is visible when records exist
+- save and delete actions for history behave correctly for authorized users
 
 ### 6.22 Debtor strategy detail
 1. From `/strategy/`, `/strategy/queue/`, or the dashboard strategy table, open one debtor detail link
@@ -485,16 +490,20 @@ Run these only when you have private admin credentials.
 2. Review the highest-priority assignments
 3. Expected result:
 - queue buckets make sense
+- queue snapshot size can be changed safely
 - collector lanes distribute work visibly
+- lane cards read like a prioritized snapshot, not a full-day staffing plan
 
 ### 8.11 Strategy simulator verification
 1. Open `/strategy/simulator/`
 2. Compare strategy outputs
 3. Save the winning strategy run
-4. Expected result:
+4. Delete a saved run if appropriate
+5. Expected result:
 - winning strategy appears
 - ROI and uplift differ meaningfully between strategies
 - recent strategy history updates
+- delete action removes the selected history row safely
 
 ---
 

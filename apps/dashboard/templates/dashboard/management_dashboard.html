@@ -193,6 +193,24 @@
           <p class="chart-empty">No action mix is available for the current filters.</p>
         {% endfor %}
       </div>
+      <div class="strategy-mix-stats">
+        <div class="strategy-mix-stat">
+          <span>Top Action</span>
+          <strong>{{ strategy_snapshot.summary.highest_value_action }}</strong>
+        </div>
+        <div class="strategy-mix-stat">
+          <span>Secondary Action</span>
+          <strong>{{ strategy_snapshot.summary.secondary_action }}</strong>
+        </div>
+        <div class="strategy-mix-stat">
+          <span>Coverage</span>
+          <strong>{{ strategy_snapshot.summary.mix_coverage_count }} debtors</strong>
+        </div>
+        <div class="strategy-mix-stat">
+          <span>Avg Uplift</span>
+          <strong>{{ strategy_snapshot.summary.avg_uplift_pct }}%</strong>
+        </div>
+      </div>
       <div class="strategy-dashboard-footer">
         <a class="btn btn-primary" href="/strategy/simulator/">Open Strategy Simulator</a>
       </div>
