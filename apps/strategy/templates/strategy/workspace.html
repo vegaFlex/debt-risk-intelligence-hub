@@ -1,0 +1,151 @@
+{% extends "base_app.html" %}
+
+{% block title %}Collections Intelligence{% endblock %}
+
+{% block content %}
+<section class="page-header card page-header-split">
+  <div>
+    <p class="eyebrow">Collections Intelligence</p>
+    <h1>Collections Workspace</h1>
+  </div>
+  <p class="muted-copy page-header-side-copy">Rank debtors by next-best action, priority, and expected recovery uplift before assigning them into a collector workflow.</p>
+</section>
+
+<section class="card card-compact">
+  <form method="get">
+    <div class="filter-toolbar">
+      <div class="filters-grid strategy-filter-grid">
+        <div>
+          <label for="strategy-portfolio">Portfolio</label>
+          <select name="portfolio" id="strategy-portfolio">
+            <option value="">All portfolios</option>
+            {% for portfolio in portfolios %}
+              <option value="{{ portfolio.id }}" {% if selected_portfolio and selected_portfolio.id == portfolio.id %}selected{% endif %}>{{ portfolio.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="actions actions-toolbar">
+        <button type="submit" class="btn btn-primary">Apply Portfolio</button>
+        <a href="/strategy/" class="btn btn-secondary">Reset</a>
+      </div>
+    </div>
+  </form>
+</section>
+
+<section class="insight-grid">
+  <article class="summary-card">
+    <p class="eyebrow">Debtors Ranked</p>
+    <h2>{{ summary.debtor_count }}</h2>
+    <p class="metric-subtitle">Live recommendation coverage</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Top Priority Score</p>
+    <h2>{{ summary.top_priority_score }}</h2>
+    <p class="metric-subtitle">Score out of 100</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Avg Priority Score</p>
+    <h2>{{ summary.avg_priority_score }}</h2>
+    <p class="metric-subtitle">Score out of 100</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Expected Total Uplift</p>
+    <h2>{{ summary.expected_total_uplift_display }}</h2>
+    <p class="metric-subtitle">Action-driven recovery upside</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Most Common Action</p>
+    <h2>{{ summary.highest_value_action }}</h2>
+    <p class="metric-subtitle">Current top recommendation type</p>
+  </article>
+</section>
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Action Mix</p>
+      <h2>Recommended Action Distribution</h2>
+      <p class="muted-copy">The engine groups the current debtor base by the next best operational move.</p>
+    </div>
+  </div>
+  <div class="mini-stat-grid strategy-action-mix-grid">
+    {% for action in action_mix %}
+      <article class="mini-stat-card">
+        <p class="eyebrow">{{ action.label }}</p>
+        <h3>{{ action.count }}</h3>
+        <p class="metric-subtitle">Recommended cases</p>
+      </article>
+    {% empty %}
+      <p class="muted-copy strategy-grid-empty">No strategy recommendations are available yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Priority Queue</p>
+      <h2>Next-Best Action Ranking</h2>
+      <p class="muted-copy">This first V3 engine prioritizes debtor actions using risk, DPD, balance, contactability, and promise behavior.</p>
+    </div>
+  </div>
+  <div class="table-shell">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Debtor</th>
+          <th>Portfolio</th>
+          <th>Status</th>
+          <th>Priority</th>
+          <th>Recommended Action</th>
+          <th>Channel</th>
+          <th>Expected Uplift</th>
+          <th>Outstanding</th>
+          <th>Contactability</th>
+          <th>Call History</th>
+          <th>Why</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in recommendations|slice:":25" %}
+          <tr>
+            <td>
+              <strong>{{ item.debtor.full_name }}</strong><br>
+              <span class="table-subtitle">{{ item.debtor.risk_band|title }} risk | {{ item.debtor.days_past_due }} DPD</span>
+            </td>
+            <td>{{ item.portfolio.name }}</td>
+            <td>{{ item.debtor.status|title }}</td>
+            <td>
+              <strong>{{ item.priority_score }}</strong><br>
+              <span class="table-subtitle">Score out of 100</span>
+            </td>
+            <td>{{ item.recommended_action_label }}</td>
+            <td>{{ item.recommended_channel_label }}</td>
+            <td>
+              <strong>{{ item.expected_uplift_pct }}%</strong><br>
+              <span class="table-subtitle">{{ item.expected_uplift_amount_display }}</span>
+            </td>
+            <td>{{ item.outstanding_total_display }}</td>
+            <td>
+              <strong>{{ item.contactability_label }}</strong><br>
+              <span class="table-subtitle">{{ item.contactability_score }} / 100</span>
+            </td>
+            <td>
+              <strong>{{ item.call_attempt_count }} calls</strong><br>
+              <span class="table-subtitle">Last: {{ item.last_call_outcome_label }}{% if item.no_answer_streak %} | No-answer streak {{ item.no_answer_streak }}{% endif %}{% if item.refusal_count %} | Refusals {{ item.refusal_count }}{% endif %}</span>
+            </td>
+            <td>{{ item.action_reason }}</td>
+            <td><a class="btn btn-secondary btn-compact" href="/strategy/debtors/{{ item.debtor.id }}/">Open</a></td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="12">No debtors are available yet for collections strategy analysis.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

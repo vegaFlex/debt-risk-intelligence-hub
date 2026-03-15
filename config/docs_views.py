@@ -107,7 +107,7 @@ def _wrap_document(title: str, body: str) -> str:
     <section class="hero">
       <div class="eyebrow">Documentation</div>
       <h1>{html.escape(title)}</h1>
-      <p class="sub">Browser-friendly product documentation and buyer-facing material for Debt & Risk Intelligence Hub.</p>
+      <p class="sub">Browser-friendly product documentation and buyer-facing material for Debt & Risk Intelligence Hub, including valuation and collections strategy workflows.</p>
       <nav class="nav">
         <a href="/docs/user-guide/">User Guide</a>
         <a href="/docs/manual-testing-guide/">Manual Testing Guide</a>

@@ -3,10 +3,19 @@
 {% block title %}Reports - Debt & Risk Hub{% endblock %}
 
 {% block content %}
-<section class="card">
-  <h2>Management Report Preview</h2>
-  <p class="small">Period: <strong>{{ period_start }}</strong> to <strong>{{ period_end }}</strong></p>
+<section class="page-header card">
+  <p class="eyebrow">Reporting Intelligence</p>
+  <h1>Management Report Preview</h1>
+  <p class="muted-copy">Review the executive KPI snapshot and segment breakdown before exporting the reporting pack to Excel or PDF.</p>
+</section>
 
+<section class="card card-compact">
+  <div class="section-head compact">
+    <div>
+      <h2>Report Controls</h2>
+      <p class="section-copy">Period: <strong>{{ period_start }}</strong> to <strong>{{ period_end }}</strong></p>
+    </div>
+  </div>
   <div class="actions">
     {% if can_export_reports %}
       <a class="btn btn-primary" href="{{ download_excel_url }}">Download Excel</a>
@@ -26,8 +35,15 @@
   <article class="kpi-card"><div class="kpi-label">Outstanding</div><div class="kpi-value">{{ kpis.outstanding_total_display }}</div></article>
 </section>
 
-<section class="table-wrap">
-  <table>
+<section class="card table-section-card">
+  <div class="section-card-head">
+    <div>
+      <h2>Top Segments</h2>
+      <p class="section-copy">Portfolio, risk, and status segments with the highest operational weight in the current reporting period.</p>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
     <thead>
       <tr><th>Portfolio</th><th>Risk Band</th><th>Status</th><th>Debtor Count</th><th>Total Outstanding</th></tr>
     </thead>
@@ -44,6 +60,7 @@
         <tr><td colspan="5">No segment data for this period.</td></tr>
       {% endfor %}
     </tbody>
-  </table>
+    </table>
+  </div>
 </section>
 {% endblock %}

@@ -16,7 +16,11 @@ If you open admin and want the fastest useful review, start here:
 3. `Generated reports`
 4. `Portfolio valuations`
 5. `Historical benchmarks`
-6. `Users`
+6. `Action rules`
+7. `Strategy runs`
+8. `Strategy run results`
+9. `Collector queue assignments`
+10. `Users`
 
 ---
 
@@ -61,6 +65,31 @@ Use for:
 - balance band
 - avg recovery rate
 
+### Action rules
+Use for:
+- next-best-action rule review
+- channel and uplift assumptions
+- DPD and contact condition checks
+
+### Strategy runs
+Use for:
+- saved simulator history
+- portfolio-level strategy review
+- checking who saved a run and when
+- confirming which runs were retained vs deleted from simulator history
+
+### Strategy run results
+Use for:
+- recovery, uplift, cost, and ROI summary review
+- validating the winning strategy snapshot
+
+### Collector queue assignments
+Use for:
+- queue rank review
+- collector/lane allocation inside the current queue snapshot
+- action priority verification
+- quick supervisor review of workload balance
+
 ### Users
 Use for:
 - role checks
@@ -79,7 +108,11 @@ If you are showing the admin panel to someone:
 3. show `Generated reports`
 4. show `Portfolio valuations`
 5. show `Historical benchmarks`
-6. show `Users`
+6. show `Action rules`
+7. show `Strategy runs`
+8. show `Strategy run results`
+9. show `Collector queue assignments`
+10. show `Users`
 
 This tells the strongest story:
 - commercial portfolio context
@@ -98,6 +131,7 @@ Admin is best for:
 - tracing import and report history
 - validating role access
 - reviewing valuation logic inputs and outputs
+- reviewing collections strategy logic, saved run history, and queue outcomes
 - controlled correction of demo data
 
 ---
@@ -146,6 +180,9 @@ Should be:
 [ ] Reports are logged
 [ ] Valuations are stored correctly
 [ ] Benchmarks exist and look reasonable
+[ ] Strategy rules look reasonable
+[ ] Saved strategy runs look reasonable
+[ ] Queue assignments look reasonable
 [ ] Demo user roles are correct
 ```
 
@@ -153,4 +190,5 @@ Should be:
 
 ## 8. Fastest Admin Story in One Sentence
 
-The admin panel is the product's control room: it lets you inspect portfolios, debtors, reports, roles, and valuation logic behind the public analytics screens.
+The admin panel is the product's control room: it lets you inspect portfolios, debtors, reports, roles, valuation logic, and collections strategy records behind the public analytics screens.
+

@@ -1,0 +1,200 @@
+{% extends "base_app.html" %}
+
+{% block title %}Collector Queue{% endblock %}
+
+{% block content %}
+<section class="page-header card page-header-split">
+  <div>
+    <p class="eyebrow">Collections Intelligence</p>
+    <h1>Collector Queue</h1>
+  </div>
+  <p class="muted-copy page-header-side-copy">Operational queue snapshot for assigning the highest-value debtors into collector lanes based on action priority, expected uplift, and call-center review order.</p>
+</section>
+
+<section class="card card-compact">
+  <form method="get">
+    <div class="filter-toolbar">
+      <div class="filters-grid strategy-filter-grid">
+        <div>
+          <label for="queue-portfolio">Portfolio</label>
+          <select name="portfolio" id="queue-portfolio">
+            <option value="">All portfolios</option>
+            {% for portfolio in portfolios %}
+              <option value="{{ portfolio.id }}" {% if selected_portfolio and selected_portfolio.id == portfolio.id %}selected{% endif %}>{{ portfolio.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="queue-size">Queue Snapshot Size</label>
+          <input type="number" name="queue_size" id="queue-size" min="1" max="{{ max_queue_size }}" value="{{ selected_queue_size }}">
+        </div>
+      </div>
+      <div class="actions actions-toolbar">
+        <button type="submit" class="btn btn-primary">Apply Portfolio</button>
+        <a href="/strategy/queue/" class="btn btn-secondary">Reset</a>
+      </div>
+    </div>
+    <p class="filter-summary">Enter how many top-ranked cases you want to review in this queue snapshot, up to {{ max_queue_size }}. This is not the full daily collector capacity.</p>
+  </form>
+</section>
+
+<section class="insight-grid">
+  <article class="summary-card">
+    <p class="eyebrow">Queue Snapshot</p>
+    <h2>{{ queue_summary.queued_cases }}</h2>
+    <p class="metric-subtitle">Top {{ queue_summary.queue_limit }} ranked cases in view</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Act Now Cases</p>
+    <h2>{{ queue_summary.act_now_cases }}</h2>
+    <p class="metric-subtitle">Immediate high-priority workload</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Avg Priority Score</p>
+    <h2>{{ queue_summary.avg_priority_score }}</h2>
+    <p class="metric-subtitle">Score out of 100</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Expected Uplift</p>
+    <h2>{{ queue_summary.expected_uplift_display }}</h2>
+    <p class="metric-subtitle">Queue-level recovery upside</p>
+  </article>
+  <article class="summary-card">
+    <p class="eyebrow">Top Action</p>
+    <h2>{{ queue_summary.top_action }}</h2>
+    <p class="metric-subtitle">Most common queued move</p>
+  </article>
+</section>
+
+<section class="card">
+  <div class="section-heading section-heading-split">
+    <div>
+      <p class="eyebrow">Collector Lanes</p>
+      <h2>Assigned Workload</h2>
+    </div>
+    <p class="muted-copy page-header-side-copy section-heading-side-copy">The queue distributes the current snapshot across {{ queue_summary.lane_count }} collector lanes so supervisors can review workload balance, action mix, and case order quickly.</p>
+  </div>
+  <div class="collector-lane-grid">
+    {% for collector in collector_cards %}
+      <article class="insight-card collector-lane-card">
+        <div class="collector-lane-head">
+          <div>
+            <p class="eyebrow">{{ collector.collector_name }}</p>
+            <h3>{{ collector.case_count }} cases</h3>
+          </div>
+        </div>
+        <div class="collector-lane-metrics">
+          <div class="collector-lane-metric">
+            <span>Top priority</span>
+            <strong>{{ collector.top_priority }} / 100</strong>
+          </div>
+          <div class="collector-lane-metric">
+            <span>Expected uplift</span>
+            <strong>{{ collector.expected_uplift_display }}</strong>
+          </div>
+          <div class="collector-lane-metric">
+            <span>Lead action</span>
+            <strong>{{ collector.top_action_label }}</strong>
+          </div>
+          <div class="collector-lane-metric">
+            <span>Action mix</span>
+            <strong>{{ collector.top_action_count }} of {{ collector.case_count }}</strong>
+          </div>
+        </div>
+        <ul class="collector-case-list">
+          {% for action in collector.actions %}
+            <li>#{{ action.queue_rank }} - {{ action.debtor.full_name }} ({{ action.recommended_action_label }})</li>
+          {% endfor %}
+        </ul>
+        {% if collector.case_count > collector.preview_count %}
+          <p class="metric-subtitle">Showing top {{ collector.preview_count }} of {{ collector.case_count }} assigned cases in this lane</p>
+        {% endif %}
+      </article>
+    {% empty %}
+      <p class="muted-copy strategy-grid-empty">No collector queue items are available yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-heading section-heading-split">
+    <div>
+      <p class="eyebrow">Operational Queue</p>
+      <h2>Prioritized Assignments</h2>
+    </div>
+    <div class="page-header-side-copy section-heading-side-copy">
+      <p class="muted-copy section-heading-side-copy-intro">Use this table to review which debtor should be worked first, by whom, and why the engine has surfaced the case.</p>
+      <p class="filter-summary section-heading-side-copy-note">Each row shows the queue rank, assigned lane, recommended action and channel, expected uplift, current exposure, contactability, and the short reason behind the recommendation.</p>
+    </div>
+  </div>
+  <div class="table-shell">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Collector</th>
+          <th>Debtor</th>
+          <th>Priority Bucket</th>
+          <th>Action</th>
+          <th>Expected Uplift</th>
+          <th>Outstanding</th>
+          <th>Contactability</th>
+          <th>Call History</th>
+          <th>Why</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in queue_rows %}
+          <tr>
+            <td>
+              <strong>#{{ item.queue_rank }}</strong><br>
+              <span class="table-subtitle">Slot {{ item.lane_position }}</span>
+            </td>
+            <td>{{ item.collector_name }}</td>
+            <td>
+              <strong>{{ item.debtor.full_name }}</strong><br>
+              <span class="table-subtitle">{{ item.portfolio.name }}</span>
+            </td>
+            <td>
+              <span class="queue-pill {% if item.priority_bucket == 'Act Now' %}queue-pill-strong{% elif item.priority_bucket == 'Review Today' %}queue-pill-review{% else %}queue-pill-muted{% endif %}">{{ item.priority_bucket }}</span>
+              <span class="table-subtitle">{{ item.priority_score }} / 100</span>
+            </td>
+            <td>
+              <strong>{{ item.recommended_action_label }}</strong><br>
+              <span class="table-subtitle">{{ item.recommended_channel_label }} channel</span>
+            </td>
+            <td>
+              <strong>{{ item.portfolio.currency }} {{ item.expected_uplift_amount_display }}</strong><br>
+              <span class="table-subtitle">{{ item.expected_uplift_pct }}% uplift</span>
+            </td>
+            <td>
+              <strong>{{ item.outstanding_total_display }}</strong><br>
+              <span class="table-subtitle">Total exposure</span>
+            </td>
+            <td>
+              <strong>{{ item.contactability_label }}</strong><br>
+              <span class="table-subtitle">{{ item.contactability_score }} / 100</span>
+            </td>
+            <td>
+              {% if item.call_attempt_count %}
+                <strong>{{ item.call_attempt_count }} calls</strong><br>
+                <span class="table-subtitle">Last: {{ item.last_call_outcome_label }}{% if item.no_answer_streak %} | Streak {{ item.no_answer_streak }}{% endif %}</span>
+              {% else %}
+                <strong>No prior calls</strong><br>
+                <span class="table-subtitle">Fresh outreach case</span>
+              {% endif %}
+            </td>
+            <td>{{ item.reason_summary }}</td>
+            <td><a class="btn btn-secondary btn-compact" href="/strategy/debtors/{{ item.debtor.id }}/">Open</a></td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="11">No queue assignments are available yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

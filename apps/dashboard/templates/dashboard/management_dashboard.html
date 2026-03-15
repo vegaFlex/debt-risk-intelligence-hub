@@ -105,6 +105,119 @@
   </section>
 </section>
 
+<section class="card card-compact">
+  <div class="section-head compact">
+    <div>
+      <p class="eyebrow">Collections Intelligence</p>
+      <h2>Strategy Snapshot</h2>
+      <p class="section-copy">A dashboard-level view of next-best-action opportunities for the currently filtered debtor set.</p>
+    </div>
+    <div class="valuation-actions">
+      <a class="btn btn-secondary" href="/strategy/">Open Strategy Workspace</a>
+      <a class="btn btn-secondary" href="/strategy/queue/">Open Collector Queue</a>
+    </div>
+  </div>
+
+  <section class="kpi-grid performance-grid">
+    <article class="kpi-card kpi-card-compact">
+      <div class="kpi-label">Act Now Cases</div>
+      <div class="kpi-value">{{ strategy_snapshot.summary.act_now_cases }}</div>
+      <div class="kpi-meta">Priority score at or above 75</div>
+    </article>
+    <article class="kpi-card kpi-card-compact">
+      <div class="kpi-label">Top Action</div>
+      <div class="kpi-value">{{ strategy_snapshot.summary.highest_value_action }}</div>
+      <div class="kpi-meta">Most common next-best-action in the current set</div>
+    </article>
+    <article class="kpi-card kpi-card-compact">
+      <div class="kpi-label">Expected Uplift</div>
+      <div class="kpi-value">{{ strategy_snapshot.summary.expected_total_uplift_display }}</div>
+      <div class="kpi-meta">Total modeled upside from the ranked recommendations</div>
+    </article>
+    <article class="kpi-card kpi-card-compact">
+      <div class="kpi-label">Avg Priority Score</div>
+      <div class="kpi-value">{{ strategy_snapshot.summary.avg_priority_score }}</div>
+      <div class="kpi-meta">Score out of 100 across the filtered debtor set</div>
+    </article>
+  </section>
+
+  <div class="strategy-dashboard-grid">
+    <article class="strategy-dashboard-card">
+      <div class="chart-card-head">
+        <h3>Top Action Opportunities</h3>
+        <p>Highest-priority debtors based on contact history, promises, exposure, and recommended action.</p>
+      </div>
+      <div class="table-wrap strategy-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Debtor</th><th>Action</th><th>Channel</th><th>Priority</th><th>Uplift</th><th>Reason</th><th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in strategy_snapshot.recommendations %}
+              <tr>
+                <td>{{ item.debtor.full_name }}</td>
+                <td>{{ item.recommended_action_label }}</td>
+                <td>{{ item.recommended_channel_label }}</td>
+                <td>{{ item.priority_score }}</td>
+                <td>{{ item.expected_uplift_amount_display }}</td>
+                <td>{{ item.reason_summary }}</td>
+                <td><a class="btn btn-secondary btn-compact" href="/strategy/debtors/{{ item.debtor.id }}/">Open</a></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="7">No strategy recommendations are available for the current filters.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="strategy-dashboard-card">
+      <div class="chart-card-head">
+        <h3>Action Mix</h3>
+        <p>What the strategy engine is recommending most often for the currently filtered debtor population.</p>
+      </div>
+      <div class="visual-bars strategy-action-bars">
+        {% for mix in strategy_snapshot.action_mix %}
+          <div class="visual-row">
+            <div class="visual-row-head">
+              <span>{{ mix.label }}</span>
+              <strong>{{ mix.count }}</strong>
+            </div>
+            <div class="visual-track">
+              <div class="visual-fill tone-primary" style="width: {% if strategy_snapshot.summary.debtor_count %}{% widthratio mix.count strategy_snapshot.summary.debtor_count 100 %}{% else %}0{% endif %}%"></div>
+            </div>
+          </div>
+        {% empty %}
+          <p class="chart-empty">No action mix is available for the current filters.</p>
+        {% endfor %}
+      </div>
+      <div class="strategy-mix-stats">
+        <div class="strategy-mix-stat">
+          <span>Top Action</span>
+          <strong>{{ strategy_snapshot.summary.highest_value_action }}</strong>
+        </div>
+        <div class="strategy-mix-stat">
+          <span>Secondary Action</span>
+          <strong>{{ strategy_snapshot.summary.secondary_action }}</strong>
+        </div>
+        <div class="strategy-mix-stat">
+          <span>Coverage</span>
+          <strong>{{ strategy_snapshot.summary.mix_coverage_count }} debtors</strong>
+        </div>
+        <div class="strategy-mix-stat">
+          <span>Avg Uplift</span>
+          <strong>{{ strategy_snapshot.summary.avg_uplift_pct }}%</strong>
+        </div>
+      </div>
+      <div class="strategy-dashboard-footer">
+        <a class="btn btn-primary" href="/strategy/simulator/">Open Strategy Simulator</a>
+      </div>
+    </article>
+  </div>
+</section>
+
 <section class="section-head">
   <div>
     <h2>Priority Debtor Preview</h2>

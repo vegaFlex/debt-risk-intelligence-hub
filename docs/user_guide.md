@@ -10,6 +10,7 @@ The application combines:
 - dashboard analytics
 - management reporting
 - acquisition valuation
+- collections strategy intelligence
 - role-based access control
 
 This guide explains what each part of the application does, who should use it, and how to work with it.
@@ -21,6 +22,7 @@ The application is designed for:
 - analysts reviewing debtor quality and risk
 - managers monitoring KPIs and report outputs
 - acquisition teams evaluating whether a debt package is worth buying
+- collections supervisors prioritizing who should be worked first and what action should happen next
 - admins maintaining data, users, and internal benchmark assumptions
 
 ## 3. Main User Roles
@@ -34,10 +36,12 @@ Can:
 - open the valuation workspace
 - compare packages
 - review benchmark library entries
+- open the strategy workspace, collector queue, simulator, and rules library in read-only mode
 
 Cannot:
 - import data
 - save valuation runs
+- save strategy runs
 - export reports
 - edit benchmarks
 - access the admin panel
@@ -62,6 +66,10 @@ Can:
 - import valuation packages
 - export valuation and management reports
 - manage benchmark assumptions through the app UI
+- review next-best-action recommendations
+- use the collector queue and strategy simulator
+- save winning strategy runs
+- manage strategy rules through the app UI
 
 ### Admin
 Full operational and administrative access.
@@ -115,6 +123,23 @@ Use it for:
 - pricing debt portfolio acquisitions
 - comparing multiple packages
 - managing benchmark assumptions
+
+### Strategy
+Collections intelligence menu.
+
+Includes:
+- Workspace
+- Collector Queue
+- Simulator
+- Rules
+
+Strategy rows and dashboard strategy tables can also open a debtor-level detail review screen.
+
+Use it for:
+- reviewing next-best-action recommendations for debtors
+- prioritizing cases for collections teams
+- comparing recovery strategies
+- tuning action rules and thresholds
 
 ### Admin Panel
 Visible only to admin users.
@@ -200,6 +225,15 @@ Aggregated table by:
 - status
 
 Use it to understand where volume and exposure are concentrated.
+
+#### Strategy Snapshot
+The dashboard also includes a compact strategy snapshot with:
+- Top Action
+- Secondary Action
+- Coverage
+- Avg Uplift
+
+Use it to connect dashboard review with the live action-planning layer before opening the full Strategy workspace.
 
 ## 6. Full Debtor List
 
@@ -443,6 +477,9 @@ Key endpoints:
 - `/api/debtors/`
 - `/api/debtors/<id>/score/`
 - `/api/kpis/overview/`
+- `/api/strategy/recommendations/`
+- `/api/strategy/queue/`
+- `/api/strategy/simulator/`
 
 Use the API for:
 - frontend data consumption
@@ -450,7 +487,155 @@ Use the API for:
 - technical review by developers
 - analytics integration
 
-## 15. Admin Panel
+## 15. Collections Strategy Workspace
+
+URL:
+`/strategy/`
+
+### Purpose
+This is the main debtor action-prioritization screen.
+
+Use it to decide:
+- which debtor should be worked first
+- what the recommended next-best action is
+- what channel should be used
+- how much uplift the action may create
+
+### Main sections
+
+#### Strategy KPI cards
+Shows summary metrics such as:
+- debtor count
+- act now cases
+- average priority score
+- expected uplift
+- top recommended action
+
+These cards summarize the recommended workload for the currently reviewed population.
+
+#### Next-Best Action Ranking
+Main ranked debtor table showing:
+- debtor
+- recommended action
+- recommended channel
+- priority score
+- expected uplift
+- reason summary
+
+Use it to see which accounts deserve immediate attention.
+
+#### Portfolio Filter
+The workspace can be narrowed to a specific portfolio.
+
+Use it when:
+- you want to review one package instead of the whole debtor universe
+- you want simulator and queue outputs to stay aligned to one acquisition or operational package
+
+#### Debtor Strategy Detail
+Rows link into a debtor-level strategy detail screen.
+
+Use it to review:
+- why a specific action was recommended
+- recent calls and promise history
+- contactability signals
+- alternative action scenarios
+
+#### Contact History Signals
+The strategy engine also considers:
+- call attempts
+- last call outcome
+- no-answer streak
+- refusal count
+- wrong-contact count
+- promise-to-pay history
+- note activity
+
+This makes the recommendation more realistic than simply looking at risk score alone.
+
+## 16. Collector Queue
+
+URL:
+`/strategy/queue/`
+
+### Purpose
+Turns ranked strategy recommendations into an operational work queue.
+
+### What it shows
+- queued cases
+- act now cases
+- average priority score
+- expected uplift
+- top action
+- queue snapshot size input
+- collector lanes
+- prioritized assignment table
+- direct links into debtor strategy detail screens
+
+Use it when:
+- a team lead wants to distribute work
+- you want to see which cases should be worked first today
+
+### Queue snapshot logic
+The queue is designed as a prioritized operational snapshot, not a full daily staffing plan.
+
+- `Queue Snapshot Size` accepts custom values from `1` to `100`
+- the page then shows the top ranked cases inside that selected snapshot
+- `Lane Alpha`, `Lane Bravo`, and `Lane Charlie` are workload lanes for supervisor review
+- the lanes help compare balance, action mix, and case order quickly
+
+## 17. Strategy Simulator
+
+URL:
+`/strategy/simulator/`
+
+### Purpose
+Compares multiple collections strategies side by side.
+
+### Strategies currently included
+- Call-First Strategy
+- Digital-First Strategy
+- Settlement Strategy
+- Legal Escalation Strategy
+- Balanced Mixed Strategy
+
+### What it shows
+- debtor count
+- expected total recovery
+- expected uplift
+- expected cost
+- execution ROI multiple
+- best-fit segments
+- winning strategy
+- save action for the winning strategy (manager/admin)
+- delete action for saved runs (manager/admin)
+- recent strategy run history for the selected portfolio
+
+Use it to compare operational approaches before committing the team to one playbook.
+
+## 18. Strategy Rules
+
+URL:
+`/strategy/rules/`
+
+### Purpose
+Controls the action rules used by the strategy engine.
+
+Visitors can review the rules in read-only mode.
+Managers and admins can create or edit them.
+
+### What the rules define
+- risk band applicability
+- debtor status applicability
+- DPD range
+- contact requirements
+- recommended action
+- recommended channel
+- base uplift
+- priority weight
+
+Use it to tune how the collections strategy engine behaves without rewriting the whole UI.
+
+## 19. Admin Panel
 
 URL:
 `/admin/`
@@ -460,7 +645,7 @@ Admin only.
 ### Purpose
 Low-level maintenance and full administrative control.
 
-## 16. Typical User Flows
+## 20. Typical User Flows
 
 ### Review-only walkthrough
 1. Log in as `visitor_demo`
@@ -486,7 +671,18 @@ Low-level maintenance and full administrative control.
 5. Review recommendation, scenarios, and memo
 6. Compare against other packages
 
-## 17. Troubleshooting
+### Collections strategy workflow
+1. Log in as manager/admin
+2. Open `Strategy -> Workspace`
+3. Apply a portfolio filter if you want one-package review
+4. Review next-best-action ranking and open at least one debtor detail screen
+5. Open `Collector Queue`
+6. Review lane allocation and `Act Now` cases
+7. Open `Simulator`
+8. Compare collection strategies, save the winning run, and review recent history
+9. Open `Rules` if a tuning change is needed
+
+## 21. Troubleshooting
 
 ### The live demo is slow on first load
 The free Render instance may be sleeping. Wait 20-30 seconds and refresh.
@@ -505,9 +701,19 @@ Check:
 ### A feature is not visible for `visitor_demo`
 That may be intentional. The visitor role is designed for safe read-only review.
 
-## 18. Recommended Demo Account
+### A strategy recommendation looks counterintuitive
+Check:
+- recent call outcomes
+- no-answer streak
+- broken or pending promises
+- whether the account is already paying or closed
+- whether the rule set in `Strategy -> Rules` was changed recently
+
+## 22. Recommended Demo Account
 
 For public review:
 - `visitor_demo / DemoPass123!`
 
 This account is the safest way to show the app without exposing write operations or admin control.
+
+

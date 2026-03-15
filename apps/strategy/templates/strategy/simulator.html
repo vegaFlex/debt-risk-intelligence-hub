@@ -1,0 +1,265 @@
+{% extends "base_app.html" %}
+
+{% block title %}Strategy Simulator{% endblock %}
+
+{% block content %}
+<section class="page-header card page-header-split">
+  <div>
+    <p class="eyebrow">Collections Intelligence</p>
+    <h1>Strategy Simulator</h1>
+  </div>
+  <p class="muted-copy page-header-side-copy">Compare collections strategies by expected uplift, execution cost, projected ROI, and best-fit debtor segments.</p>
+</section>
+
+<section class="card card-compact">
+  <form method="get">
+    <div class="filter-toolbar">
+      <div class="filters-grid">
+        <div>
+          <label for="simulator-portfolio">Portfolio</label>
+          <select name="portfolio" id="simulator-portfolio">
+            <option value="">Select portfolio to compare and save</option>
+            {% for portfolio in portfolios %}
+              <option value="{{ portfolio.id }}" {% if selected_portfolio and selected_portfolio.id == portfolio.id %}selected{% endif %}>{{ portfolio.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="actions actions-toolbar">
+        <button type="submit" class="btn btn-primary">Apply Portfolio</button>
+        <a href="/strategy/simulator/" class="btn btn-secondary">Reset</a>
+      </div>
+    </div>
+  </form>
+</section>
+
+<section class="insight-grid strategy-summary-kpis">
+  <article class="summary-card strategy-summary-kpi">
+    <p class="eyebrow">Strategies Compared</p>
+    <h2>{{ simulator_summary.strategy_count }}</h2>
+    <p class="metric-subtitle">Active strategy profiles</p>
+  </article>
+  <article class="summary-card summary-card-title strategy-summary-kpi">
+    <p class="eyebrow">Best Strategy</p>
+    <h2>{{ simulator_summary.best_strategy }}</h2>
+    <p class="metric-subtitle">Current top scenario</p>
+  </article>
+  <article class="summary-card strategy-summary-kpi">
+    <p class="eyebrow">Execution ROI Multiple</p>
+    <h2>{{ simulator_summary.best_roi_multiple }}x</h2>
+    <p class="metric-subtitle">{{ simulator_summary.best_roi }}% vs execution cost</p>
+  </article>
+  <article class="summary-card strategy-summary-kpi">
+    <p class="eyebrow">Best Uplift</p>
+    <h2>{{ simulator_summary.best_uplift_display }}</h2>
+    <p class="metric-subtitle">Expected strategy upside</p>
+  </article>
+  <article class="summary-card strategy-summary-kpi">
+    <p class="eyebrow">Targeted Cases</p>
+    <h2>{{ simulator_summary.targeted_cases }}</h2>
+    <p class="metric-subtitle">Cases covered by the winner</p>
+  </article>
+</section>
+
+{% if winner %}
+<section class="card">
+  <div class="section-heading section-heading-split">
+    <div>
+      <p class="eyebrow">Winning Scenario</p>
+      <h2>{{ winner.label }}</h2>
+      <p class="muted-copy">{{ winner.description }}</p>
+    </div>
+    {% if can_save_runs %}
+      <form method="post" class="strategy-save-inline">
+        {% csrf_token %}
+        <input type="hidden" name="strategy_key" value="{{ winner.key }}">
+        <div class="strategy-save-inline-fields">
+          <div class="strategy-save-inline-input">
+            <label for="strategy-notes">Run Notes</label>
+            <input type="text" id="strategy-notes" name="notes" placeholder="Optional note for why this run was saved">
+          </div>
+          <div class="strategy-save-inline-action">
+            <button type="submit" class="btn btn-primary" {% if not selected_portfolio %}disabled{% endif %}>Save Winning Strategy Run</button>
+          </div>
+        </div>
+        {% if not selected_portfolio %}
+          <p class="filter-summary">Select a portfolio above before saving a strategy run.</p>
+        {% endif %}
+      </form>
+    {% endif %}
+  </div>
+  <div class="mini-stat-grid strategy-winner-kpis">
+    <article class="mini-stat-card strategy-winner-kpi">
+      <p class="eyebrow">Debtors</p>
+      <h3>{{ winner.debtor_count }}</h3>
+      <p class="metric-subtitle">Targeted queue size</p>
+    </article>
+    <article class="mini-stat-card strategy-winner-kpi">
+      <p class="eyebrow">Expected Recovery</p>
+      <h3>{{ winner.expected_total_recovery_display }}</h3>
+      <p class="metric-subtitle">Projected collections</p>
+    </article>
+    <article class="mini-stat-card strategy-winner-kpi">
+      <p class="eyebrow">Expected Uplift</p>
+      <h3>{{ winner.expected_total_uplift_display }}</h3>
+      <p class="metric-subtitle">Recovery upside</p>
+    </article>
+    <article class="mini-stat-card strategy-winner-kpi">
+      <p class="eyebrow">Execution Cost</p>
+      <h3>{{ winner.expected_cost_display }}</h3>
+      <p class="metric-subtitle">Estimated delivery cost</p>
+    </article>
+    <article class="mini-stat-card strategy-winner-kpi">
+      <p class="eyebrow">Execution ROI Multiple</p>
+      <h3>{{ winner.expected_roi_multiple }}x</h3>
+      <p class="metric-subtitle">{{ winner.expected_roi }}% vs execution cost</p>
+    </article>
+  </div>
+</section>
+{% endif %}
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Saved History</p>
+      <h2>Recent Strategy Runs</h2>
+      <p class="muted-copy">Saved simulator outputs let you compare how the recommended strategy evolves for the selected portfolio over time.</p>
+    </div>
+  </div>
+  <div class="table-shell">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Saved At</th>
+          <th>Portfolio</th>
+          <th>Strategy</th>
+          <th>Expected Recovery</th>
+          <th>Expected Uplift</th>
+          <th>Expected Cost</th>
+          <th>Execution ROI</th>
+          <th>Created By</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in saved_runs %}
+          <tr>
+            <td>{{ run.created_at|date:"Y-m-d H:i" }}</td>
+            <td>{{ run.portfolio.name }}</td>
+            <td>{{ run.get_strategy_type_display }}</td>
+            <td>{{ run.expected_total_recovery_display }}</td>
+            <td>{{ run.expected_total_uplift_display }}</td>
+            <td>{{ run.expected_cost_display }}</td>
+            <td><strong>{{ run.expected_roi_multiple }}x</strong><br><span class="table-subtitle">{{ run.result.expected_roi }}% vs execution cost</span></td>
+            <td>{{ run.created_by.username|default:"system" }}</td>
+            <td>
+              {% if can_manage_runs %}
+                <form method="post" class="inline-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete_run">
+                  <input type="hidden" name="run_id" value="{{ run.id }}">
+                  <button type="submit" class="btn btn-secondary btn-compact">Delete</button>
+                </form>
+              {% else %}
+                <span class="small">Read only</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="9">No saved strategy runs yet. Choose a portfolio and save the winning strategy to start history tracking.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Scenario Grid</p>
+      <h2>Collections Strategy Comparison</h2>
+      <p class="muted-copy">Use this comparison to decide whether the queue should lean toward calls, digital recovery, settlements, legal escalation, or a balanced mix.</p>
+    </div>
+  </div>
+  <div class="table-shell">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Strategy</th>
+          <th>Debtor Count</th>
+          <th>Expected Recovery</th>
+          <th>Expected Uplift</th>
+          <th>Expected Cost</th>
+          <th>Execution ROI</th>
+          <th>Avg Priority</th>
+          <th>Best Fit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in strategy_rows %}
+          <tr>
+            <td>
+              <strong>{{ row.label }}</strong><br>
+              <span class="table-subtitle">{{ row.description }}</span>
+            </td>
+            <td>{{ row.debtor_count }}</td>
+            <td>{{ row.expected_total_recovery_display }}</td>
+            <td>{{ row.expected_total_uplift_display }}</td>
+            <td>{{ row.expected_cost_display }}</td>
+            <td><strong>{{ row.expected_roi_multiple }}x</strong><br><span class="table-subtitle">{{ row.expected_roi }}% vs execution cost</span></td>
+            <td>
+              <strong>{{ row.avg_priority_score }}</strong><br>
+              <span class="table-subtitle">Score out of 100</span>
+            </td>
+            <td>{{ row.best_fit_segments|join:', ' }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8">No strategy scenarios are available yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Top Cases In Winning Strategy</p>
+      <h2>Lead Action List</h2>
+      <p class="muted-copy">A quick look at the debtors most directly affected by the current winning strategy.</p>
+    </div>
+  </div>
+  <div class="table-shell">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Debtor</th>
+          <th>Action</th>
+          <th>Priority</th>
+          <th>Expected Uplift</th>
+          <th>Outstanding</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in winner.top_cases %}
+          <tr>
+            <td>{{ item.debtor.full_name }}</td>
+            <td>{{ item.recommended_action_label }}</td>
+            <td>{{ item.priority_score }}</td>
+            <td>{{ item.expected_uplift_amount_display }}</td>
+            <td>{{ item.outstanding_total_display }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5">No cases are currently attached to the winning strategy.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

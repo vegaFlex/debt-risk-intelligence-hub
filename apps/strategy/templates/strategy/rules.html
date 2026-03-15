@@ -1,0 +1,137 @@
+{% extends "base_app.html" %}
+
+{% block title %}Strategy Rules{% endblock %}
+
+{% block content %}
+<section class="card card-compact">
+  <div class="section-head compact">
+    <div>
+      <p class="eyebrow">Collections Intelligence</p>
+      <h2>Action Rules</h2>
+      <p class="section-copy">Manage the rule rows that drive next-best action recommendations, channel selection, uplift assumptions, and queue prioritization.</p>
+    </div>
+  </div>
+</section>
+
+{% if can_manage_rules %}<section class="card">
+  <div class="section-head compact">
+    <div class="strategy-form-intro">
+      <h3>{% if editing_rule %}Edit Action Rule{% else %}Add Action Rule{% endif %}</h3>
+      <p class="section-copy">Use rule rows to shape the first-pass collections strategy logic before the engine moves into richer contact-history awareness.</p>
+    </div>
+    {% if editing_rule %}
+      <a class="btn btn-secondary" href="{% url 'strategy-rules' %}">Cancel Edit</a>
+    {% endif %}
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="filters-grid strategy-rule-form-grid">
+      <div class="strategy-rule-field strategy-rule-field-name"><label for="id_name">Rule Name</label>{{ form.name }}</div>
+      <div class="strategy-rule-field strategy-rule-field-risk"><label for="id_risk_band">Risk Band</label>{{ form.risk_band }}</div>
+      <div class="strategy-rule-field strategy-rule-field-status"><label for="id_debtor_status">Debtor Status</label>{{ form.debtor_status }}</div>
+      <div class="strategy-rule-field strategy-rule-field-number"><label for="id_dpd_min">DPD Min</label>{{ form.dpd_min }}</div>
+      <div class="strategy-rule-field strategy-rule-field-number"><label for="id_dpd_max">DPD Max</label>{{ form.dpd_max }}</div>
+      <div class="strategy-rule-field strategy-rule-field-action"><label for="id_recommended_action">Recommended Action</label>{{ form.recommended_action }}</div>
+      <div class="strategy-rule-field strategy-rule-field-channel"><label for="id_recommended_channel">Recommended Channel</label>{{ form.recommended_channel }}</div>
+      <div class="strategy-rule-field strategy-rule-field-number"><label for="id_base_uplift_pct">Base Uplift %</label>{{ form.base_uplift_pct }}</div>
+      <div class="strategy-rule-field strategy-rule-field-number"><label for="id_priority_weight">Priority Weight</label>{{ form.priority_weight }}</div>
+      <div class="strategy-rule-combined-shell">
+        <div class="strategy-rule-detail-row">
+          <div class="strategy-rule-flags">
+            <p class="strategy-rule-block-title">Rule Flags</p>
+            <div class="strategy-rule-flags-list">
+              <label class="checkbox-inline-row" for="id_requires_phone">
+                <span>Requires Phone</span>
+                {{ form.requires_phone }}
+              </label>
+              <label class="checkbox-inline-row" for="id_requires_email">
+                <span>Requires Email</span>
+                {{ form.requires_email }}
+              </label>
+              <label class="checkbox-inline-row" for="id_active">
+                <span>Active</span>
+                {{ form.active }}
+              </label>
+            </div>
+          </div>
+          <div class="strategy-rule-notes">
+            <p class="strategy-rule-block-title">Notes</p>
+            {{ form.notes }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="actions actions-align-end">
+      <button type="submit" class="btn btn-primary">{% if editing_rule %}Update Rule{% else %}Save Rule{% endif %}</button>
+    </div>
+  </form>
+</section>{% else %}<section class="card card-compact">
+  <h3>Read-Only Rule Review</h3>
+  <p class="section-copy">This account can inspect the collections strategy rules, but only manager or admin accounts can create or edit them.</p>
+</section>{% endif %}
+
+<section class="card">
+  <div class="section-head compact">
+    <div>
+      <h3>Rule Library</h3>
+      <p class="section-copy">Review active strategy rules and filter by recommended action when you want to audit how the engine is making its decisions.</p>
+    </div>
+    <form method="get" class="benchmark-filter-form">
+      <label for="action_filter">Action</label>
+      <select id="action_filter" name="action" onchange="this.form.submit()">
+        <option value="">All actions</option>
+        {% for value, label in action_choices %}
+          <option value="{{ value }}" {% if selected_action == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Rule</th>
+          <th>Risk Band</th>
+          <th>Status</th>
+          <th>DPD Range</th>
+          <th>Requires</th>
+          <th>Action</th>
+          <th>Channel</th>
+          <th>Uplift</th>
+          <th>Priority</th>
+          <th>Active</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rule in rules %}
+          <tr>
+            <td>
+              <strong>{{ rule.name }}</strong><br>
+              <span class="small">{{ rule.notes|default:'No notes' }}</span>
+            </td>
+            <td>{{ rule.get_risk_band_display|default:'All bands' }}</td>
+            <td>{{ rule.debtor_status|default:'All statuses' }}</td>
+            <td>{{ rule.dpd_min }} - {{ rule.dpd_max }}</td>
+            <td>
+              {% if rule.requires_phone %}Phone{% endif %}{% if rule.requires_phone and rule.requires_email %} + {% endif %}{% if rule.requires_email %}Email{% endif %}{% if not rule.requires_phone and not rule.requires_email %}Open{% endif %}
+            </td>
+            <td>{{ rule.get_recommended_action_display }}</td>
+            <td>{{ rule.get_recommended_channel_display|default:'Auto' }}</td>
+            <td>{{ rule.base_uplift_pct }}%</td>
+            <td>{{ rule.priority_weight }}</td>
+            <td>{{ rule.active|yesno:'Yes,No' }}</td>
+            <td>{% if can_manage_rules %}<a class="btn btn-secondary btn-compact" href="{% url 'strategy-rule-edit' rule.id %}">Edit</a>{% else %}<span class="small">Read only</span>{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="11">No action rules available yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

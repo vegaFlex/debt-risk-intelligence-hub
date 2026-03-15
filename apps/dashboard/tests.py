@@ -72,6 +72,9 @@ class DashboardViewTests(TestCase):
         self.client.login(username='visitor_dash', password='pass123')
         response = self.client.get(reverse('dashboard-home'))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Strategy')
+        self.assertContains(response, 'Strategy Snapshot')
+        self.assertContains(response, 'Open Strategy Workspace')
         self.assertContains(response, 'Full Debtor List')
         self.assertContains(response, 'Report Preview')
         self.assertContains(response, 'Priority Debtor Preview')
@@ -80,11 +83,23 @@ class DashboardViewTests(TestCase):
         self.client.login(username='manager_dash', password='pass123')
         response = self.client.get(reverse('dashboard-home'))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Strategy')
+        self.assertContains(response, 'Strategy Snapshot')
+        self.assertContains(response, 'Open Collector Queue')
         self.assertContains(response, 'Full Debtor List')
         self.assertContains(response, 'Report Preview')
         self.assertContains(response, 'More Actions')
         self.assertContains(response, 'Priority Debtor Preview')
         self.assertContains(response, 'Risk Segment Breakdown')
+
+    def test_dashboard_builds_strategy_snapshot_for_filtered_debtors(self):
+        self.client.login(username='manager_dash', password='pass123')
+        response = self.client.get(reverse('dashboard-home'), {'portfolio': self.portfolio_one.id})
+        self.assertEqual(response.status_code, 200)
+        strategy_snapshot = response.context['strategy_snapshot']
+        self.assertGreaterEqual(strategy_snapshot['summary']['debtor_count'], 1)
+        self.assertIn('highest_value_action', strategy_snapshot['summary'])
+        self.assertLessEqual(len(strategy_snapshot['recommendations']), 5)
 
     def test_dashboard_filters_by_selected_status(self):
         self.client.login(username='manager_dash', password='pass123')

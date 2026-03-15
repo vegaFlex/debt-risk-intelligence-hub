@@ -15,6 +15,7 @@ Use this guide to verify:
 - debtor review workflows
 - reporting and export restrictions
 - valuation and acquisition review workflows
+- collections strategy workflows
 - benchmark and comparison screens
 - API availability
 - documentation pages
@@ -32,8 +33,8 @@ Purpose:
 - read-only walkthrough account for recruiters, clients, and public reviewers
 
 Expected behavior:
-- can view dashboards, reports preview, valuation workspace, comparison desk, benchmark library, and docs
-- cannot import data, export reports, save valuations, edit benchmarks, or access admin
+- can view dashboards, reports preview, valuation workspace, comparison desk, benchmark library, strategy screens, and docs
+- cannot import data, export reports, save valuations, save strategy runs, edit benchmarks, or access admin
 
 ### Restricted API account
 - Username: `analyst_demo`
@@ -87,6 +88,13 @@ Recommended browser setup:
 - Benchmark Library: `https://debt-risk-intelligence-hub.onrender.com/valuation/benchmarks/`
 - Valuation Import: `https://debt-risk-intelligence-hub.onrender.com/valuation/import/`
 
+### Strategy layer
+- Strategy Workspace: `https://debt-risk-intelligence-hub.onrender.com/strategy/`
+- Collector Queue: `https://debt-risk-intelligence-hub.onrender.com/strategy/queue/`
+- Strategy Simulator: `https://debt-risk-intelligence-hub.onrender.com/strategy/simulator/`
+- Strategy Rules: `https://debt-risk-intelligence-hub.onrender.com/strategy/rules/`
+- Debtor Strategy Detail pattern: `https://debt-risk-intelligence-hub.onrender.com/strategy/debtors/<id>/`
+
 ### Documentation
 - User Guide: `https://debt-risk-intelligence-hub.onrender.com/docs/user-guide/`
 - Buyer Guide: `https://debt-risk-intelligence-hub.onrender.com/docs/buyer-guide/`
@@ -96,6 +104,9 @@ Recommended browser setup:
 - Portfolios API: `https://debt-risk-intelligence-hub.onrender.com/api/portfolios/`
 - Debtors API: `https://debt-risk-intelligence-hub.onrender.com/api/debtors/`
 - KPI Overview API: `https://debt-risk-intelligence-hub.onrender.com/api/kpis/overview/`
+- Strategy Recommendations API: `https://debt-risk-intelligence-hub.onrender.com/api/strategy/recommendations/`
+- Strategy Queue API: `https://debt-risk-intelligence-hub.onrender.com/api/strategy/queue/`
+- Strategy Simulator API: `https://debt-risk-intelligence-hub.onrender.com/api/strategy/simulator/`
 
 ---
 
@@ -166,6 +177,7 @@ The goal here is to confirm that the public review account can see the important
 - filters are visible
 - charts render
 - numbers use compact formatting where appropriate, e.g. `1.36M`
+- strategy snapshot cards show `Top Action`, `Secondary Action`, `Coverage`, and `Avg Uplift`
 
 ### 6.3 Dashboard filtering
 1. Change `Portfolio`
@@ -285,6 +297,69 @@ The goal here is to confirm that the public review account can see the important
 - entries are readable and role-appropriate
 - no admin-only action should appear for visitor
 
+### 6.19 Strategy workspace
+1. Open `/strategy/`
+2. Change the portfolio filter if available
+3. Expected result:
+- summary KPI cards load
+- `Next-Best Action Ranking` is visible
+- recommended action, channel, priority, and uplift are readable
+- contact history signals appear for ranked debtors
+- portfolio filtering refreshes the ranked set cleanly
+
+### 6.20 Collector queue
+1. Open `/strategy/queue/`
+2. Expected result:
+- queue summary cards load
+- `Queue Snapshot Size` accepts custom values
+- values from `1` to `100` behave cleanly
+- collector lanes render
+- lane wording reads as workload lanes or queue lanes, not employee headcount
+- prioritized assignments table is readable
+- rows show sensible queue buckets
+- queue rows expose a path to debtor detail review
+
+### 6.21 Strategy simulator
+1. Open `/strategy/simulator/`
+2. Expected result:
+- five compared strategies are visible
+- winner section is visible
+- recovery, uplift, cost, and ROI are readable
+- recent strategy run history is visible when records exist
+- save and delete actions for history behave correctly for authorized users
+
+### 6.22 Debtor strategy detail
+1. From `/strategy/`, `/strategy/queue/`, or the dashboard strategy table, open one debtor detail link
+2. Expected result:
+- recommended action is clear
+- priority score and expected uplift are visible
+- recent calls are shown
+- promise history is shown
+- alternative actions are shown with comparable logic
+
+### 6.23 Visitor must not save strategy runs
+1. Open `/strategy/simulator/`
+2. Look for a save action for the winning strategy
+3. Expected result:
+- visitor should not be allowed to save strategy runs
+- any direct save attempt should be denied safely
+
+### 6.24 Strategy rules
+1. Open `/strategy/rules/`
+2. Expected result:
+- visitor can review rules in read-only mode
+- page indicates review-only behavior clearly
+- no create/edit workflow should be usable
+
+### 6.25 Strategy API links
+1. Open `/api/strategy/recommendations/`
+2. Open `/api/strategy/queue/`
+3. Open `/api/strategy/simulator/`
+4. Expected result:
+- JSON loads
+- payloads are structured
+- no write behavior is exposed
+
 ---
 
 ## 7. Analyst Demo Tests
@@ -314,9 +389,21 @@ The goal here is to verify that the analyst role is restricted as designed.
 ### 7.4 API access that should work
 1. Open `/api/portfolios/`
 2. Open `/api/debtors/`
-3. Expected result:
+3. Open `/api/strategy/recommendations/`
+4. Open `/api/strategy/queue/`
+5. Open `/api/strategy/simulator/`
+6. Expected result:
 - analyst can access the allowed API endpoints
 - responses render normally
+
+### 7.5 Strategy UI restriction
+1. Open `/strategy/`
+2. Open `/strategy/queue/`
+3. Open `/strategy/simulator/`
+4. Open `/strategy/rules/`
+5. Expected result:
+- analyst should receive a friendly restriction experience
+- strategy UI content should not be available
 
 ---
 
@@ -381,6 +468,43 @@ Run these only when you have private admin credentials.
 - benchmark changes save correctly
 - valuation logic can use benchmark fallback without errors
 
+### 8.8 Strategy rules management
+1. Open `/strategy/rules/`
+2. Create a new action rule or edit an existing one
+3. Expected result:
+- form validates correctly
+- DPD min/max validation works
+- saved rule appears in the rules library
+
+### 8.9 Strategy workspace verification
+1. Open `/strategy/`
+2. Review top recommended actions
+3. Open one debtor detail row
+4. Expected result:
+- recommendations load
+- reason summaries reflect debtor condition and contact history
+- debtor detail explains recent calls, promises, and alternative actions
+
+### 8.10 Collector queue verification
+1. Open `/strategy/queue/`
+2. Review the highest-priority assignments
+3. Expected result:
+- queue buckets make sense
+- queue snapshot size can be changed safely
+- collector lanes distribute work visibly
+- lane cards read like a prioritized snapshot, not a full-day staffing plan
+
+### 8.11 Strategy simulator verification
+1. Open `/strategy/simulator/`
+2. Compare strategy outputs
+3. Save the winning strategy run
+4. Delete a saved run if appropriate
+5. Expected result:
+- winning strategy appears
+- ROI and uplift differ meaningfully between strategies
+- recent strategy history updates
+- delete action removes the selected history row safely
+
 ---
 
 ## 9. API Manual Checks
@@ -414,6 +538,30 @@ Open:
 Check:
 - manager/admin should receive KPI payload
 - analyst restrictions should still hold if applicable
+
+### 9.4 Strategy recommendations API
+Open:
+- `/api/strategy/recommendations/`
+
+Check:
+- summary and ranked recommendations are returned
+- recommendation fields include action, channel, priority, and uplift
+
+### 9.5 Strategy queue API
+Open:
+- `/api/strategy/queue/`
+
+Check:
+- queue summary and queue rows are returned
+- priority buckets and collector labels are present
+
+### 9.6 Strategy simulator API
+Open:
+- `/api/strategy/simulator/`
+
+Check:
+- simulator summary and compared strategies are returned
+- winner information is present
 
 ---
 
@@ -453,6 +601,7 @@ Check:
 - dropdown buttons show a clear indicator that they expand
 - dashboard navigation is logically grouped
 - `Valuation` is visible in the main left-side product navigation
+- `Strategy` is visible in the main left-side product navigation
 - `Documentation` is in the right-side helper/admin group
 - compact number formatting is used for large money values
 - score-based metrics clearly indicate they are scores, not percentages
@@ -468,6 +617,7 @@ Check the following after any important change:
 - login screen does not print demo credentials
 - public `visitor_demo` is read-only
 - analyst cannot access manager/admin screens
+- analyst cannot access strategy screens
 - admin credentials are not exposed in README, docs, or login page
 - documentation pages open safely without exposing source code or secrets
 
@@ -480,11 +630,12 @@ If you want the cleanest full pass, use this order:
 1. Anonymous access tests
 2. `visitor_demo` walkthrough
 3. `analyst_demo` restriction checks
-4. API checks
-5. Documentation checks
-6. Private admin full-access tests
-7. Final UI/UX regression pass
-8. Final security regression pass
+4. Strategy workflow checks
+5. API checks
+6. Documentation checks
+7. Private admin full-access tests
+8. Final UI/UX regression pass
+9. Final security regression pass
 
 ---
 
@@ -510,6 +661,7 @@ The application is in a good testing state if:
 - all public review flows work with `visitor_demo`
 - restricted actions are blocked cleanly
 - analytics and valuation screens render correctly
+- strategy screens render correctly and respect role boundaries
 - documentation pages are reachable and readable
 - no anonymous import/admin access remains
 - exports and write actions work only for authorized roles
@@ -522,4 +674,5 @@ The application is in a good testing state if:
 - Buyer Guide: `/docs/buyer-guide/`
 - Buyer One-Pager: `/docs/buyer-one-pager/`
 - Demo Checklist: `docs/demo_checklist.md`
+
 
