@@ -15,7 +15,7 @@
 
 {% if can_manage_rules %}<section class="card">
   <div class="section-head compact">
-    <div>
+    <div class="strategy-form-intro">
       <h3>{% if editing_rule %}Edit Action Rule{% else %}Add Action Rule{% endif %}</h3>
       <p class="section-copy">Use rule rows to shape the first-pass collections strategy logic before the engine moves into richer contact-history awareness.</p>
     </div>
@@ -26,36 +26,43 @@
 
   <form method="post">
     {% csrf_token %}
-    <div class="filters-grid strategy-rule-grid">
-      <div><label for="id_name">Rule Name</label>{{ form.name }}</div>
-      <div><label for="id_risk_band">Risk Band</label>{{ form.risk_band }}</div>
-      <div><label for="id_debtor_status">Debtor Status</label>{{ form.debtor_status }}</div>
-      <div><label for="id_dpd_min">DPD Min</label>{{ form.dpd_min }}</div>
-      <div><label for="id_dpd_max">DPD Max</label>{{ form.dpd_max }}</div>
-      <div><label for="id_recommended_action">Recommended Action</label>{{ form.recommended_action }}</div>
-      <div><label for="id_recommended_channel">Recommended Channel</label>{{ form.recommended_channel }}</div>
-      <div><label for="id_base_uplift_pct">Base Uplift %</label>{{ form.base_uplift_pct }}</div>
-      <div><label for="id_priority_weight">Priority Weight</label>{{ form.priority_weight }}</div>
-      <div class="full-span strategy-rule-flags">
-        <p class="eyebrow">Rule Flags</p>
-        <div class="strategy-rule-flags-list">
-          <label class="checkbox-inline-row" for="id_requires_phone">
-            <span>Requires Phone</span>
-            {{ form.requires_phone }}
-          </label>
-          <label class="checkbox-inline-row" for="id_requires_email">
-            <span>Requires Email</span>
-            {{ form.requires_email }}
-          </label>
-          <label class="checkbox-inline-row" for="id_active">
-            <span>Active</span>
-            {{ form.active }}
-          </label>
+    <div class="filters-grid strategy-rule-form-grid">
+      <div class="strategy-rule-field strategy-rule-field-name"><label for="id_name">Rule Name</label>{{ form.name }}</div>
+      <div class="strategy-rule-field strategy-rule-field-risk"><label for="id_risk_band">Risk Band</label>{{ form.risk_band }}</div>
+      <div class="strategy-rule-field strategy-rule-field-status"><label for="id_debtor_status">Debtor Status</label>{{ form.debtor_status }}</div>
+      <div class="strategy-rule-field strategy-rule-field-number"><label for="id_dpd_min">DPD Min</label>{{ form.dpd_min }}</div>
+      <div class="strategy-rule-field strategy-rule-field-number"><label for="id_dpd_max">DPD Max</label>{{ form.dpd_max }}</div>
+      <div class="strategy-rule-field strategy-rule-field-action"><label for="id_recommended_action">Recommended Action</label>{{ form.recommended_action }}</div>
+      <div class="strategy-rule-field strategy-rule-field-channel"><label for="id_recommended_channel">Recommended Channel</label>{{ form.recommended_channel }}</div>
+      <div class="strategy-rule-field strategy-rule-field-number"><label for="id_base_uplift_pct">Base Uplift %</label>{{ form.base_uplift_pct }}</div>
+      <div class="strategy-rule-field strategy-rule-field-number"><label for="id_priority_weight">Priority Weight</label>{{ form.priority_weight }}</div>
+      <div class="strategy-rule-combined-shell">
+        <div class="strategy-rule-detail-row">
+          <div class="strategy-rule-flags">
+            <p class="strategy-rule-block-title">Rule Flags</p>
+            <div class="strategy-rule-flags-list">
+              <label class="checkbox-inline-row" for="id_requires_phone">
+                <span>Requires Phone</span>
+                {{ form.requires_phone }}
+              </label>
+              <label class="checkbox-inline-row" for="id_requires_email">
+                <span>Requires Email</span>
+                {{ form.requires_email }}
+              </label>
+              <label class="checkbox-inline-row" for="id_active">
+                <span>Active</span>
+                {{ form.active }}
+              </label>
+            </div>
+          </div>
+          <div class="strategy-rule-notes">
+            <p class="strategy-rule-block-title">Notes</p>
+            {{ form.notes }}
+          </div>
         </div>
       </div>
-      <div class="full-span"><label for="id_notes">Notes</label>{{ form.notes }}</div>
     </div>
-    <div class="actions">
+    <div class="actions actions-align-end">
       <button type="submit" class="btn btn-primary">{% if editing_rule %}Update Rule{% else %}Save Rule{% endif %}</button>
     </div>
   </form>

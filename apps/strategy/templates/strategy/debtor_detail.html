@@ -3,10 +3,12 @@
 {% block title %}Debtor Strategy Detail{% endblock %}
 
 {% block content %}
-<section class="page-header card">
-  <p class="eyebrow">Collections Intelligence</p>
-  <h1>{{ debtor.full_name }}</h1>
-  <p class="muted-copy">Detailed next-best-action review for one debtor, including recommendation logic, contact history, promises, and alternative action scenarios.</p>
+<section class="page-header card page-header-split">
+  <div>
+    <p class="eyebrow">Collections Intelligence</p>
+    <h1>{{ debtor.full_name }}</h1>
+  </div>
+  <p class="muted-copy page-header-side-copy">Detailed next-best-action review for one debtor, including recommendation logic, contact history, promises, and alternative action scenarios.</p>
 </section>
 
 <section class="card">
@@ -85,7 +87,7 @@
       </div>
     </div>
     <div class="table-shell">
-      <table class="data-table">
+      <table class="data-table scenario-table">
         <thead>
           <tr>
             <th>Action</th>
@@ -99,7 +101,10 @@
           {% for scenario in scenarios %}
             <tr>
               <td>
-                <strong>{{ scenario.label }}</strong>{% if scenario.is_recommended %} <span class="valuation-pill valuation-pill-strong">Recommended</span>{% endif %}<br>
+                <div class="scenario-action-head">
+                  <strong>{{ scenario.label }}</strong>
+                  {% if scenario.is_recommended %}<span class="valuation-pill valuation-pill-strong">Recommended</span>{% endif %}
+                </div>
                 <span class="table-subtitle">{{ scenario.channel }}</span>
               </td>
               <td>{{ scenario.expected_uplift_amount_display }}<br><span class="table-subtitle">{{ scenario.expected_uplift_pct }}%</span></td>

@@ -3,10 +3,12 @@
 {% block title %}Strategy Simulator{% endblock %}
 
 {% block content %}
-<section class="page-header card">
-  <p class="eyebrow">Collections Intelligence</p>
-  <h1>Strategy Simulator</h1>
-  <p class="muted-copy">Compare collections strategies by expected uplift, execution cost, projected ROI, and best-fit debtor segments.</p>
+<section class="page-header card page-header-split">
+  <div>
+    <p class="eyebrow">Collections Intelligence</p>
+    <h1>Strategy Simulator</h1>
+  </div>
+  <p class="muted-copy page-header-side-copy">Compare collections strategies by expected uplift, execution cost, projected ROI, and best-fit debtor segments.</p>
 </section>
 
 <section class="card card-compact">
@@ -31,28 +33,28 @@
   </form>
 </section>
 
-<section class="insight-grid">
-  <article class="summary-card">
+<section class="insight-grid strategy-summary-kpis">
+  <article class="summary-card strategy-summary-kpi">
     <p class="eyebrow">Strategies Compared</p>
     <h2>{{ simulator_summary.strategy_count }}</h2>
     <p class="metric-subtitle">Active strategy profiles</p>
   </article>
-  <article class="summary-card">
+  <article class="summary-card summary-card-title strategy-summary-kpi">
     <p class="eyebrow">Best Strategy</p>
     <h2>{{ simulator_summary.best_strategy }}</h2>
     <p class="metric-subtitle">Current top scenario</p>
   </article>
-  <article class="summary-card">
-    <p class="eyebrow">Best ROI Multiple</p>
+  <article class="summary-card strategy-summary-kpi">
+    <p class="eyebrow">Execution ROI Multiple</p>
     <h2>{{ simulator_summary.best_roi_multiple }}x</h2>
-    <p class="metric-subtitle">{{ simulator_summary.best_roi }}% projected execution ROI</p>
+    <p class="metric-subtitle">{{ simulator_summary.best_roi }}% vs execution cost</p>
   </article>
-  <article class="summary-card">
+  <article class="summary-card strategy-summary-kpi">
     <p class="eyebrow">Best Uplift</p>
     <h2>{{ simulator_summary.best_uplift_display }}</h2>
     <p class="metric-subtitle">Expected strategy upside</p>
   </article>
-  <article class="summary-card">
+  <article class="summary-card strategy-summary-kpi">
     <p class="eyebrow">Targeted Cases</p>
     <h2>{{ simulator_summary.targeted_cases }}</h2>
     <p class="metric-subtitle">Cases covered by the winner</p>
@@ -61,58 +63,56 @@
 
 {% if winner %}
 <section class="card">
-  <div class="section-heading">
+  <div class="section-heading section-heading-split">
     <div>
       <p class="eyebrow">Winning Scenario</p>
       <h2>{{ winner.label }}</h2>
       <p class="muted-copy">{{ winner.description }}</p>
     </div>
-  </div>
-  {% if can_save_runs %}
-    <form method="post" class="card strategy-save-card">
-      {% csrf_token %}
-      <input type="hidden" name="strategy_key" value="{{ winner.key }}">
-      <div class="filter-toolbar">
-        <div class="filters-grid">
-          <div>
+    {% if can_save_runs %}
+      <form method="post" class="strategy-save-inline">
+        {% csrf_token %}
+        <input type="hidden" name="strategy_key" value="{{ winner.key }}">
+        <div class="strategy-save-inline-fields">
+          <div class="strategy-save-inline-input">
             <label for="strategy-notes">Run Notes</label>
             <input type="text" id="strategy-notes" name="notes" placeholder="Optional note for why this run was saved">
           </div>
+          <div class="strategy-save-inline-action">
+            <button type="submit" class="btn btn-primary" {% if not selected_portfolio %}disabled{% endif %}>Save Winning Strategy Run</button>
+          </div>
         </div>
-        <div class="actions actions-toolbar">
-          <button type="submit" class="btn btn-primary" {% if not selected_portfolio %}disabled{% endif %}>Save Winning Strategy Run</button>
-        </div>
-      </div>
-      {% if not selected_portfolio %}
-        <p class="filter-summary">Select a portfolio above before saving a strategy run.</p>
-      {% endif %}
-    </form>
-  {% endif %}
-  <div class="mini-stat-grid">
-    <article class="mini-stat-card">
+        {% if not selected_portfolio %}
+          <p class="filter-summary">Select a portfolio above before saving a strategy run.</p>
+        {% endif %}
+      </form>
+    {% endif %}
+  </div>
+  <div class="mini-stat-grid strategy-winner-kpis">
+    <article class="mini-stat-card strategy-winner-kpi">
       <p class="eyebrow">Debtors</p>
       <h3>{{ winner.debtor_count }}</h3>
       <p class="metric-subtitle">Targeted queue size</p>
     </article>
-    <article class="mini-stat-card">
+    <article class="mini-stat-card strategy-winner-kpi">
       <p class="eyebrow">Expected Recovery</p>
       <h3>{{ winner.expected_total_recovery_display }}</h3>
       <p class="metric-subtitle">Projected collections</p>
     </article>
-    <article class="mini-stat-card">
+    <article class="mini-stat-card strategy-winner-kpi">
       <p class="eyebrow">Expected Uplift</p>
       <h3>{{ winner.expected_total_uplift_display }}</h3>
       <p class="metric-subtitle">Recovery upside</p>
     </article>
-    <article class="mini-stat-card">
+    <article class="mini-stat-card strategy-winner-kpi">
       <p class="eyebrow">Execution Cost</p>
       <h3>{{ winner.expected_cost_display }}</h3>
       <p class="metric-subtitle">Estimated delivery cost</p>
     </article>
-    <article class="mini-stat-card">
-      <p class="eyebrow">ROI Multiple</p>
+    <article class="mini-stat-card strategy-winner-kpi">
+      <p class="eyebrow">Execution ROI Multiple</p>
       <h3>{{ winner.expected_roi_multiple }}x</h3>
-      <p class="metric-subtitle">{{ winner.expected_roi }}% net ROI</p>
+      <p class="metric-subtitle">{{ winner.expected_roi }}% vs execution cost</p>
     </article>
   </div>
 </section>
@@ -136,7 +136,7 @@
           <th>Expected Recovery</th>
           <th>Expected Uplift</th>
           <th>Expected Cost</th>
-          <th>Projected ROI</th>
+          <th>Execution ROI</th>
           <th>Created By</th>
           <th>Action</th>
         </tr>
@@ -150,7 +150,7 @@
             <td>{{ run.expected_total_recovery_display }}</td>
             <td>{{ run.expected_total_uplift_display }}</td>
             <td>{{ run.expected_cost_display }}</td>
-            <td><strong>{{ run.expected_roi_multiple }}x</strong><br><span class="table-subtitle">{{ run.result.expected_roi }}%</span></td>
+            <td><strong>{{ run.expected_roi_multiple }}x</strong><br><span class="table-subtitle">{{ run.result.expected_roi }}% vs execution cost</span></td>
             <td>{{ run.created_by.username|default:"system" }}</td>
             <td>
               {% if can_manage_runs %}
@@ -192,7 +192,7 @@
           <th>Expected Recovery</th>
           <th>Expected Uplift</th>
           <th>Expected Cost</th>
-          <th>Projected ROI</th>
+          <th>Execution ROI</th>
           <th>Avg Priority</th>
           <th>Best Fit</th>
         </tr>
@@ -208,7 +208,7 @@
             <td>{{ row.expected_total_recovery_display }}</td>
             <td>{{ row.expected_total_uplift_display }}</td>
             <td>{{ row.expected_cost_display }}</td>
-            <td><strong>{{ row.expected_roi_multiple }}x</strong><br><span class="table-subtitle">{{ row.expected_roi }}%</span></td>
+            <td><strong>{{ row.expected_roi_multiple }}x</strong><br><span class="table-subtitle">{{ row.expected_roi }}% vs execution cost</span></td>
             <td>
               <strong>{{ row.avg_priority_score }}</strong><br>
               <span class="table-subtitle">Score out of 100</span>

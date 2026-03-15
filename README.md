@@ -330,6 +330,33 @@ The valuation workspace ranks all reviewed portfolios and surfaces recommendatio
 ### Benchmark Library
 The benchmark workspace manages historical recovery assumptions that feed the hybrid valuation and similarity fallback logic.
 ![Benchmark Library](docs/images/valuation-benchmarks.jpg)
+
+## Strategy Preview
+
+### Collections Workspace
+The collections workspace ranks debtors by next-best action, expected uplift, and contact-history signals so teams can review the highest-value moves first.
+![Collections Workspace](docs/images/strategy-workspace.jpg)
+
+### Collector Queue
+The queue view distributes priority cases into collector lanes and keeps the operational workload, uplift, and action mix visible in one screen.
+![Collector Queue](docs/images/strategy-queue.jpg)
+
+### Strategy Simulator
+The simulator compares multiple collections strategies side by side and highlights the current winning scenario for the selected portfolio.
+![Strategy Simulator](docs/images/strategy-simulator.jpg)
+
+### Strategy Run History
+Saved simulator runs preserve past outcomes for the selected portfolio so the team can compare recovery, uplift, execution cost, and ROI over time.
+![Strategy Run History](docs/images/strategy-simulator-history.jpg)
+
+### Debtor Strategy Detail
+The debtor detail screen combines recommendation logic, alternative actions, contact history, and promise-to-pay signals in one focused review layout.
+![Debtor Strategy Detail](docs/images/strategy-debtor-detail.jpg)
+
+### Strategy Rules
+The rules workspace lets managers tune recommendation behavior through action rules, channel requirements, uplift weights, and operational notes.
+![Strategy Rules](docs/images/strategy-rules.jpg)
+
 ## How The Charts Work
 - `Risk Band Distribution` updates from the currently filtered debtor set and shows how cases split across `high`, `medium`, and `low` risk.
 - `Status Distribution` reflects the live operational mix for the filtered population.
