@@ -36,9 +36,23 @@
       <div><label for="id_recommended_channel">Recommended Channel</label>{{ form.recommended_channel }}</div>
       <div><label for="id_base_uplift_pct">Base Uplift %</label>{{ form.base_uplift_pct }}</div>
       <div><label for="id_priority_weight">Priority Weight</label>{{ form.priority_weight }}</div>
-      <div class="checkbox-field"><label for="id_requires_phone">Requires Phone</label><div class="checkbox-control">{{ form.requires_phone }}</div></div>
-      <div class="checkbox-field"><label for="id_requires_email">Requires Email</label><div class="checkbox-control">{{ form.requires_email }}</div></div>
-      <div class="checkbox-field"><label for="id_active">Active</label><div class="checkbox-control">{{ form.active }}</div></div>
+      <div class="full-span strategy-rule-flags">
+        <p class="eyebrow">Rule Flags</p>
+        <div class="strategy-rule-flags-list">
+          <label class="checkbox-inline-row" for="id_requires_phone">
+            <span>Requires Phone</span>
+            {{ form.requires_phone }}
+          </label>
+          <label class="checkbox-inline-row" for="id_requires_email">
+            <span>Requires Email</span>
+            {{ form.requires_email }}
+          </label>
+          <label class="checkbox-inline-row" for="id_active">
+            <span>Active</span>
+            {{ form.active }}
+          </label>
+        </div>
+      </div>
       <div class="full-span"><label for="id_notes">Notes</label>{{ form.notes }}</div>
     </div>
     <div class="actions">

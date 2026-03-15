@@ -69,11 +69,24 @@
   </div>
   <div class="collector-lane-grid">
     {% for collector in collector_cards %}
-      <article class="insight-card">
-        <p class="eyebrow">{{ collector.collector_name }}</p>
-        <h3>{{ collector.case_count }} cases</h3>
-        <p class="muted-copy">Top priority: {{ collector.top_priority }} / 100 | Expected uplift: {{ collector.expected_uplift_display }}</p>
-        <ul class="tight-list">
+      <article class="insight-card collector-lane-card">
+        <div class="collector-lane-head">
+          <div>
+            <p class="eyebrow">{{ collector.collector_name }}</p>
+            <h3>{{ collector.case_count }} cases</h3>
+          </div>
+        </div>
+        <div class="collector-lane-metrics">
+          <div class="collector-lane-metric">
+            <span>Top priority</span>
+            <strong>{{ collector.top_priority }} / 100</strong>
+          </div>
+          <div class="collector-lane-metric">
+            <span>Expected uplift</span>
+            <strong>{{ collector.expected_uplift_display }}</strong>
+          </div>
+        </div>
+        <ul class="collector-case-list">
           {% for action in collector.actions %}
             <li>#{{ action.queue_rank }} - {{ action.debtor.full_name }} ({{ action.recommended_action_label }})</li>
           {% endfor %}

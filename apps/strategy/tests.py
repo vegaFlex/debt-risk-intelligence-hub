@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.portfolio.models import CallLog, Debtor, Portfolio, PromiseToPay
-from apps.strategy.models import ActionRule, ActionType, ActionScenario, CollectorQueueAssignment, DebtorActionRecommendation, StrategyRun
+from apps.strategy.models import ActionRule, ActionScenario, ActionType, CollectorQueueAssignment, DebtorActionRecommendation, StrategyRun, StrategyRunResult
 from apps.strategy.services import build_collector_queue, build_strategy_simulator, build_strategy_workspace
 from apps.users.models import AppUser, UserRole
 
@@ -108,6 +108,56 @@ class StrategyWorkspaceAccessTests(TestCase):
         response = self.client.post(reverse('strategy-simulator'), {'strategy_key': 'call_first'}, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(StrategyRun.objects.exists())
+
+    def test_manager_can_delete_saved_strategy_run(self):
+        portfolio = Portfolio.objects.create(
+            name='Simulator Delete Portfolio',
+            source_company='Delete Creditor',
+            purchase_date=timezone.localdate(),
+            purchase_price=Decimal('10000.00'),
+            face_value=Decimal('50000.00'),
+            currency='EUR',
+            created_by=self.manager,
+        )
+        Debtor.objects.create(
+            portfolio=portfolio,
+            external_id='SIM-DELETE-001',
+            full_name='Delete Debtor',
+            status='contacted',
+            days_past_due=140,
+            outstanding_principal=Decimal('3500.00'),
+            outstanding_total=Decimal('4200.00'),
+            risk_score=81,
+            risk_band='high',
+            phone_number='+359999999',
+        )
+
+        saved_run = StrategyRun.objects.create(
+            name='Balanced Mixed Strategy - Simulator Delete Portfolio',
+            portfolio=portfolio,
+            strategy_type='balanced',
+            created_by=self.manager,
+            notes='Delete me',
+        )
+        StrategyRunResult.objects.create(
+            strategy_run=saved_run,
+            debtor_count=1,
+            expected_total_recovery=Decimal('3000.00'),
+            expected_total_uplift=Decimal('1200.00'),
+            expected_cost=Decimal('100.00'),
+            expected_roi=Decimal('1100.00'),
+            notes='Delete path',
+        )
+
+        self.client.force_login(self.manager)
+        response = self.client.post(
+            f"{reverse('strategy-simulator')}?portfolio={portfolio.id}",
+            {'action': 'delete_run', 'run_id': saved_run.id},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(StrategyRun.objects.filter(id=saved_run.id).exists())
 
     def test_visitor_can_open_rules_in_read_only_mode(self):
         self.client.force_login(self.visitor)

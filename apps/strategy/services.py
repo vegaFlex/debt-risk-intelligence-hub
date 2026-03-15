@@ -35,6 +35,16 @@ def _format_compact_money(value: Decimal | int | float) -> str:
     return f"{numeric:.2f}"
 
 
+def format_compact_money(value: Decimal | int | float) -> str:
+    return _format_compact_money(value)
+
+
+def format_roi_multiple(roi_pct: Decimal | int | float) -> str:
+    roi_decimal = Decimal(roi_pct or 0)
+    multiple = (roi_decimal / Decimal('100')) + Decimal('1.00')
+    return f"{_round_metric(multiple):.2f}"
+
+
 def _contact_channel(debtor) -> str:
     if debtor.phone_number:
         return ActionType.CALL
@@ -637,6 +647,7 @@ def build_strategy_simulator(*, portfolio=None, debtors=None):
             'expected_cost': expected_cost,
             'expected_cost_display': _format_compact_money(expected_cost),
             'expected_roi': expected_roi,
+            'expected_roi_multiple': format_roi_multiple(expected_roi),
             'avg_priority_score': avg_priority,
             'best_fit_segments': best_fit or ['General queue'],
             'top_cases': targeted[:5],
@@ -650,6 +661,7 @@ def build_strategy_simulator(*, portfolio=None, debtors=None):
         'strategy_count': len(strategy_rows),
         'best_strategy': winner['label'] if winner else 'No strategy',
         'best_roi': winner['expected_roi'] if winner else Decimal('0.00'),
+        'best_roi_multiple': winner['expected_roi_multiple'] if winner else '1.00',
         'best_uplift_display': winner['expected_total_uplift_display'] if winner else '0.00',
         'targeted_cases': winner['debtor_count'] if winner else 0,
     }

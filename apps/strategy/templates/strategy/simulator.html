@@ -43,9 +43,9 @@
     <p class="metric-subtitle">Current top scenario</p>
   </article>
   <article class="summary-card">
-    <p class="eyebrow">Best ROI</p>
-    <h2>{{ simulator_summary.best_roi }}%</h2>
-    <p class="metric-subtitle">Projected execution ROI</p>
+    <p class="eyebrow">Best ROI Multiple</p>
+    <h2>{{ simulator_summary.best_roi_multiple }}x</h2>
+    <p class="metric-subtitle">{{ simulator_summary.best_roi }}% projected execution ROI</p>
   </article>
   <article class="summary-card">
     <p class="eyebrow">Best Uplift</p>
@@ -109,6 +109,11 @@
       <h3>{{ winner.expected_cost_display }}</h3>
       <p class="metric-subtitle">Estimated delivery cost</p>
     </article>
+    <article class="mini-stat-card">
+      <p class="eyebrow">ROI Multiple</p>
+      <h3>{{ winner.expected_roi_multiple }}x</h3>
+      <p class="metric-subtitle">{{ winner.expected_roi }}% net ROI</p>
+    </article>
   </div>
 </section>
 {% endif %}
@@ -133,6 +138,7 @@
           <th>Expected Cost</th>
           <th>Projected ROI</th>
           <th>Created By</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -141,15 +147,27 @@
             <td>{{ run.created_at|date:"Y-m-d H:i" }}</td>
             <td>{{ run.portfolio.name }}</td>
             <td>{{ run.get_strategy_type_display }}</td>
-            <td>{{ run.result.expected_total_recovery }}</td>
-            <td>{{ run.result.expected_total_uplift }}</td>
-            <td>{{ run.result.expected_cost }}</td>
-            <td>{{ run.result.expected_roi }}%</td>
+            <td>{{ run.expected_total_recovery_display }}</td>
+            <td>{{ run.expected_total_uplift_display }}</td>
+            <td>{{ run.expected_cost_display }}</td>
+            <td><strong>{{ run.expected_roi_multiple }}x</strong><br><span class="table-subtitle">{{ run.result.expected_roi }}%</span></td>
             <td>{{ run.created_by.username|default:"system" }}</td>
+            <td>
+              {% if can_manage_runs %}
+                <form method="post" class="inline-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete_run">
+                  <input type="hidden" name="run_id" value="{{ run.id }}">
+                  <button type="submit" class="btn btn-secondary btn-compact">Delete</button>
+                </form>
+              {% else %}
+                <span class="small">Read only</span>
+              {% endif %}
+            </td>
           </tr>
         {% empty %}
           <tr>
-            <td colspan="8">No saved strategy runs yet. Choose a portfolio and save the winning strategy to start history tracking.</td>
+            <td colspan="9">No saved strategy runs yet. Choose a portfolio and save the winning strategy to start history tracking.</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -190,7 +208,7 @@
             <td>{{ row.expected_total_recovery_display }}</td>
             <td>{{ row.expected_total_uplift_display }}</td>
             <td>{{ row.expected_cost_display }}</td>
-            <td><strong>{{ row.expected_roi }}%</strong></td>
+            <td><strong>{{ row.expected_roi_multiple }}x</strong><br><span class="table-subtitle">{{ row.expected_roi }}%</span></td>
             <td>
               <strong>{{ row.avg_priority_score }}</strong><br>
               <span class="table-subtitle">Score out of 100</span>

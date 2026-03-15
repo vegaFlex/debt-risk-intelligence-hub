@@ -11,6 +11,8 @@ from apps.strategy.services import (
     build_debtor_strategy_detail,
     build_collector_queue,
     build_strategy_simulator,
+    format_compact_money,
+    format_roi_multiple,
     build_strategy_workspace,
     save_strategy_run,
 )
@@ -64,13 +66,21 @@ class CollectionsSimulatorView(View):
     def _context(self, request):
         filter_context = _strategy_filter_context(request)
         selected_portfolio = filter_context['selected_portfolio']
+        saved_runs = []
+        if selected_portfolio:
+            for run in StrategyRun.objects.select_related('portfolio', 'created_by', 'result').filter(portfolio=selected_portfolio)[:8]:
+                run.expected_total_recovery_display = format_compact_money(run.result.expected_total_recovery)
+                run.expected_total_uplift_display = format_compact_money(run.result.expected_total_uplift)
+                run.expected_cost_display = format_compact_money(run.result.expected_cost)
+                run.expected_roi_multiple = format_roi_multiple(run.result.expected_roi)
+                saved_runs.append(run)
+
         context = {
             **filter_context,
             **build_strategy_simulator(portfolio=selected_portfolio),
             'can_save_runs': getattr(request.user, 'role', None) in {'manager', 'admin'},
-            'saved_runs': StrategyRun.objects.select_related('portfolio', 'created_by', 'result').filter(
-                portfolio=selected_portfolio
-            )[:8] if selected_portfolio else [],
+            'can_manage_runs': getattr(request.user, 'role', None) in {'manager', 'admin'},
+            'saved_runs': saved_runs,
         }
         return context
 
@@ -81,6 +91,19 @@ class CollectionsSimulatorView(View):
     @method_decorator(manager_or_admin_required)
     def post(self, request):
         selected_portfolio = _selected_portfolio(request)
+        action = request.POST.get('action', 'save_run').strip()
+
+        if action == 'delete_run':
+            if selected_portfolio is None:
+                messages.error(request, 'Select a portfolio before deleting a saved strategy run.')
+                return redirect('strategy-simulator')
+            run_id = request.POST.get('run_id', '').strip()
+            strategy_run = get_object_or_404(StrategyRun, id=run_id, portfolio=selected_portfolio)
+            deleted_name = strategy_run.name
+            strategy_run.delete()
+            messages.success(request, f'Strategy run deleted: {deleted_name}.')
+            return redirect(f"/strategy/simulator/?portfolio={selected_portfolio.id}")
+
         if selected_portfolio is None:
             messages.error(request, 'Select a portfolio before saving a strategy run.')
             return redirect('strategy-simulator')
