@@ -43,6 +43,7 @@ SORT_LABELS = {
 DEFAULT_SORT = 'risk_score'
 DEFAULT_DIRECTION = 'desc'
 PAGE_SIZE = 15
+DASHBOARD_STRATEGY_SNAPSHOT_LIMIT = 250
 
 
 def _format_compact_number(value):
@@ -379,7 +380,10 @@ def _navigation_actions(filters, user):
 
 
 def _strategy_snapshot(filtered_debtors):
-    strategy_payload = build_strategy_workspace(debtors=filtered_debtors)
+    strategy_payload = build_strategy_workspace(
+        debtors=filtered_debtors,
+        max_debtors=DASHBOARD_STRATEGY_SNAPSHOT_LIMIT,
+    )
     summary = strategy_payload['summary']
     recommendations = strategy_payload['recommendations'][:5]
     action_mix = strategy_payload['action_mix'][:3]

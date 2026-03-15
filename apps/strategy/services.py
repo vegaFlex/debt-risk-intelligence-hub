@@ -510,13 +510,21 @@ def build_debtor_strategy_detail(debtor: Debtor) -> dict:
     }
 
 
-def build_strategy_workspace(*, portfolio=None, debtors=None):
+def _scope_strategy_debtors(debtors, *, max_debtors=None):
+    if hasattr(debtors, 'select_related'):
+        scoped = debtors.select_related('portfolio')
+        if max_debtors:
+            scoped = scoped.order_by('-risk_score', '-outstanding_total', 'id')[:max_debtors]
+        return scoped.prefetch_related('payments', 'promises_to_pay', 'call_logs')
+    return debtors
+
+
+def build_strategy_workspace(*, portfolio=None, debtors=None, max_debtors=None):
     if debtors is None:
         debtors = Debtor.objects.all()
         if portfolio is not None:
             debtors = debtors.filter(portfolio=portfolio)
-
-    debtors = debtors.select_related('portfolio').prefetch_related('payments', 'promises_to_pay', 'call_logs')
+    debtors = _scope_strategy_debtors(debtors, max_debtors=max_debtors)
 
     recommendations = [_recommendation_payload(debtor) for debtor in debtors]
     recommendations.sort(key=lambda item: (item['priority_score'], item['expected_uplift_amount']), reverse=True)
@@ -549,8 +557,8 @@ def build_strategy_workspace(*, portfolio=None, debtors=None):
 
 
 
-def build_collector_queue(*, portfolio=None, debtors=None, queue_limit: int = 30):
-    workspace = build_strategy_workspace(portfolio=portfolio, debtors=debtors)
+def build_collector_queue(*, portfolio=None, debtors=None, queue_limit: int = 30, max_debtors=None):
+    workspace = build_strategy_workspace(portfolio=portfolio, debtors=debtors, max_debtors=max_debtors)
     recommendations = workspace['recommendations']
 
     collectors = ('Lane Alpha', 'Lane Bravo', 'Lane Charlie')
@@ -616,8 +624,8 @@ def build_collector_queue(*, portfolio=None, debtors=None, queue_limit: int = 30
 
 
 
-def build_strategy_simulator(*, portfolio=None, debtors=None):
-    workspace = build_strategy_workspace(portfolio=portfolio, debtors=debtors)
+def build_strategy_simulator(*, portfolio=None, debtors=None, max_debtors=None):
+    workspace = build_strategy_workspace(portfolio=portfolio, debtors=debtors, max_debtors=max_debtors)
     recommendations = workspace['recommendations']
 
     strategy_rows = []

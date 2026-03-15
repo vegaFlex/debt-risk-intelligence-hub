@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import include, path
 
@@ -13,7 +14,12 @@ def root_redirect(_request):
     return redirect('dashboard-home')
 
 
+def healthcheck(_request):
+    return HttpResponse('ok', content_type='text/plain')
+
+
 urlpatterns = [
+    path('healthz/', healthcheck, name='healthcheck'),
     path('docs/', docs_views.documentation_hub, name='docs-home'),
     path('docs/user-guide/', docs_views.user_guide, name='docs-user-guide'),
     path('docs/manual-testing-guide/', docs_views.manual_testing_guide, name='docs-manual-testing-guide'),

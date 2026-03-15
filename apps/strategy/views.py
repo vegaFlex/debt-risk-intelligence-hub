@@ -22,6 +22,7 @@ from apps.users.decorators import manager_or_admin_required, viewer_or_manager_o
 DEFAULT_QUEUE_SIZE = 30
 MIN_QUEUE_SIZE = 1
 MAX_QUEUE_SIZE = 100
+DEFAULT_UNFILTERED_STRATEGY_LIMIT = 600
 
 
 def _selected_portfolio(request):
@@ -49,7 +50,12 @@ class CollectionsWorkspaceView(TemplateView):
         context = super().get_context_data(**kwargs)
         filter_context = _strategy_filter_context(self.request)
         context.update(filter_context)
-        context.update(build_strategy_workspace(portfolio=filter_context['selected_portfolio']))
+        context.update(
+            build_strategy_workspace(
+                portfolio=filter_context['selected_portfolio'],
+                max_debtors=None if filter_context['selected_portfolio'] else DEFAULT_UNFILTERED_STRATEGY_LIMIT,
+            )
+        )
         return context
 
 
@@ -75,6 +81,7 @@ class CollectionsQueueView(TemplateView):
             build_collector_queue(
                 portfolio=filter_context['selected_portfolio'],
                 queue_limit=selected_queue_size,
+                max_debtors=None if filter_context['selected_portfolio'] else DEFAULT_UNFILTERED_STRATEGY_LIMIT,
             )
         )
         context['selected_queue_size'] = selected_queue_size
@@ -99,7 +106,10 @@ class CollectionsSimulatorView(View):
 
         context = {
             **filter_context,
-            **build_strategy_simulator(portfolio=selected_portfolio),
+            **build_strategy_simulator(
+                portfolio=selected_portfolio,
+                max_debtors=None if selected_portfolio else DEFAULT_UNFILTERED_STRATEGY_LIMIT,
+            ),
             'can_save_runs': getattr(request.user, 'role', None) in {'manager', 'admin'},
             'can_manage_runs': getattr(request.user, 'role', None) in {'manager', 'admin'},
             'saved_runs': saved_runs,
