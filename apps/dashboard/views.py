@@ -407,6 +407,7 @@ def _strategy_snapshot(filtered_debtors):
         },
         'recommendations': recommendations,
         'action_mix': action_mix,
+        'single_action_note': len(action_mix) == 1 and recommendation_count > 0,
     }
 
 

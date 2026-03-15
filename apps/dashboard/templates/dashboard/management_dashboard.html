@@ -193,6 +193,9 @@
           <p class="chart-empty">No action mix is available for the current filters.</p>
         {% endfor %}
       </div>
+      {% if strategy_snapshot.single_action_note %}
+        <p class="section-copy strategy-mix-note">The current filter set is producing one dominant recommended action, so only one live action bar appears here.</p>
+      {% endif %}
       <div class="strategy-mix-stats">
         <div class="strategy-mix-stat">
           <span>Top Action</span>
