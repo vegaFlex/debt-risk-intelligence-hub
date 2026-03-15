@@ -8,16 +8,16 @@ It is designed as a portfolio-grade analytics product that demonstrates end-to-e
 - dashboard analytics
 - reporting exports
 - collections strategy intelligence
-- REST APIs
-- RBAC and CI
+- REST APIs (Application Programming Interfaces)
+- role-based access control (RBAC) and continuous integration (CI)
 
 ## Recruiter Snapshot
 - Business use case: debt portfolio operations, collections analytics, acquisition review, and next-best-action strategy planning
 - End-to-end flow: `import -> validation -> scoring -> dashboard -> reports -> valuation -> strategy -> admin`
-- Acquisition layer includes: `valuation -> benchmark fallback -> scenario analysis -> comparison desk -> ML baseline scaffold`
-- Collections layer includes: `next-best-action -> collector queue -> queue snapshot sizing -> collector lanes -> simulator -> debtor detail -> saved run history -> rules workspace -> strategy API`
-- Built with: Django, DRF, SQLite (demo/dev), openpyxl, reportlab
-- Includes: dynamic charts, API layer, role-based access, tests, CI
+- Acquisition layer includes: `valuation -> benchmark fallback -> scenario analysis -> comparison desk -> machine learning (ML) baseline scaffold`
+- Collections layer includes: `next-best-action -> collector queue -> queue snapshot sizing -> collector lanes -> simulator -> debtor detail -> saved run history -> rules workspace -> strategy API (Application Programming Interface)`
+- Built with: Django, Django REST Framework (DRF), SQLite (demo/dev), openpyxl, reportlab
+- Includes: dynamic charts, API (Application Programming Interface) layer, role-based access, tests, and CI (continuous integration)
 - Reporting currency for demo data: `EUR`
 
 ## Live Demo
@@ -56,23 +56,23 @@ Debt operations teams often work with fragmented CSV/Excel exports, ad-hoc scori
 This project centralizes those workflows into one system that supports:
 - portfolio-level visibility
 - debtor prioritization
-- KPI monitoring
+- KPI (key performance indicator) monitoring
 - repeatable management reporting
 - package valuation and acquisition review
 - action strategy planning for collections teams
 
 ## Core Features
-- CSV/Excel import with required-column validation, row-level errors, preview before save
+- CSV (comma-separated values) / Excel import with required-column validation, row-level errors, preview before save
 - Baseline rule-based risk scoring (`risk_score`, `risk_band`, reason factors)
-- REST API for portfolios, debtors, risk details, and KPI overview
-- Management dashboard with filters, KPI cards, dynamic visual analytics, segment breakdowns, strategy action-mix stats, and one-click navigation to valuation flows
+- REST API (Application Programming Interface) for portfolios, debtors, risk details, and KPI (key performance indicator) overview
+- Management dashboard with filters, KPI (key performance indicator) cards, dynamic visual analytics, segment breakdowns, strategy action-mix stats, and one-click navigation to valuation flows
 - Performance module (`contact_rate`, `ptp_rate`, `conversion_rate`, `recovery_rate`)
-- Excel and PDF management report exports
+- Excel and PDF (Portable Document Format) management report exports
 - Collections intelligence workspace with next-best-action recommendations, collector queue, and strategy simulator
-- Strategy rules workspace and read API endpoints for operational review
+- Strategy rules workspace and read API (Application Programming Interface) endpoints for operational review
 - Weekly report generation command
 - Role-based access control (Analyst / Manager / Admin)
-- GitHub Actions CI pipeline
+- GitHub Actions CI (continuous integration) pipeline
 - Demo portfolios standardized to `EUR` as the reporting currency
 
 ## Acquisition Intelligence Layer
@@ -82,9 +82,9 @@ Available in the current main application:
 - Scenario analysis for multiple bid levels (`6% / 8% / 10% / 12%`)
 - Acquisition import flow for new debtor packages
 - Historical benchmark management workspace
-- Valuation memo preview with Excel/PDF exports
-- ML-ready feature engineering layer
-- ML baseline forecast scaffold with prediction logging
+- Valuation memo preview with Excel / PDF (Portable Document Format) exports
+- machine learning (ML)-ready feature engineering layer
+- machine learning (ML) baseline forecast scaffold with prediction logging
 - Portfolio comparison desk for side-by-side acquisition review
 
 ## Collections Intelligence Layer
@@ -92,33 +92,33 @@ Available on the active `feature/strategy` branch:
 - Collections workspace with debtor-level next-best-action ranking, portfolio filtering, and direct debtor drill-down
 - Contact-history-aware strategy engine with call outcomes, no-answer streaks, refusal patterns, wrong-contact signals, and promise tracking
 - Collector queue workspace with adjustable queue snapshot size, collector lanes, priority buckets, and debtor detail links
-- Strategy simulator comparing `Call-First`, `Digital-First`, `Settlement`, `Legal Escalation`, and `Balanced Mixed` strategies with execution ROI, run notes, save, and delete actions
+- Strategy simulator comparing `Call-First`, `Digital-First`, `Settlement`, `Legal Escalation`, and `Balanced Mixed` strategies with execution ROI (return on investment), run notes, save, and delete actions
 - Saved strategy run history with stored recommendations, scenarios, queue snapshots, and delete controls for saved simulator runs
 - Strategy rules workspace for manager/admin tuning
-- Strategy API endpoints for recommendations, queue payloads, and simulator output
+- Strategy API (Application Programming Interface) endpoints for recommendations, queue payloads, and simulator output
 
 ## Why This Project Stands Out
 - Solves a real operations problem instead of acting like a generic CRUD demo
 - Combines backend workflows, analytics UI, reporting, and admin operations in one product
 - Shows product thinking: role-based access, validation, reporting flow, and recruiter-friendly demo data
-- Exposes a clean API layer, which makes the app BI-ready for tools like Power BI or Tableau
+- Exposes a clean API (Application Programming Interface) layer, which makes the app business-intelligence (BI)-ready for tools like Power BI or Tableau
 
 ## Tech Stack
 - Python 3.13
 - Django 5
-- Django REST Framework
+- Django REST Framework (DRF)
 - SQLite (local/dev)
 - openpyxl (Excel)
-- reportlab (PDF)
+- reportlab (PDF / Portable Document Format)
 
 ## Project Structure
-- `apps/users` - custom user model, roles, RBAC helpers
+- `apps/users` - custom user model, roles, and role-based access control (RBAC) helpers
 - `apps/portfolio` - debt domain models, import flow, APIs
 - `apps/scoring` - baseline scoring service
 - `apps/dashboard` - management dashboard views/templates
 - `apps/reports` - report services, exports, scheduled command
-- `apps/valuation` - acquisition pricing, benchmarks, scenario analysis, comparison desk, ML baseline scaffold
-- `apps/strategy` - next-best-action engine, collector queue, simulator, rules workspace, strategy APIs
+- `apps/valuation` - acquisition pricing, benchmarks, scenario analysis, comparison desk, and machine learning (ML) baseline scaffold
+- `apps/strategy` - next-best-action engine, collector queue, simulator, rules workspace, and strategy APIs (Application Programming Interfaces)
 - `docs/` - demo/testing walkthrough
 
 ## Local Setup
@@ -129,14 +129,14 @@ Available on the active `feature/strategy` branch:
 5. `python manage.py seed_demo_data`
 6. `python manage.py runserver`
 
-Demo note: sample portfolios are normalized to `EUR` for consistent KPI and reporting output.
+Demo note: sample portfolios are normalized to `EUR` for consistent KPI (key performance indicator) and reporting output.
 
 ## Quick Demo Flow
 If someone opens the repo and wants to understand the product quickly:
 1. Run the app locally
 2. Log in with `visitor_demo / DemoPass123!`
 3. Open `/dashboard/`
-4. Change the portfolio filter and review how KPI cards and charts update
+4. Change the portfolio filter and review how KPI (key performance indicator) cards and charts update
 5. Open `Full Debtor List`
 6. Open `Report Preview`
 7. Open `/valuation/`
@@ -161,7 +161,7 @@ Allowed:
 Restricted (friendly access message shown):
 - `/dashboard/`
 - `/api/kpis/overview/`
-- `/reports/management/` (including Excel/PDF downloads)
+- `/reports/management/` (including Excel / PDF (Portable Document Format) downloads)
 
 ### visitor_demo / DemoPass123!
 Allowed:
@@ -179,7 +179,7 @@ Allowed:
 - `/api/debtors/`
 
 Restricted (friendly access message shown):
-- report Excel/PDF downloads
+- report Excel / PDF (Portable Document Format) downloads
 - valuation import
 - run and save valuation
 - save strategy runs
@@ -194,7 +194,7 @@ Allowed:
 - Django admin panel: `/admin/`
 - Full admin privileges (`is_staff` + `is_superuser`)
 
-## Main URLs
+## Main URLs (Web Addresses)
 - Root (redirects to dashboard): `http://127.0.0.1:8000/`
 - Dashboard: `http://127.0.0.1:8000/dashboard/`
 - Data import: `http://127.0.0.1:8000/portfolio/import/`
@@ -211,7 +211,7 @@ Allowed:
 - Debtor strategy detail: `http://127.0.0.1:8000/strategy/debtors/<id>/`
 - API portfolios: `http://127.0.0.1:8000/api/portfolios/`
 - API debtors: `http://127.0.0.1:8000/api/debtors/`
-- API KPI overview: `http://127.0.0.1:8000/api/kpis/overview/`
+- API KPI (key performance indicator) overview: `http://127.0.0.1:8000/api/kpis/overview/`
 - API strategy recommendations: `http://127.0.0.1:8000/api/strategy/recommendations/`
 - API strategy queue: `http://127.0.0.1:8000/api/strategy/queue/`
 - API strategy simulator: `http://127.0.0.1:8000/api/strategy/simulator/`
@@ -219,10 +219,10 @@ Allowed:
 
 ## Reports
 - Excel export: `/reports/management/excel/`
-- PDF export: `/reports/management/pdf/`
+- PDF (Portable Document Format) export: `/reports/management/pdf/`
 - Weekly summary command: `python manage.py generate_weekly_reports`
 
-## API Overview
+## API (Application Programming Interface) Overview
 - `GET /api/portfolios/`
 - `GET /api/debtors/`
 - `GET /api/debtors/<id>/score/`
@@ -245,7 +245,7 @@ Query examples:
   - `python manage.py test apps.valuation.tests`
   - `python manage.py test apps.strategy.tests apps.strategy.tests_api`
 
-## CI
+## CI (Continuous Integration)
 GitHub Actions workflow:
 - installs dependencies
 - runs `python manage.py check`
@@ -261,17 +261,17 @@ See `docs/demo_checklist.md` for a step-by-step localhost QA flow.
 Current `main` application includes:
 - data import + validation + preview + persistence
 - risk scoring engine v1
-- API layer
+- API (Application Programming Interface) layer
 - dashboard + performance module + dynamic portfolio charts
 - reporting exports + weekly command
-- RBAC with public `visitor_demo` read-only access
+- role-based access control (RBAC) with public `visitor_demo` read-only access
 - acquisition intelligence workspace
 - valuation ranking and recommendation actions
 - benchmark and similarity fallback
 - scenario analysis and valuation memo exports
-- ML baseline forecast scaffold
+- machine learning (ML) baseline forecast scaffold
 - portfolio comparison desk
-- CI and tests
+- continuous integration (CI) and tests
 
 Active `feature/strategy` branch adds:
 - collections intelligence workspace
@@ -281,7 +281,7 @@ Active `feature/strategy` branch adds:
 - portfolio filtering and saved strategy run history
 - debtor strategy detail screen
 - strategy rules workspace
-- strategy API layer
+- strategy API (Application Programming Interface) layer
 
 Planned next:
 - optional training dataset ingestion path
@@ -290,7 +290,7 @@ Planned next:
 ## UI Preview
 
 ### Dashboard Overview
-Main management workspace with KPI cards, compact filters, quick navigation, dynamic charts, and portfolio-wide debt monitoring.
+Main management workspace with KPI (key performance indicator) cards, compact filters, quick navigation, dynamic charts, and portfolio-wide debt monitoring.
 ![Dashboard Overview](docs/images/dashboard-overview.jpg)
 
 ### Dashboard Charts
@@ -320,7 +320,7 @@ The core acquisition review screen shows the recommendation, compact pricing KPI
 ![Valuation Preview](docs/images/valuation-preview.jpg)
 
 ### Portfolio Comparison Desk
-Compare multiple acquisition targets side by side across attractiveness, expected recovery, bid discipline, ROI, confidence, and recommendation output.
+Compare multiple acquisition targets side by side across attractiveness, expected recovery, bid discipline, ROI (return on investment), confidence, and recommendation output.
 ![Portfolio Comparison Desk](docs/images/valuation-comparison.jpg)
 
 ### Ranking Cards
@@ -346,7 +346,7 @@ The simulator compares multiple collections strategies side by side and highligh
 ![Strategy Simulator](docs/images/strategy-simulator.jpg)
 
 ### Strategy Run History
-Saved simulator runs preserve past outcomes for the selected portfolio so the team can compare recovery, uplift, execution cost, and ROI over time.
+Saved simulator runs preserve past outcomes for the selected portfolio so the team can compare recovery, uplift, execution cost, and ROI (return on investment) over time.
 ![Strategy Run History](docs/images/strategy-simulator-history.jpg)
 
 ### Debtor Strategy Detail
@@ -364,7 +364,7 @@ The rules workspace lets managers tune recommendation behavior through action ru
 - When all portfolios are selected, the exposure chart uses `Top 5 + Others` to stay readable.
 - When a single portfolio is selected, the exposure chart focuses only on that portfolio's segments.
 
-## Developer API Preview
+## Developer API (Application Programming Interface) Preview
 
 ### Portfolios Endpoint
 ![API Portfolios](docs/images/api-portfolios.jpg)
@@ -372,7 +372,7 @@ The rules workspace lets managers tune recommendation behavior through action ru
 ### Debtors Endpoint
 ![API Debtors](docs/images/api-debtors.jpg)
 
-### KPI Overview Endpoint
+### KPI (Key Performance Indicator) Overview Endpoint
 ![API KPIs](docs/images/api-kpis.jpg)
 
 
