@@ -26,7 +26,7 @@
 
   <form method="post">
     {% csrf_token %}
-    <div class="filters-grid">
+    <div class="filters-grid strategy-rule-grid">
       <div><label for="id_name">Rule Name</label>{{ form.name }}</div>
       <div><label for="id_risk_band">Risk Band</label>{{ form.risk_band }}</div>
       <div><label for="id_debtor_status">Debtor Status</label>{{ form.debtor_status }}</div>
@@ -36,9 +36,9 @@
       <div><label for="id_recommended_channel">Recommended Channel</label>{{ form.recommended_channel }}</div>
       <div><label for="id_base_uplift_pct">Base Uplift %</label>{{ form.base_uplift_pct }}</div>
       <div><label for="id_priority_weight">Priority Weight</label>{{ form.priority_weight }}</div>
-      <div><label for="id_requires_phone">Requires Phone</label>{{ form.requires_phone }}</div>
-      <div><label for="id_requires_email">Requires Email</label>{{ form.requires_email }}</div>
-      <div><label for="id_active">Active</label>{{ form.active }}</div>
+      <div class="checkbox-field"><label for="id_requires_phone">Requires Phone</label><div class="checkbox-control">{{ form.requires_phone }}</div></div>
+      <div class="checkbox-field"><label for="id_requires_email">Requires Email</label><div class="checkbox-control">{{ form.requires_email }}</div></div>
+      <div class="checkbox-field"><label for="id_active">Active</label><div class="checkbox-control">{{ form.active }}</div></div>
       <div class="full-span"><label for="id_notes">Notes</label>{{ form.notes }}</div>
     </div>
     <div class="actions">
