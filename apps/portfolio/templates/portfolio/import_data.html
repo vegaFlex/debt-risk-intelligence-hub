@@ -3,14 +3,24 @@
 {% block title %}Import - Debt & Risk Hub{% endblock %}
 
 {% block content %}
-<section class="card">
-  <h2>Portfolio Data Import</h2>
+<section class="page-header card">
+  <p class="eyebrow">Portfolio Operations</p>
+  <h1>Portfolio Data Import</h1>
+  <p class="muted-copy">Upload a structured CSV file, validate the rows before persistence, and preview how the debtor records will enter the workspace.</p>
+</section>
 
+<section class="card table-section-card">
+  <div class="section-card-head">
+    <div>
+      <h2>Import File</h2>
+      <p class="section-copy">Provide the portfolio metadata and CSV file first. The app will validate the structure and show you a preview before anything is saved.</p>
+    </div>
+  </div>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" name="action" value="preview">
 
-    <div class="filters-grid">
+    <div class="form-section-grid">
       <div>
         <label for="id_portfolio_name">Portfolio Name</label>
         {{ form.portfolio_name }}
@@ -35,7 +45,7 @@
         <label for="id_face_value">Face Value</label>
         {{ form.face_value }}
       </div>
-      <div style="grid-column: 1 / -1;">
+      <div class="full-span">
         <label for="id_data_file">Import File (CSV)</label>
         {{ form.data_file }}
       </div>
@@ -51,11 +61,30 @@
   {% endif %}
 
   {% if summary %}
-    <section class="card" style="margin-top:12px;">
-      <h2>Validation Summary</h2>
-      <p>Total rows: {{ summary.total_rows }}</p>
-      <p>Valid rows: {{ summary.valid_rows }}</p>
-      <p>Errors: {{ summary.error_count }}</p>
+    <section class="card card-compact">
+      <div class="section-card-head">
+        <div>
+          <h3>Validation Summary</h3>
+          <p class="section-copy">Review the validation outcome before confirming the import into the portfolio database.</p>
+        </div>
+      </div>
+      <div class="info-grid">
+        <article class="mini-stat-card">
+          <p class="eyebrow">Total Rows</p>
+          <h3>{{ summary.total_rows }}</h3>
+          <p class="metric-subtitle">Rows parsed from the uploaded file</p>
+        </article>
+        <article class="mini-stat-card">
+          <p class="eyebrow">Valid Rows</p>
+          <h3>{{ summary.valid_rows }}</h3>
+          <p class="metric-subtitle">Rows ready for import</p>
+        </article>
+        <article class="mini-stat-card">
+          <p class="eyebrow">Errors</p>
+          <h3>{{ summary.error_count }}</h3>
+          <p class="metric-subtitle">Rows that need attention first</p>
+        </article>
+      </div>
 
       <form method="post">
         {% csrf_token %}
@@ -67,9 +96,14 @@
 </section>
 
 {% if row_errors %}
-<section class="card">
-  <h2>Validation Errors (first 20)</h2>
-  <ul>
+<section class="card table-section-card">
+  <div class="section-card-head">
+    <div>
+      <h2>Validation Errors</h2>
+      <p class="section-copy">The first 20 validation problems are listed below so you can fix the source file before re-uploading it.</p>
+    </div>
+  </div>
+  <ul class="record-list">
     {% for error in row_errors %}
       <li>{{ error }}</li>
     {% endfor %}
@@ -78,8 +112,15 @@
 {% endif %}
 
 {% if preview_rows %}
-<section class="table-wrap">
-  <table>
+<section class="card table-section-card">
+  <div class="section-card-head">
+    <div>
+      <h2>Preview Rows</h2>
+      <p class="section-copy">A sample of validated debtor rows before the final import is confirmed.</p>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
     <thead>
       <tr>
         <th>external_id</th><th>full_name</th><th>days_past_due</th><th>outstanding_total</th><th>risk_score</th><th>risk_band</th><th>risk_factors</th>
@@ -98,7 +139,8 @@
         </tr>
       {% endfor %}
     </tbody>
-  </table>
+    </table>
+  </div>
 </section>
 {% endif %}
 {% endblock %}

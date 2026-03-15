@@ -66,8 +66,9 @@
     <p class="section-copy">Click any column header to sort ascending or descending. The table stays anchored here after each sort or page change.</p>
   </div>
 </section>
-<section class="table-wrap">
-  <table>
+<section class="card table-section-card">
+  <div class="table-wrap">
+    <table>
     <thead>
       <tr>
         <th><a class="sort-link{% if sort_state.full_name.is_active %} active{% endif %}" href="?{{ sort_links.full_name }}">Debtor <span class="sort-indicator">{% if sort_state.full_name.direction == 'asc' %}&uarr;{% elif sort_state.full_name.direction == 'desc' %}&darr;{% else %}&harr;{% endif %}</span></a></th>
@@ -94,7 +95,8 @@
         <tr><td colspan="7">No debtors found for the selected filters.</td></tr>
       {% endfor %}
     </tbody>
-  </table>
+    </table>
+  </div>
 </section>
 
 <section class="pagination-bar">

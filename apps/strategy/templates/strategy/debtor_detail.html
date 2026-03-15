@@ -22,7 +22,7 @@
     </div>
   </div>
 
-  <div class="mini-stat-grid">
+  <div class="mini-stat-grid strategy-detail-kpis">
     <article class="mini-stat-card">
       <p class="eyebrow">Recommended Action</p>
       <h3>{{ recommendation.recommended_action_label }}</h3>
@@ -56,8 +56,8 @@
   </div>
 </section>
 
-<section class="strategy-dashboard-grid">
-  <article class="strategy-dashboard-card">
+<section class="strategy-detail-grid">
+  <article class="strategy-dashboard-card strategy-detail-logic-card">
     <div class="section-heading">
       <div>
         <p class="eyebrow">Recommendation Logic</p>
@@ -65,7 +65,7 @@
         <p class="muted-copy">{{ recommendation.reason_summary }}</p>
       </div>
     </div>
-    <div class="mini-stat-grid">
+    <div class="strategy-detail-signal-grid">
       {% for signal in signals %}
         <article class="mini-stat-card">
           <p class="eyebrow">{{ signal.label }}</p>
@@ -76,7 +76,7 @@
     </div>
   </article>
 
-  <article class="strategy-dashboard-card">
+  <article class="strategy-dashboard-card strategy-detail-scenario-card">
     <div class="section-heading">
       <div>
         <p class="eyebrow">Alternative Actions</p>
@@ -114,7 +114,7 @@
   </article>
 </section>
 
-<section class="strategy-dashboard-grid">
+<section class="strategy-detail-grid strategy-detail-history-grid">
   <article class="strategy-dashboard-card">
     <div class="section-heading">
       <div>

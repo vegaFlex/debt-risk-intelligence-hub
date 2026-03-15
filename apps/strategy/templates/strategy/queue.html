@@ -12,7 +12,7 @@
 <section class="card card-compact">
   <form method="get">
     <div class="filter-toolbar">
-      <div class="filters-grid">
+      <div class="filters-grid strategy-filter-grid">
         <div>
           <label for="queue-portfolio">Portfolio</label>
           <select name="portfolio" id="queue-portfolio">
@@ -67,7 +67,7 @@
       <p class="muted-copy">The first V3 queue distributes the top recommended cases across collector lanes for easier operational review.</p>
     </div>
   </div>
-  <div class="insight-grid">
+  <div class="collector-lane-grid">
     {% for collector in collector_cards %}
       <article class="insight-card">
         <p class="eyebrow">{{ collector.collector_name }}</p>
@@ -80,7 +80,7 @@
         </ul>
       </article>
     {% empty %}
-      <p class="muted-copy">No collector queue items are available yet.</p>
+      <p class="muted-copy strategy-grid-empty">No collector queue items are available yet.</p>
     {% endfor %}
   </div>
 </section>
