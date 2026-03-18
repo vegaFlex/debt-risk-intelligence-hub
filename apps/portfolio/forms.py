@@ -14,6 +14,7 @@ class PortfolioImportForm(forms.Form):
                 'inputmode': 'numeric',
                 'autocomplete': 'off',
                 'spellcheck': 'false',
+                'class': 'date-icon-field',
             },
         ),
     )
@@ -21,3 +22,4 @@ class PortfolioImportForm(forms.Form):
     face_value = forms.DecimalField(max_digits=14, decimal_places=2)
     currency = forms.CharField(max_length=3, initial='EUR')
     data_file = forms.FileField(help_text='Upload CSV or XLSX file with debtor records.')
+
