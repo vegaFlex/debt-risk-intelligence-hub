@@ -36,11 +36,11 @@
         </div>
         <div>
           <label for="date_from">Created From</label>
-          <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}" class="date-icon-field{% if filters.date_from %} has-value{% endif %}">
+          <input type="text" id="date_from" name="date_from" value="{{ filters.date_from }}" placeholder="YYYY-MM-DD" inputmode="numeric" autocomplete="off" spellcheck="false" class="date-icon-field{% if filters.date_from %} has-value{% endif %}">
         </div>
         <div>
           <label for="date_to">Created To</label>
-          <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}" class="date-icon-field{% if filters.date_to %} has-value{% endif %}">
+          <input type="text" id="date_to" name="date_to" value="{{ filters.date_to }}" placeholder="YYYY-MM-DD" inputmode="numeric" autocomplete="off" spellcheck="false" class="date-icon-field{% if filters.date_to %} has-value{% endif %}">
         </div>
       </div>
       <div class="actions actions-toolbar">
